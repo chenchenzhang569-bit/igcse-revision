@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type PastPaper = {
   id: string;
@@ -46,9 +48,9 @@ export function TopicTabs({
   pairedPapers: PaperPair[];
 }) {
   const [tab, setTab] = useState<Tab>("notes");
-  const [expandedMcq, setExpandedMcq] = useState<string | null>(null);
-  const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
-  const [mcqChecked, setMcqChecked] = useState<Record<string, boolean>>({});
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [showResults, setShowResults] = useState(false);
+  const [currentQ, setCurrentQ] = useState(0);
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "notes", label: "📝 笔记", count: notes.length },
@@ -56,29 +58,54 @@ export function TopicTabs({
     { key: "structured", label: "📄 问答题", count: pairedPapers.length },
   ];
 
-  function parseMcqOptions(text: string): { stem: string; options: { key: string; text: string }[] } {
-    const lines = text.split("\n").filter(Boolean);
-    const options: { key: string; text: string }[] = [];
+  // Sort MCQs by difficulty: easy → medium → hard
+  const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
+  const sortedMcqs = [...mcqs].sort(
+    (a, b) => (diffOrder[a.difficulty] ?? 9) - (diffOrder[b.difficulty] ?? 9)
+  );
+
+  const score = sortedMcqs.filter((q) => userAnswers[q.id] === q.answer_text).length;
+
+  function selectAnswer(qId: string, answer: string) {
+    if (showResults) return;
+    setUserAnswers((prev) => ({ ...prev, [qId]: answer }));
+  }
+
+  function handleSubmit() {
+    setShowResults(true);
+  }
+
+  function handleReset() {
+    setUserAnswers({});
+    setShowResults(false);
+  }
+
+  // Separate MCQ text into stem and options for cleaner display
+  function parseQuestion(text: string): { stem: string; options: string[]; images: string[] } {
+    const lines = text.split("\n");
     const stemLines: string[] = [];
+    const options: string[] = [];
+    const images: string[] = [];
+    let inOptions = false;
+
     for (const line of lines) {
-      const match = line.match(/^([A-D])[).]\s*(.+)/);
-      if (match) {
-        options.push({ key: match[1], text: match[2] });
+      if (/^[A-D]\)/.test(line.trim())) {
+        inOptions = true;
+        options.push(line.trim());
+      } else if (inOptions) {
+        options.push(line.trim());
+      } else if (line.startsWith("![")) {
+        images.push(line);
       } else {
         stemLines.push(line);
       }
     }
-    return { stem: stemLines.join("\n"), options };
-  }
 
-  function checkMcq(q: Question) {
-    const userAnswer = mcqAnswers[q.id];
-    if (!userAnswer) return;
-    const correct = q.answer_text.trim().toUpperCase();
-    setMcqChecked((prev) => ({
-      ...prev,
-      [q.id]: userAnswer.toUpperCase()[0] === correct[0],
-    }));
+    return {
+      stem: [...stemLines, ...images].join("\n"),
+      options,
+      images,
+    };
   }
 
   return (
@@ -119,8 +146,8 @@ export function TopicTabs({
                   )}
                 </div>
                 {note.content && (
-                  <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-line mb-4">
-                    {note.content}
+                  <div className="prose prose-sm max-w-none text-gray-700 mb-4">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
                   </div>
                 )}
                 {note.file_url && (
@@ -157,29 +184,19 @@ export function TopicTabs({
                   {mcqPairs.map((pair, i) => (
                     <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
-                          MCQ {i + 1}
-                        </span>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">MCQ {i + 1}</span>
                         <span className="text-sm text-gray-700">
                           {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "").replace(/ - MCQ.*$/, "")}
                         </span>
                       </div>
                       <div className="flex gap-2">
-                        <a
-                          href={pair.qp.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition"
-                        >
+                        <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">
                           📄 题目
                         </a>
                         {pair.ms && pair.ms.id !== pair.qp.id && (
-                          <a
-                            href={pair.ms.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition"
-                          >
+                          <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">
                             📝 答案
                           </a>
                         )}
@@ -190,75 +207,123 @@ export function TopicTabs({
               </div>
             )}
 
-            {/* Online MCQs */}
-            {mcqs.length > 0 && (
+            {/* Online MCQs - SME style */}
+            {sortedMcqs.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">
-                  💻 在线作答
-                </h3>
-                <div className="space-y-4">
-                  {mcqs.map((q, i) => {
-                    const { stem, options } = parseMcqOptions(q.question_text);
-                    const checked = mcqChecked[q.id];
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    💻 在线作答 ({sortedMcqs.length} 题)
+                  </h3>
+                  <div className="flex gap-2">
+                    {!showResults ? (
+                      <button onClick={handleSubmit}
+                        disabled={Object.keys(userAnswers).length < sortedMcqs.length}
+                        className="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        提交答案
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-gray-700">
+                          得分: {score}/{sortedMcqs.length} ({Math.round((score / sortedMcqs.length) * 100)}%)
+                        </span>
+                        <button onClick={handleReset}
+                          className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
+                          重新作答
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {sortedMcqs.map((q, i) => {
+                    const { stem, options } = parseQuestion(q.question_text);
+                    const userAnswer = userAnswers[q.id];
+                    const isCorrect = userAnswer === q.answer_text;
+                    const diffColor =
+                      q.difficulty === "easy" ? "bg-green-50 text-green-600"
+                      : q.difficulty === "medium" ? "bg-yellow-50 text-yellow-600"
+                      : "bg-red-50 text-red-600";
+                    const diffLabel =
+                      q.difficulty === "easy" ? "简单"
+                      : q.difficulty === "medium" ? "中等" : "困难";
+
                     return (
-                      <div key={q.id} className="bg-white border rounded-xl p-5">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                            q.difficulty === "easy" ? "bg-green-50 text-green-600"
-                            : q.difficulty === "medium" ? "bg-yellow-50 text-yellow-600"
-                            : "bg-red-50 text-red-600"
-                          }`}>
-                            {q.difficulty === "easy" ? "简单" : q.difficulty === "medium" ? "中等" : "困难"}
-                          </span>
-                          <span className="text-xs text-gray-400">{q.marks} 分</span>
-                        </div>
-
-                        <p className="text-gray-800 mb-3 whitespace-pre-line">{stem}</p>
-
-                        <div className="space-y-2 mb-4">
-                          {options.map((opt) => (
-                            <label
-                              key={opt.key}
-                              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
-                                checked !== undefined
-                                  ? opt.key === q.answer_text.trim().toUpperCase()
-                                    ? "bg-green-50 border-green-300"
-                                    : mcqAnswers[q.id]?.toUpperCase()[0] === opt.key
-                                    ? "bg-red-50 border-red-300"
-                                    : "bg-gray-50 border-gray-200"
-                                  : "hover:bg-gray-50 border-gray-200"
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name={`mcq-${q.id}`}
-                                value={opt.key}
-                                checked={mcqAnswers[q.id]?.toUpperCase()[0] === opt.key}
-                                onChange={(e) =>
-                                  setMcqAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
-                                }
-                                disabled={checked !== undefined}
-                                className="text-primary-600"
-                              />
-                              <span className="text-sm"><strong>{opt.key})</strong> {opt.text}</span>
-                            </label>
-                          ))}
-                        </div>
-
-                        {checked === undefined ? (
-                          <button
-                            onClick={() => checkMcq(q)}
-                            disabled={!mcqAnswers[q.id]}
-                            className="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            检查答案
-                          </button>
-                        ) : (
-                          <div className={`text-sm font-medium ${checked ? "text-green-600" : "text-red-600"}`}>
-                            {checked ? "✅ 正确！" : `❌ 错误！正确答案是 ${q.answer_text.trim().toUpperCase()}`}
+                      <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
+                        {/* Question header */}
+                        <div className="px-5 pt-5 pb-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
+                              Q{i + 1}
+                            </span>
+                            <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>
+                              {diffLabel}
+                            </span>
+                            <span className="text-xs text-gray-400">{q.marks} 分</span>
                           </div>
-                        )}
+
+                          {/* Question stem with markdown (for images) */}
+                          <div className="text-gray-800 mb-4 prose prose-sm max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}
+                              components={{
+                                img: ({ src, alt }) => (
+                                  <img src={src} alt={alt || ""} className="max-w-full rounded-lg my-3" style={{ maxHeight: 300 }} />
+                                ),
+                              }}>
+                              {stem}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+
+                        {/* Options */}
+                        <div className="px-5 pb-5 space-y-2">
+                          {options.map((opt) => {
+                            const label = opt.charAt(0);
+                            const text = opt.slice(3).trim();
+                            const isSelected = userAnswer === label;
+                            let optStyle = "border-gray-200 hover:bg-gray-50 cursor-pointer";
+
+                            if (showResults) {
+                              if (label === q.answer_text) {
+                                optStyle = "bg-green-50 border-green-400";
+                              } else if (isSelected && !isCorrect) {
+                                optStyle = "bg-red-50 border-red-400";
+                              } else {
+                                optStyle = "border-gray-200 opacity-60";
+                              }
+                            } else if (isSelected) {
+                              optStyle = "bg-primary-50 border-primary-400";
+                            }
+
+                            return (
+                              <button
+                                key={label}
+                                onClick={() => selectAnswer(q.id, label)}
+                                disabled={showResults}
+                                className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${optStyle}`}
+                              >
+                                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                                  showResults && label === q.answer_text
+                                    ? "bg-green-500 text-white"
+                                    : showResults && isSelected && !isCorrect
+                                    ? "bg-red-500 text-white"
+                                    : isSelected
+                                    ? "bg-primary-600 text-white"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}>
+                                  {label}
+                                </span>
+                                <span className="text-sm">{text}</span>
+                                {showResults && label === q.answer_text && (
+                                  <span className="ml-auto text-green-600 text-sm font-medium">✓ 正确</span>
+                                )}
+                                {showResults && isSelected && !isCorrect && (
+                                  <span className="ml-auto text-red-600 text-sm font-medium">✗</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}
@@ -281,29 +346,19 @@ export function TopicTabs({
               <div key={pair.qp.id} className="bg-white border rounded-xl p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium mr-2">
-                      Q{i + 1}
-                    </span>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium mr-2">Q{i + 1}</span>
                     <span className="text-sm text-gray-700">
                       {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "")}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <a
-                      href={pair.qp.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition"
-                    >
+                    <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">
                       📄 题目
                     </a>
                     {pair.ms && pair.ms.id !== pair.qp.id && (
-                      <a
-                        href={pair.ms.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition"
-                      >
+                      <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">
                         📝 答案
                       </a>
                     )}
