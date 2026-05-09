@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -31,13 +30,7 @@ export default function LoginPage() {
         return;
       }
 
-      // 把 session 设到浏览器 cookie（关键！中间件靠这个判断登录状态）
-      const supabase = createClient();
-      await supabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      });
-
+      // Cookie 已由服务端 API 设置，直接跳转
       window.location.href = "/dashboard";
     } catch (err: any) {
       if (err.name === "TimeoutError" || err.name === "AbortError") {
