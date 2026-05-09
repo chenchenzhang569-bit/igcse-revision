@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Subject = {
   id: string; name: string; display_name: string; code: string | null;
@@ -19,8 +19,9 @@ type Note = {
 };
 type Tab = "subjects" | "topics" | "notes";
 
-export default function AdminPage() {
+function AdminPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("subjects");
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -31,6 +32,14 @@ export default function AdminPage() {
   const [editNote, setEditNote] = useState<Note | null>(null);
 
   const supabase = createClient();
+
+  // Read tab from URL query param
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as Tab | null;
+    if (tabParam && ["subjects", "topics", "notes"].includes(tabParam)) {
+      setTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function checkAuth() {
@@ -99,7 +108,7 @@ export default function AdminPage() {
 
         <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 w-fit">
           {(["subjects", "topics", "notes"] as Tab[]).map((t) => (
-            <button key={t} onClick={() => { setTab(t); setEditSubject(null); setEditTopic(null); setEditNote(null); }}
+            <button key={t} onClick={() => { setTab(t); setEditSubject(null); setEditTopic(null); setEditNote(null); router.replace(`/admin?tab=${t}`, { scroll: false }); }}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === t ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
               {{ subjects: "科目", topics: "主题", notes: "笔记" }[t]}
             </button>
@@ -198,6 +207,15 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Wrap with Suspense for useSearchParams
+export default function AdminPageWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">加载中...</div>}>
+      <AdminPage />
+    </Suspense>
   );
 }
 
