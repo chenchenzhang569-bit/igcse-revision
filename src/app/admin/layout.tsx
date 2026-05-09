@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-const tabs = [
-  { id: "subjects", label: "📚 科目管理" },
-  { id: "topics", label: "📂 主题管理" },
-  { id: "notes", label: "📝 笔记管理" },
+const contentTabs = [
+  { id: "subjects", label: "📚 科目管理", tab: "subjects" },
+  { id: "topics", label: "📂 主题管理", tab: "topics" },
+  { id: "notes", label: "📝 笔记管理", tab: "notes" },
+  { id: "questions", label: "❓ 题库管理", tab: "questions" },
+];
+
+const toolsLinks = [
+  { href: "/admin/past-papers", label: "📄 历年真题" },
+  { href: "/admin/mock-exams", label: "📋 模拟试卷" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,20 +29,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-1">
-          {tabs.map((tab) => {
+          <p className="text-xs text-gray-500 uppercase tracking-wider px-3 mb-1">内容管理</p>
+          {contentTabs.map((item) => {
             const active = pathname === "/admin";
             return (
               <button
-                key={tab.id}
-                onClick={() => router.push(`/admin?tab=${tab.id}`)}
+                key={item.id}
+                onClick={() => router.push(`/admin?tab=${item.tab}`)}
                 className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                   active
                     ? "bg-gray-800 text-white"
                     : "text-gray-400 hover:text-white hover:bg-gray-800"
                 }`}
               >
-                {tab.label}
+                {item.label}
               </button>
+            );
+          })}
+
+          <p className="text-xs text-gray-500 uppercase tracking-wider px-3 mb-1 mt-4">资源管理</p>
+          {toolsLinks.map((item) => {
+            const active = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  active
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800"
+                }`}
+              >
+                {item.label}
+              </Link>
             );
           })}
         </nav>
