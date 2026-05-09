@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -269,21 +269,32 @@ function TopicForm({ onSaved }: { onSaved: () => void }) {
 
 function NoteForm({ onSaved }: { onSaved: () => void }) {
   const [form, setForm] = useState({ topic_id: "", title: "", content: "", is_free_preview: false });
+  const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setMsg("");
-    const res = await fetch("/api/admin/notes", {
+
+    const formData = new FormData();
+    formData.append("topic_id", form.topic_id);
+    formData.append("title", form.title);
+    formData.append("content", form.content);
+    formData.append("is_free_preview", String(form.is_free_preview));
+    if (file) formData.append("file", file);
+
+    const res = await fetch("/api/admin/notes/upload", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: formData,
     });
     if (res.ok) {
       setMsg("✅ 添加成功");
       setForm({ topic_id: "", title: "", content: "", is_free_preview: false });
+      setFile(null);
+      if (fileRef.current) fileRef.current.value = "";
       onSaved();
     } else {
       const data = await res.json();
@@ -294,11 +305,22 @@ function NoteForm({ onSaved }: { onSaved: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg border space-y-3">
-      <h3 className="font-medium">添加笔记</h3>
+      <h3 className="font-medium">添加笔记（支持 PDF 上传）</h3>
       <div className="space-y-3">
         <input className="border rounded px-3 py-2 text-sm w-full" placeholder="主题 ID" value={form.topic_id} onChange={e => setForm({...form, topic_id: e.target.value})} required />
         <input className="border rounded px-3 py-2 text-sm w-full" placeholder="标题" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
-        <textarea className="border rounded px-3 py-2 text-sm w-full h-32" placeholder="内容 (Markdown)" value={form.content} onChange={e => setForm({...form, content: e.target.value})} required />
+        <textarea className="border rounded px-3 py-2 text-sm w-full h-24" placeholder="内容描述 (可选，Markdown)" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">PDF 文件</label>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf"
+            onChange={e => setFile(e.target.files?.[0] || null)}
+            className="border rounded px-3 py-2 text-sm w-full"
+          />
+          {file && <p className="text-xs text-gray-400 mt-1">📄 {file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)</p>}
+        </div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.is_free_preview} onChange={e => setForm({...form, is_free_preview: e.target.checked})} />
           免费预览
@@ -306,7 +328,7 @@ function NoteForm({ onSaved }: { onSaved: () => void }) {
       </div>
       {msg && <p className="text-sm">{msg}</p>}
       <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
-        {saving ? "保存中..." : "添加笔记"}
+        {saving ? "上传中..." : "添加笔记"}
       </button>
     </form>
   );
