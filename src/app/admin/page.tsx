@@ -53,10 +53,21 @@ export default function AdminPage() {
     }
   }, [tab, loading]);
 
+  async function apiFetch(url: string, options: RequestInit = {}) {
+    const res = await fetch(url, { ...options, redirect: "manual" });
+    if (res.status >= 300 && res.status < 400) {
+      router.push("/login?redirect=" + encodeURIComponent(window.location.pathname));
+      throw new Error("登录已过期");
+    }
+    return res;
+  }
+
   async function handleDelete(api: string, id: string, label: string, refresh: () => void) {
     if (!confirm(`确认删除${label}？`)) return;
-    const res = await fetch(`/api/admin/${api}/${id}`, { method: "DELETE" });
-    if (res.ok) refresh(); else alert("删除失败");
+    try {
+      const res = await apiFetch(`/api/admin/${api}/${id}`, { method: "DELETE" });
+      if (res.ok) refresh(); else { const d = await res.json().catch(() => ({ error: "未知错误" })); alert("删除失败: " + (d.error || res.status)); }
+    } catch (e: any) { if (e.message !== "登录已过期") alert("请求失败: " + e.message); }
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">加载中...</div>;
@@ -206,9 +217,12 @@ function SubjectForm({ edit, onSaved, onCancel }: {
     e.preventDefault(); setSaving(true); setMsg("");
     const method = edit ? "PUT" : "POST";
     const url = edit ? `/api/admin/subjects/${edit.id}` : "/api/admin/subjects";
-    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-    if (res.ok) { setMsg(`✅ ${edit ? "更新" : "添加"}成功`); if (!edit) setForm({ name: "", display_name: "", code: "", slug: "", exam_board_id: "a672826f-9431-422c-b56c-28fe184c0612", price_cny: 29900, is_published: true }); onSaved(); }
-    else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
+    try {
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form), redirect: "manual" });
+      if (res.status >= 300 && res.status < 400) { setMsg("❌ 登录已过期，请重新登录"); setSaving(false); return; }
+      if (res.ok) { setMsg(`✅ ${edit ? "更新" : "添加"}成功`); if (!edit) setForm({ name: "", display_name: "", code: "", slug: "", exam_board_id: "a672826f-9431-422c-b56c-28fe184c0612", price_cny: 29900, is_published: true }); onSaved(); }
+      else { const d = await res.json().catch(() => ({ error: "未知错误" })); setMsg("❌ " + (d.error || `HTTP ${res.status}`)); }
+    } catch (e: any) { setMsg("❌ 请求失败: " + e.message); }
     setSaving(false);
   }
 
@@ -276,9 +290,12 @@ function TopicForm({ edit, onSaved, onCancel }: {
     e.preventDefault(); setSaving(true); setMsg("");
     const method = edit ? "PUT" : "POST";
     const url = edit ? `/api/admin/topics/${edit.id}` : "/api/admin/topics";
-    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-    if (res.ok) { setMsg(`✅ ${edit ? "更新" : "添加"}成功`); if (!edit) setForm({ subject_id: "", name: "", display_name: "", slug: "" }); onSaved(); }
-    else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
+    try {
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form), redirect: "manual" });
+      if (res.status >= 300 && res.status < 400) { setMsg("❌ 登录已过期，请重新登录"); setSaving(false); return; }
+      if (res.ok) { setMsg(`✅ ${edit ? "更新" : "添加"}成功`); if (!edit) setForm({ subject_id: "", name: "", display_name: "", slug: "" }); onSaved(); }
+      else { const d = await res.json().catch(() => ({ error: "未知错误" })); setMsg("❌ " + (d.error || `HTTP ${res.status}`)); }
+    } catch (e: any) { setMsg("❌ 请求失败: " + e.message); }
     setSaving(false);
   }
 
@@ -336,22 +353,26 @@ function NoteForm({ edit, onSaved, onCancel }: {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setMsg("");
-    if (edit && !file) {
-      const res = await fetch(`/api/admin/notes/${edit.id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (res.ok) { setMsg("✅ 更新成功"); onSaved(); }
-      else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
-    } else {
-      const formData = new FormData();
-      formData.append("topic_id", form.topic_id); formData.append("title", form.title);
-      formData.append("content", form.content); formData.append("is_free_preview", String(form.is_free_preview));
-      if (file) formData.append("file", file);
-      const res = await fetch("/api/admin/notes/upload", { method: "POST", body: formData });
-      if (res.ok) { setMsg("✅ 添加成功"); setForm({ topic_id: "", title: "", content: "", is_free_preview: false }); setFile(null); if (fileRef.current) fileRef.current.value = ""; onSaved(); }
-      else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
-    }
+    try {
+      if (edit && !file) {
+        const res = await fetch(`/api/admin/notes/${edit.id}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form), redirect: "manual",
+        });
+        if (res.status >= 300 && res.status < 400) { setMsg("❌ 登录已过期，请重新登录"); setSaving(false); return; }
+        if (res.ok) { setMsg("✅ 更新成功"); onSaved(); }
+        else { const d = await res.json().catch(() => ({ error: "未知错误" })); setMsg("❌ " + (d.error || `HTTP ${res.status}`)); }
+      } else {
+        const formData = new FormData();
+        formData.append("topic_id", form.topic_id); formData.append("title", form.title);
+        formData.append("content", form.content); formData.append("is_free_preview", String(form.is_free_preview));
+        if (file) formData.append("file", file);
+        const res = await fetch("/api/admin/notes/upload", { method: "POST", body: formData, redirect: "manual" });
+        if (res.status >= 300 && res.status < 400) { setMsg("❌ 登录已过期，请重新登录"); setSaving(false); return; }
+        if (res.ok) { setMsg("✅ 添加成功"); setForm({ topic_id: "", title: "", content: "", is_free_preview: false }); setFile(null); if (fileRef.current) fileRef.current.value = ""; onSaved(); }
+        else { const d = await res.json().catch(() => ({ error: "未知错误" })); setMsg("❌ " + (d.error || `HTTP ${res.status}`)); }
+      }
+    } catch (e: any) { setMsg("❌ 请求失败: " + e.message); }
     setSaving(false);
   }
 
