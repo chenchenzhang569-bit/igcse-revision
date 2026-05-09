@@ -1,13 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-export default async function SubjectsPage() {
+export default async function SubjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ board?: string }>;
+}) {
+  const { board } = await searchParams;
+  const activeBoard = board || "CAIE";
+
   const supabase = createClient();
-  const { data: subjects } = await supabase
+  let query = supabase
     .from("subjects")
     .select("name, display_name, code, slug, icon, price_cny, exam_boards!inner(name)")
     .eq("is_published", true)
     .order("sort_order");
+
+  if (activeBoard) {
+    query = query.eq("exam_boards.name", activeBoard);
+  }
+
+  const { data: subjects } = await query;
 
   const allSubjects = (subjects || []).map((s: any) => ({
     ...s,
@@ -23,17 +36,18 @@ export default async function SubjectsPage() {
 
       {/* Board tabs */}
       <div className="flex justify-center gap-4 mb-12">
-        {["CAIE", "Edexcel"].map((board) => (
-          <button
-            key={board}
+        {["CAIE", "Edexcel"].map((b) => (
+          <Link
+            key={b}
+            href={`/subjects?board=${b}`}
             className={`px-6 py-2 rounded-lg font-medium transition ${
-              board === "CAIE"
+              b === activeBoard
                 ? "bg-primary-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            {board}
-          </button>
+            {b}
+          </Link>
         ))}
       </div>
 
@@ -64,6 +78,10 @@ export default async function SubjectsPage() {
           </Link>
         ))}
       </div>
+
+      {allSubjects.length === 0 && (
+        <p className="text-gray-400 text-center py-12">暂无{activeBoard}科目</p>
+      )}
 
       {/* CTA */}
       <div className="text-center mt-16 pt-12 border-t">
