@@ -74,6 +74,27 @@ export default function AdminPage() {
     if (res.ok) setNotes(await res.json());
   }
 
+  async function handleDeleteNote(id: string) {
+    if (!confirm("确认删除这条笔记？")) return;
+    const res = await fetch(`/api/admin/notes/${id}`, { method: "DELETE" });
+    if (res.ok) fetchNotes();
+    else alert("删除失败");
+  }
+
+  async function handleDeleteTopic(id: string) {
+    if (!confirm("确认删除这个主题？")) return;
+    const res = await fetch(`/api/admin/topics/${id}`, { method: "DELETE" });
+    if (res.ok) fetchTopics();
+    else alert("删除失败");
+  }
+
+  async function handleDeleteSubject(id: string) {
+    if (!confirm("确认删除这个科目？")) return;
+    const res = await fetch(`/api/admin/subjects/${id}`, { method: "DELETE" });
+    if (res.ok) fetchSubjects();
+    else alert("删除失败");
+  }
+
   useEffect(() => {
     if (!loading) {
       if (tab === "subjects") fetchSubjects();
@@ -129,9 +150,12 @@ export default function AdminPage() {
                     <span className="text-sm text-gray-400 ml-2">¥{(s.price_cny / 100).toFixed(0)}</span>
                     <span className="text-xs ml-2 text-gray-400">{s.exam_boards?.name}</span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${s.is_published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                    {s.is_published ? "已发布" : "草稿"}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs px-2 py-1 rounded ${s.is_published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {s.is_published ? "已发布" : "草稿"}
+                    </span>
+                    <button onClick={() => handleDeleteSubject(s.id)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
+                  </div>
                 </div>
               ))}
               {subjects.length === 0 && <p className="text-gray-400 text-center py-8">暂无科目</p>}
@@ -145,9 +169,12 @@ export default function AdminPage() {
             <TopicForm onSaved={fetchTopics} />
             <div className="mt-6 space-y-2">
               {topics.map((t) => (
-                <div key={t.id} className="bg-white p-4 rounded-lg border">
-                  <span className="font-medium">{t.display_name}</span>
-                  <span className="text-gray-400 ml-2">({t.slug})</span>
+                <div key={t.id} className="bg-white p-4 rounded-lg border flex justify-between items-center">
+                  <div>
+                    <span className="font-medium">{t.display_name}</span>
+                    <span className="text-gray-400 ml-2">({t.slug})</span>
+                  </div>
+                  <button onClick={() => handleDeleteTopic(t.id)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                 </div>
               ))}
               {topics.length === 0 && <p className="text-gray-400 text-center py-8">暂无主题</p>}
@@ -161,12 +188,20 @@ export default function AdminPage() {
             <NoteForm onSaved={fetchNotes} />
             <div className="mt-6 space-y-2">
               {notes.map((n) => (
-                <div key={n.id} className="bg-white p-4 rounded-lg border">
-                  <span className="font-medium">{n.title}</span>
-                  <span className={`text-xs ml-2 px-2 py-0.5 rounded ${n.is_free_preview ? "bg-blue-100 text-blue-700" : "bg-gray-100"}`}>
-                    {n.is_free_preview ? "免费预览" : "付费"}
-                  </span>
-                  <p className="text-sm text-gray-500 mt-1 truncate">{n.content.slice(0, 100)}</p>
+                <div key={n.id} className="bg-white p-4 rounded-lg border flex justify-between items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">{n.title}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${n.is_free_preview ? "bg-blue-100 text-blue-700" : "bg-gray-100"}`}>
+                        {n.is_free_preview ? "免费预览" : "付费"}
+                      </span>
+                      {n.file_url && <span className="text-xs text-green-500">📎 PDF</span>}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1 truncate">{n.content?.slice(0, 100) || "（仅 PDF）"}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button onClick={() => handleDeleteNote(n.id)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
+                  </div>
                 </div>
               ))}
               {notes.length === 0 && <p className="text-gray-400 text-center py-8">暂无笔记</p>}
