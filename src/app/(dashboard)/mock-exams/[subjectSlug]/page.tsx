@@ -17,14 +17,12 @@ type MockExam = {
 export default function MockExamsPage({
   params,
 }: {
-  params: Promise<{ subjectSlug: string }>;
+  params: { subjectSlug: string };
 }) {
-  const [subjectSlug, setSubjectSlug] = useState("");
+  const subjectSlug = params.subjectSlug;
   const [exams, setExams] = useState<MockExam[]>([]);
   const [subjectName, setSubjectName] = useState("");
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => { params.then(({ subjectSlug }) => setSubjectSlug(subjectSlug)); }, []);
 
   useEffect(() => {
     if (!subjectSlug) return;

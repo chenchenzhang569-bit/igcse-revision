@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 type Subject = {
   id: string; name: string; display_name: string; code: string | null;
-  slug: string; price_cny: number; is_published: boolean;
+  slug: string; exam_board_id: string; price_cny: number; is_published: boolean;
   exam_boards: { name: string; slug: string } | null;
 };
 type Topic = {
@@ -184,12 +184,12 @@ export default function AdminPage() {
 function SubjectForm({ edit, onSaved, onCancel }: {
   edit: Subject | null; onSaved: () => void; onCancel: () => void;
 }) {
-  const [form, setForm] = useState({ name: "", display_name: "", code: "", slug: "", exam_board_slug: "caie", price_cny: 29900, is_published: true });
+  const [form, setForm] = useState({ name: "", display_name: "", code: "", slug: "", exam_board_id: "a672826f-9431-422c-b56c-28fe184c0612", price_cny: 29900, is_published: true });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    if (edit) setForm({ name: edit.name, display_name: edit.display_name, code: edit.code || "", slug: edit.slug, exam_board_slug: edit.exam_boards?.slug || "caie", price_cny: edit.price_cny, is_published: edit.is_published });
+    if (edit) setForm({ name: edit.name, display_name: edit.display_name, code: edit.code || "", slug: edit.slug, exam_board_id: edit.exam_board_id, price_cny: edit.price_cny, is_published: edit.is_published });
   }, [edit]);
 
   async function submit(e: React.FormEvent) {
@@ -197,7 +197,7 @@ function SubjectForm({ edit, onSaved, onCancel }: {
     const method = edit ? "PUT" : "POST";
     const url = edit ? `/api/admin/subjects/${edit.id}` : "/api/admin/subjects";
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-    if (res.ok) { setMsg(`✅ ${edit ? "更新" : "添加"}成功`); if (!edit) setForm({ name: "", display_name: "", code: "", slug: "", exam_board_slug: "caie", price_cny: 29900, is_published: true }); onSaved(); }
+    if (res.ok) { setMsg(`✅ ${edit ? "更新" : "添加"}成功`); if (!edit) setForm({ name: "", display_name: "", code: "", slug: "", exam_board_id: "a672826f-9431-422c-b56c-28fe184c0612", price_cny: 29900, is_published: true }); onSaved(); }
     else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
     setSaving(false);
   }
@@ -213,8 +213,9 @@ function SubjectForm({ edit, onSaved, onCancel }: {
         <input className="border rounded px-3 py-2 text-sm" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
         <input className="border rounded px-3 py-2 text-sm" placeholder="代码" value={form.code} onChange={e => setForm({...form, code: e.target.value})} />
         <input className="border rounded px-3 py-2 text-sm" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
-        <select className="border rounded px-3 py-2 text-sm" value={form.exam_board_slug} onChange={e => setForm({...form, exam_board_slug: e.target.value})}>
-          <option value="caie">CAIE</option><option value="edexcel">Edexcel</option>
+        <select className="border rounded px-3 py-2 text-sm" value={form.exam_board_id} onChange={e => setForm({...form, exam_board_id: e.target.value})}>
+          <option value="a672826f-9431-422c-b56c-28fe184c0612">CAIE</option>
+          <option value="8e13308d-b803-439c-8808-e8f36f6ab6b8">Edexcel</option>
         </select>
         <input className="border rounded px-3 py-2 text-sm" type="number" placeholder="价格 (分)" value={form.price_cny} onChange={e => setForm({...form, price_cny: Number(e.target.value)})} />
       </div>
