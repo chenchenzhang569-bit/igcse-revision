@@ -29,8 +29,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    // 用 window.location 强制全页刷新，确保 cookie 被正确发送给 middleware
+    window.location.href = "/dashboard";
   };
 
   return (

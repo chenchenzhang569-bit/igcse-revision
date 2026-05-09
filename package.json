@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",
-    "@supabase/ssr": "^0.1.0",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.39.0",
     "alipay-sdk": "^3.3.0",
     "class-variance-authority": "^0.7.0",

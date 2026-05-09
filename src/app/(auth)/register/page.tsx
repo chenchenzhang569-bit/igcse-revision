@@ -44,7 +44,8 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/login?registered=true");
+    // 全页刷新确保 cookie 同步
+    window.location.href = "/login?registered=true";
   };
 
   return (
