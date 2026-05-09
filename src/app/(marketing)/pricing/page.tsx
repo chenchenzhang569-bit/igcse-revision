@@ -1,39 +1,50 @@
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-const plans = [
-  {
-    name: "单科永久",
-    price: "¥299",
-    period: "一次性付费，永久访问",
-    features: [
-      "完整笔记（全部主题）",
-      "配套试题 + 详细答案",
-      "历年真题（含评分标准）",
-      "模拟试卷下载",
-      "免费预览开放笔记",
-    ],
-    cta: "选择科目",
-    href: "/subjects",
-    popular: false,
-  },
-  {
-    name: "理科套装",
-    price: "¥699",
-    period: "数学 + 物理 + 化学",
-    features: [
-      "三门科目全部内容",
-      "完整笔记 + 试题 + 真题",
-      "模拟试卷下载",
-      "节省 ¥198",
-      "免费预览开放笔记",
-    ],
-    cta: "立即购买",
-    href: "/register",
-    popular: true,
-  },
-];
+export default async function PricingPage() {
+  const supabase = createClient();
+  const { data: subjects } = await supabase
+    .from("subjects")
+    .select("price_cny")
+    .eq("is_published", true);
 
-export default function PricingPage() {
+  const price = subjects && subjects.length > 0 ? (subjects[0] as any).price_cny : 29900;
+  const singlePrice = (price / 100).toFixed(0);
+  const bundlePrice = Math.floor((price * 3 * 0.78) / 100); // ~22% discount
+
+  const plans = [
+    {
+      name: "单科永久",
+      price: `¥${singlePrice}`,
+      period: "一次性付费，永久访问",
+      features: [
+        "完整笔记（全部主题）",
+        "配套试题 + 详细答案",
+        "历年真题（含评分标准）",
+        "模拟试卷下载",
+        "免费预览开放笔记",
+      ],
+      cta: "选择科目",
+      href: "/subjects",
+      popular: false,
+    },
+    {
+      name: "理科套装",
+      price: `¥${bundlePrice}`,
+      period: "数学 + 物理 + 化学",
+      features: [
+        "三门科目全部内容",
+        "完整笔记 + 试题 + 真题",
+        "模拟试卷下载",
+        `比单买省 ¥${singlePrice * 3 - bundlePrice}`,
+        "免费预览开放笔记",
+      ],
+      cta: "立即购买",
+      href: "/register",
+      popular: true,
+    },
+  ];
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
