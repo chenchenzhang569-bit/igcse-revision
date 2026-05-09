@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +20,6 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        // 10秒超时（用户在国内，network 可能慢）
         signal: AbortSignal.timeout(15000),
       });
 
@@ -33,7 +31,13 @@ export default function LoginPage() {
         return;
       }
 
-      // 用 window.location 强制全页刷新，确保 cookie 被正确发送给 middleware
+      // 把 session 设到浏览器 cookie（关键！中间件靠这个判断登录状态）
+      const supabase = createClient();
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+
       window.location.href = "/dashboard";
     } catch (err: any) {
       if (err.name === "TimeoutError" || err.name === "AbortError") {
