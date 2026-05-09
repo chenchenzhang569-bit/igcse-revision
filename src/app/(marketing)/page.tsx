@@ -1,12 +1,12 @@
 import Link from "next/link";
 
 const featuredSubjects = [
-  { name: "数学", code: "0580", board: "CAIE", icon: "📐", slug: "caie-mathematics-0580" },
-  { name: "物理", code: "0625", board: "CAIE", icon: "⚛️", slug: "caie-physics-0625" },
-  { name: "化学", code: "0620", board: "CAIE", icon: "🧪", slug: "caie-chemistry-0620" },
-  { name: "生物", code: "0610", board: "CAIE", icon: "🧬", slug: "caie-biology-0610" },
-  { name: "附加数学", code: "0606", board: "CAIE", icon: "🔢", slug: "caie-additional-mathematics-0606" },
-  { name: "经济学", code: "0455", board: "CAIE", icon: "📈", slug: "caie-economics-0455" },
+  { name: "Mathematics", code: "0580", board: "CAIE", icon: "📐", slug: "caie-mathematics-0580" },
+  { name: "Physics", code: "0625", board: "CAIE", icon: "⚛️", slug: "caie-physics-0625" },
+  { name: "Chemistry", code: "0620", board: "CAIE", icon: "🧪", slug: "caie-chemistry-0620" },
+  { name: "Biology", code: "0610", board: "CAIE", icon: "🧬", slug: "caie-biology-0610" },
+  { name: "Additional Mathematics", code: "0606", board: "CAIE", icon: "🔢", slug: "caie-additional-mathematics-0606" },
+  { name: "Economics", code: "0455", board: "CAIE", icon: "📈", slug: "caie-economics-0455" },
 ];
 
 export default function HomePage() {
@@ -17,18 +17,18 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              IGCSE 复习<span className="text-yellow-300">·</span>精准备考
+              IGCSE Revision<span className="text-yellow-300">·</span>Targeted Prep
             </h1>
             <p className="text-lg md:text-xl text-blue-100 mb-10 leading-relaxed">
-              覆盖 CAIE 与 Edexcel 两大考试局全部科目<br />
-              精简笔记 · 配套试题 · 历年真题 · 模拟试卷
+              All subjects across CAIE and Edexcel exam boards<br />
+              Concise Notes · Practice Questions · Past Papers · Mock Exams
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/subjects"
                 className="bg-white text-primary-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition shadow-lg"
               >
-                浏览科目 →
+                浏览 Browse Subjects →
               </Link>
               <Link
                 href="/register"
