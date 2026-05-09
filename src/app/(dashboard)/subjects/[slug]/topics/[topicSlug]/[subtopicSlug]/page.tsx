@@ -43,7 +43,6 @@ export default async function SubtopicPage({
 }) {
   const supabase = createClient();
 
-  // Get subtopic
   const { data: subtopic } = await supabase
     .from("subtopics")
     .select("id, pmt_code, display_name, name, slug, topic_id, topics!inner(id, display_name, slug, sort_order, subjects!inner(slug))")
@@ -70,30 +69,36 @@ export default async function SubtopicPage({
     .eq("subtopic_id", subtopic.id)
     .order("sort_order");
 
-  // Fetch MCQs
+  // Fetch online MCQs
   const { data: mcqs = [] } = await supabase
     .from("questions")
     .select("*")
     .eq("subtopic_id", subtopic.id)
     .order("sort_order");
 
-  // Fetch structured question PDFs
-  const { data: structPapers = [] } = await supabase
+  // Fetch all papers, then split MCQ vs Structured
+  const { data: allPapers = [] } = await supabase
     .from("past_papers")
     .select("id, title, file_url, paper_type")
     .eq("subtopic_id", subtopic.id)
     .order("title");
 
-  const pairedPapers = pairPapers(structPapers);
+  const mcqPapers = allPapers.filter((p: any) =>
+    p.paper_type?.includes("MCQ")
+  );
+  const structPapers = allPapers.filter((p: any) =>
+    !p.paper_type?.includes("MCQ")
+  );
+
+  const mcqPairs = pairPapers(mcqPapers);
+  const structPairs = pairPapers(structPapers);
 
   return (
     <div className="space-y-6">
       <div className="text-sm text-gray-400">
         <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
         {" / "}
-        <Link href={`/subjects/${params.slug}`} className="hover:text-primary-600">
-          科目
-        </Link>
+        <Link href={`/subjects/${params.slug}`} className="hover:text-primary-600">科目</Link>
         {" / "}
         <Link href={`/subjects/${params.slug}/topics/${params.topicSlug}`} className="hover:text-primary-600">
           {topic.sort_order}. {topic.display_name}
@@ -108,7 +113,8 @@ export default async function SubtopicPage({
       <TopicTabs
         notes={notes}
         mcqs={mcqs}
-        pairedPapers={pairedPapers}
+        mcqPairs={mcqPairs}
+        pairedPapers={structPairs}
       />
     </div>
   );

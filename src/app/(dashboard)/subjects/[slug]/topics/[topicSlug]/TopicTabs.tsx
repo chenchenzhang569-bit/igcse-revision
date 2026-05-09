@@ -37,10 +37,12 @@ type Tab = "notes" | "mcq" | "structured";
 export function TopicTabs({
   notes,
   mcqs,
+  mcqPairs = [],
   pairedPapers,
 }: {
   notes: Note[];
   mcqs: Question[];
+  mcqPairs?: PaperPair[];
   pairedPapers: PaperPair[];
 }) {
   const [tab, setTab] = useState<Tab>("notes");
@@ -50,11 +52,10 @@ export function TopicTabs({
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "notes", label: "📝 笔记", count: notes.length },
-    { key: "mcq", label: "📋 选择题", count: mcqs.length },
+    { key: "mcq", label: "📋 选择题", count: mcqs.length + mcqPairs.length },
     { key: "structured", label: "📄 问答题", count: pairedPapers.length },
   ];
 
-  // Parse MCQ options from question_text (format: "Question\nA) ...\nB) ...\nC) ...\nD) ...")
   function parseMcqOptions(text: string): { stem: string; options: { key: string; text: string }[] } {
     const lines = text.split("\n").filter(Boolean);
     const options: { key: string; text: string }[] = [];
@@ -140,80 +141,130 @@ export function TopicTabs({
 
       {/* === MCQ TAB === */}
       {tab === "mcq" && (
-        mcqs.length === 0 ? (
+        mcqs.length === 0 && mcqPairs.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <p>暂无选择题，管理员正在添加中...</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {mcqs.map((q, i) => {
-              const { stem, options } = parseMcqOptions(q.question_text);
-              const checked = mcqChecked[q.id];
-              return (
-                <div key={q.id} className="bg-white border rounded-xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                      q.difficulty === "easy" ? "bg-green-50 text-green-600"
-                      : q.difficulty === "medium" ? "bg-yellow-50 text-yellow-600"
-                      : "bg-red-50 text-red-600"
-                    }`}>
-                      {q.difficulty === "easy" ? "简单" : q.difficulty === "medium" ? "中等" : "困难"}
-                    </span>
-                    <span className="text-xs text-gray-400">{q.marks} 分</span>
-                  </div>
-
-                  <p className="text-gray-800 mb-3 whitespace-pre-line">{stem}</p>
-
-                  {/* Options */}
-                  <div className="space-y-2 mb-4">
-                    {options.map((opt) => (
-                      <label
-                        key={opt.key}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
-                          checked !== undefined
-                            ? opt.key === q.answer_text.trim().toUpperCase()
-                              ? "bg-green-50 border-green-300"
-                              : mcqAnswers[q.id]?.toUpperCase()[0] === opt.key
-                              ? "bg-red-50 border-red-300"
-                              : "bg-gray-50 border-gray-200"
-                            : "hover:bg-gray-50 border-gray-200"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`mcq-${q.id}`}
-                          value={opt.key}
-                          checked={mcqAnswers[q.id]?.toUpperCase()[0] === opt.key}
-                          onChange={(e) =>
-                            setMcqAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
-                          }
-                          disabled={checked !== undefined}
-                          className="text-primary-600"
-                        />
-                        <span className="text-sm">
-                          <strong>{opt.key})</strong> {opt.text}
+          <div className="space-y-8">
+            {/* MCQ PDFs */}
+            {mcqPairs.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">
+                  📥 MCQ 题目 & 答案下载
+                </h3>
+                <div className="space-y-3">
+                  {mcqPairs.map((pair, i) => (
+                    <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
+                          MCQ {i + 1}
                         </span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {checked === undefined ? (
-                    <button
-                      onClick={() => checkMcq(q)}
-                      disabled={!mcqAnswers[q.id]}
-                      className="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      检查答案
-                    </button>
-                  ) : (
-                    <div className={`text-sm font-medium ${checked ? "text-green-600" : "text-red-600"}`}>
-                      {checked ? "✅ 正确！" : `❌ 错误！正确答案是 ${q.answer_text.trim().toUpperCase()}`}
+                        <span className="text-sm text-gray-700">
+                          {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "").replace(/ - MCQ.*$/, "")}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <a
+                          href={pair.qp.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition"
+                        >
+                          📄 题目
+                        </a>
+                        {pair.ms && pair.ms.id !== pair.qp.id && (
+                          <a
+                            href={pair.ms.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition"
+                          >
+                            📝 答案
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
+              </div>
+            )}
+
+            {/* Online MCQs */}
+            {mcqs.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">
+                  💻 在线作答
+                </h3>
+                <div className="space-y-4">
+                  {mcqs.map((q, i) => {
+                    const { stem, options } = parseMcqOptions(q.question_text);
+                    const checked = mcqChecked[q.id];
+                    return (
+                      <div key={q.id} className="bg-white border rounded-xl p-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                            q.difficulty === "easy" ? "bg-green-50 text-green-600"
+                            : q.difficulty === "medium" ? "bg-yellow-50 text-yellow-600"
+                            : "bg-red-50 text-red-600"
+                          }`}>
+                            {q.difficulty === "easy" ? "简单" : q.difficulty === "medium" ? "中等" : "困难"}
+                          </span>
+                          <span className="text-xs text-gray-400">{q.marks} 分</span>
+                        </div>
+
+                        <p className="text-gray-800 mb-3 whitespace-pre-line">{stem}</p>
+
+                        <div className="space-y-2 mb-4">
+                          {options.map((opt) => (
+                            <label
+                              key={opt.key}
+                              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                                checked !== undefined
+                                  ? opt.key === q.answer_text.trim().toUpperCase()
+                                    ? "bg-green-50 border-green-300"
+                                    : mcqAnswers[q.id]?.toUpperCase()[0] === opt.key
+                                    ? "bg-red-50 border-red-300"
+                                    : "bg-gray-50 border-gray-200"
+                                  : "hover:bg-gray-50 border-gray-200"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`mcq-${q.id}`}
+                                value={opt.key}
+                                checked={mcqAnswers[q.id]?.toUpperCase()[0] === opt.key}
+                                onChange={(e) =>
+                                  setMcqAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                                }
+                                disabled={checked !== undefined}
+                                className="text-primary-600"
+                              />
+                              <span className="text-sm"><strong>{opt.key})</strong> {opt.text}</span>
+                            </label>
+                          ))}
+                        </div>
+
+                        {checked === undefined ? (
+                          <button
+                            onClick={() => checkMcq(q)}
+                            disabled={!mcqAnswers[q.id]}
+                            className="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            检查答案
+                          </button>
+                        ) : (
+                          <div className={`text-sm font-medium ${checked ? "text-green-600" : "text-red-600"}`}>
+                            {checked ? "✅ 正确！" : `❌ 错误！正确答案是 ${q.answer_text.trim().toUpperCase()}`}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )
       )}
@@ -238,7 +289,6 @@ export function TopicTabs({
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    {/* Question PDF */}
                     <a
                       href={pair.qp.file_url}
                       target="_blank"
@@ -247,7 +297,6 @@ export function TopicTabs({
                     >
                       📄 题目
                     </a>
-                    {/* Answer PDF */}
                     {pair.ms && pair.ms.id !== pair.qp.id && (
                       <a
                         href={pair.ms.file_url}
