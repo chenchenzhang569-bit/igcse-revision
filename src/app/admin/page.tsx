@@ -35,27 +35,15 @@ export default function AdminPage() {
   useEffect(() => {
     async function checkAuth() {
       const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        router.push("/login?redirect=/admin");
-        return;
-      }
+      if (!data.session) { router.push("/login?redirect=/admin"); return; }
       setLoading(false);
     }
     checkAuth();
   }, []);
 
-  async function fetchSubjects() {
-    const res = await fetch("/api/admin/subjects");
-    if (res.ok) setSubjects(await res.json());
-  }
-  async function fetchTopics() {
-    const res = await fetch("/api/admin/topics");
-    if (res.ok) setTopics(await res.json());
-  }
-  async function fetchNotes() {
-    const res = await fetch("/api/admin/notes");
-    if (res.ok) setNotes(await res.json());
-  }
+  async function fetchSubjects() { const res = await fetch("/api/admin/subjects"); if (res.ok) setSubjects(await res.json()); }
+  async function fetchTopics() { const res = await fetch("/api/admin/topics"); if (res.ok) setTopics(await res.json()); }
+  async function fetchNotes() { const res = await fetch("/api/admin/notes"); if (res.ok) setNotes(await res.json()); }
 
   useEffect(() => {
     if (!loading) {
@@ -68,15 +56,16 @@ export default function AdminPage() {
   async function handleDelete(api: string, id: string, label: string, refresh: () => void) {
     if (!confirm(`确认删除${label}？`)) return;
     const res = await fetch(`/api/admin/${api}/${id}`, { method: "DELETE" });
-    if (res.ok) refresh();
-    else alert("删除失败");
+    if (res.ok) refresh(); else alert("删除失败");
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">加载中...</div>;
 
+  const activeEdit = editSubject || editTopic || editNote;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
             <Link href="/" className="font-bold text-primary-600">🎓 IGCSE</Link>
@@ -88,6 +77,15 @@ export default function AdminPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* 编辑提示条 */}
+        {activeEdit && (
+          <div className="bg-blue-600 text-white px-4 py-3 rounded-lg mb-4 flex justify-between items-center">
+            <span>🔧 正在编辑：{editSubject?.display_name || editTopic?.display_name || editNote?.title}</span>
+            <button onClick={() => { setEditSubject(null); setEditTopic(null); setEditNote(null); }}
+              className="text-sm bg-white/20 px-3 py-1 rounded hover:bg-white/30">取消编辑</button>
+          </div>
+        )}
+
         <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 w-fit">
           {(["subjects", "topics", "notes"] as Tab[]).map((t) => (
             <button key={t} onClick={() => { setTab(t); setEditSubject(null); setEditTopic(null); setEditNote(null); }}
@@ -103,7 +101,7 @@ export default function AdminPage() {
             <SubjectForm edit={editSubject} onSaved={() => { setEditSubject(null); fetchSubjects(); }} onCancel={() => setEditSubject(null)} />
             <div className="mt-6 space-y-2">
               {subjects.map((s) => (
-                <div key={s.id} className="bg-white p-4 rounded-lg border flex justify-between items-center">
+                <div key={s.id} className={`bg-white p-4 rounded-lg border flex justify-between items-center ${editSubject?.id === s.id ? "ring-2 ring-blue-400 bg-blue-50" : ""}`}>
                   <div>
                     <span className="text-lg mr-2">{s.code || "📚"}</span>
                     <span className="font-medium">{s.display_name}</span>
@@ -115,8 +113,12 @@ export default function AdminPage() {
                     <span className={`text-xs px-2 py-1 rounded ${s.is_published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                       {s.is_published ? "已发布" : "草稿"}
                     </span>
-                    <button onClick={() => { setEditSubject(s); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
-                    <button onClick={() => handleDelete("subjects", s.id, "这个科目", fetchSubjects)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
+                    <button onClick={() => setEditSubject(s)}
+                      className={`text-xs px-2 py-1 rounded ${editSubject?.id === s.id ? "bg-blue-600 text-white" : "text-blue-500 hover:text-blue-700 hover:bg-blue-50"}`}>
+                      {editSubject?.id === s.id ? "编辑中" : "编辑"}
+                    </button>
+                    <button onClick={() => handleDelete("subjects", s.id, "这个科目", fetchSubjects)}
+                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                   </div>
                 </div>
               ))}
@@ -131,15 +133,19 @@ export default function AdminPage() {
             <TopicForm edit={editTopic} onSaved={() => { setEditTopic(null); fetchTopics(); }} onCancel={() => setEditTopic(null)} />
             <div className="mt-6 space-y-2">
               {topics.map((t) => (
-                <div key={t.id} className="bg-white p-4 rounded-lg border flex justify-between items-center">
+                <div key={t.id} className={`bg-white p-4 rounded-lg border flex justify-between items-center ${editTopic?.id === t.id ? "ring-2 ring-blue-400 bg-blue-50" : ""}`}>
                   <div>
                     <span className="font-medium">{t.display_name}</span>
                     <span className="text-gray-400 ml-2">({t.slug})</span>
                     <span className="text-xs text-gray-300 ml-2">ID: {t.id.slice(0, 8)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { setEditTopic(t); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
-                    <button onClick={() => handleDelete("topics", t.id, "这个主题", fetchTopics)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
+                    <button onClick={() => setEditTopic(t)}
+                      className={`text-xs px-2 py-1 rounded ${editTopic?.id === t.id ? "bg-blue-600 text-white" : "text-blue-500 hover:text-blue-700 hover:bg-blue-50"}`}>
+                      {editTopic?.id === t.id ? "编辑中" : "编辑"}
+                    </button>
+                    <button onClick={() => handleDelete("topics", t.id, "这个主题", fetchTopics)}
+                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                   </div>
                 </div>
               ))}
@@ -154,7 +160,7 @@ export default function AdminPage() {
             <NoteForm edit={editNote} onSaved={() => { setEditNote(null); fetchNotes(); }} onCancel={() => setEditNote(null)} />
             <div className="mt-6 space-y-2">
               {notes.map((n) => (
-                <div key={n.id} className="bg-white p-4 rounded-lg border flex justify-between items-start gap-3">
+                <div key={n.id} className={`bg-white p-4 rounded-lg border flex justify-between items-start gap-3 ${editNote?.id === n.id ? "ring-2 ring-blue-400 bg-blue-50" : ""}`}>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium truncate">{n.title}</span>
@@ -166,8 +172,12 @@ export default function AdminPage() {
                     <p className="text-sm text-gray-500 mt-1 truncate">{n.content?.slice(0, 100) || "（仅 PDF）"}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => { setEditNote(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
-                    <button onClick={() => handleDelete("notes", n.id, "这条笔记", fetchNotes)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
+                    <button onClick={() => setEditNote(n)}
+                      className={`text-xs px-2 py-1 rounded ${editNote?.id === n.id ? "bg-blue-600 text-white" : "text-blue-500 hover:text-blue-700 hover:bg-blue-50"}`}>
+                      {editNote?.id === n.id ? "编辑中" : "编辑"}
+                    </button>
+                    <button onClick={() => handleDelete("notes", n.id, "这条笔记", fetchNotes)}
+                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                   </div>
                 </div>
               ))}
@@ -202,26 +212,49 @@ function SubjectForm({ edit, onSaved, onCancel }: {
     setSaving(false);
   }
 
+  if (!edit) {
+    return (
+      <form onSubmit={submit} className="bg-white p-4 rounded-lg border space-y-3">
+        <h3 className="font-medium">添加科目</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <input className="border rounded px-3 py-2 text-sm" placeholder="名称 (英文)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+          <input className="border rounded px-3 py-2 text-sm" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
+          <input className="border rounded px-3 py-2 text-sm" placeholder="代码" value={form.code} onChange={e => setForm({...form, code: e.target.value})} />
+          <input className="border rounded px-3 py-2 text-sm" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
+          <select className="border rounded px-3 py-2 text-sm" value={form.exam_board_id} onChange={e => setForm({...form, exam_board_id: e.target.value})}>
+            <option value="a672826f-9431-422c-b56c-28fe184c0612">CAIE</option>
+            <option value="8e13308d-b803-439c-8808-e8f36f6ab6b8">Edexcel</option>
+          </select>
+          <input className="border rounded px-3 py-2 text-sm" type="number" placeholder="价格 (分)" value={form.price_cny} onChange={e => setForm({...form, price_cny: Number(e.target.value)})} />
+        </div>
+        {msg && <p className="text-sm">{msg}</p>}
+        <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
+          {saving ? "保存中..." : "添加科目"}
+        </button>
+      </form>
+    );
+  }
+
   return (
-    <form onSubmit={submit} className={`bg-white p-4 rounded-lg border space-y-3 ${edit ? "ring-2 ring-blue-400" : ""}`}>
+    <form onSubmit={submit} className="bg-blue-50 border-2 border-blue-400 p-4 rounded-lg space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="font-medium">{edit ? "编辑科目" : "添加科目"}</h3>
-        {edit && <button type="button" onClick={onCancel} className="text-xs text-gray-400 hover:text-gray-600">✕ 取消</button>}
+        <h3 className="font-medium text-blue-800">✏️ 编辑科目：{edit.display_name}</h3>
+        <button type="button" onClick={onCancel} className="text-sm text-blue-600 hover:text-blue-800">取消编辑</button>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <input className="border rounded px-3 py-2 text-sm" placeholder="名称 (英文)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
-        <input className="border rounded px-3 py-2 text-sm" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
-        <input className="border rounded px-3 py-2 text-sm" placeholder="代码" value={form.code} onChange={e => setForm({...form, code: e.target.value})} />
-        <input className="border rounded px-3 py-2 text-sm" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
-        <select className="border rounded px-3 py-2 text-sm" value={form.exam_board_id} onChange={e => setForm({...form, exam_board_id: e.target.value})}>
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="名称 (英文)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="代码" value={form.code} onChange={e => setForm({...form, code: e.target.value})} />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
+        <select className="border rounded px-3 py-2 text-sm bg-white" value={form.exam_board_id} onChange={e => setForm({...form, exam_board_id: e.target.value})}>
           <option value="a672826f-9431-422c-b56c-28fe184c0612">CAIE</option>
           <option value="8e13308d-b803-439c-8808-e8f36f6ab6b8">Edexcel</option>
         </select>
-        <input className="border rounded px-3 py-2 text-sm" type="number" placeholder="价格 (分)" value={form.price_cny} onChange={e => setForm({...form, price_cny: Number(e.target.value)})} />
+        <input className="border rounded px-3 py-2 text-sm bg-white" type="number" placeholder="价格 (分)" value={form.price_cny} onChange={e => setForm({...form, price_cny: Number(e.target.value)})} />
       </div>
       {msg && <p className="text-sm">{msg}</p>}
-      <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
-        {saving ? "保存中..." : edit ? "更新科目" : "添加科目"}
+      <button type="submit" disabled={saving} className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50">
+        {saving ? "保存中..." : "更新科目"}
       </button>
     </form>
   );
@@ -249,21 +282,39 @@ function TopicForm({ edit, onSaved, onCancel }: {
     setSaving(false);
   }
 
+  if (!edit) {
+    return (
+      <form onSubmit={submit} className="bg-white p-4 rounded-lg border space-y-3">
+        <h3 className="font-medium">添加主题</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <input className="border rounded px-3 py-2 text-sm" placeholder="科目 ID" value={form.subject_id} onChange={e => setForm({...form, subject_id: e.target.value})} required />
+          <input className="border rounded px-3 py-2 text-sm" placeholder="名称 (英文)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+          <input className="border rounded px-3 py-2 text-sm" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
+          <input className="border rounded px-3 py-2 text-sm" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
+        </div>
+        {msg && <p className="text-sm">{msg}</p>}
+        <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
+          {saving ? "保存中..." : "添加主题"}
+        </button>
+      </form>
+    );
+  }
+
   return (
-    <form onSubmit={submit} className={`bg-white p-4 rounded-lg border space-y-3 ${edit ? "ring-2 ring-blue-400" : ""}`}>
+    <form onSubmit={submit} className="bg-blue-50 border-2 border-blue-400 p-4 rounded-lg space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="font-medium">{edit ? "编辑主题" : "添加主题"}</h3>
-        {edit && <button type="button" onClick={onCancel} className="text-xs text-gray-400 hover:text-gray-600">✕ 取消</button>}
+        <h3 className="font-medium text-blue-800">✏️ 编辑主题：{edit.display_name}</h3>
+        <button type="button" onClick={onCancel} className="text-sm text-blue-600 hover:text-blue-800">取消编辑</button>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <input className="border rounded px-3 py-2 text-sm" placeholder="科目 ID" value={form.subject_id} onChange={e => setForm({...form, subject_id: e.target.value})} required />
-        <input className="border rounded px-3 py-2 text-sm" placeholder="名称 (英文)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
-        <input className="border rounded px-3 py-2 text-sm" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
-        <input className="border rounded px-3 py-2 text-sm" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="科目 ID" value={form.subject_id} onChange={e => setForm({...form, subject_id: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="名称 (英文)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="显示名 (中文)" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm bg-white" placeholder="slug" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
       </div>
       {msg && <p className="text-sm">{msg}</p>}
-      <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
-        {saving ? "保存中..." : edit ? "更新主题" : "添加主题"}
+      <button type="submit" disabled={saving} className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50">
+        {saving ? "保存中..." : "更新主题"}
       </button>
     </form>
   );
@@ -285,9 +336,7 @@ function NoteForm({ edit, onSaved, onCancel }: {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setMsg("");
-
     if (edit && !file) {
-      // 纯文本编辑，不需要文件
       const res = await fetch(`/api/admin/notes/${edit.id}`, {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -295,46 +344,59 @@ function NoteForm({ edit, onSaved, onCancel }: {
       if (res.ok) { setMsg("✅ 更新成功"); onSaved(); }
       else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
     } else {
-      // 新增 或 替换 PDF
       const formData = new FormData();
-      formData.append("topic_id", form.topic_id);
-      formData.append("title", form.title);
-      formData.append("content", form.content);
-      formData.append("is_free_preview", String(form.is_free_preview));
+      formData.append("topic_id", form.topic_id); formData.append("title", form.title);
+      formData.append("content", form.content); formData.append("is_free_preview", String(form.is_free_preview));
       if (file) formData.append("file", file);
-      const res = await fetch("/api/admin/notes/upload", {
-        method: "POST", body: formData,
-      });
+      const res = await fetch("/api/admin/notes/upload", { method: "POST", body: formData });
       if (res.ok) { setMsg("✅ 添加成功"); setForm({ topic_id: "", title: "", content: "", is_free_preview: false }); setFile(null); if (fileRef.current) fileRef.current.value = ""; onSaved(); }
       else { const d = await res.json(); setMsg("❌ " + (d.error || "失败")); }
     }
     setSaving(false);
   }
 
-  return (
-    <form onSubmit={submit} className={`bg-white p-4 rounded-lg border space-y-3 ${edit ? "ring-2 ring-blue-400" : ""}`}>
-      <div className="flex justify-between items-center">
-        <h3 className="font-medium">{edit ? "编辑笔记" : "添加笔记（支持 PDF 上传）"}</h3>
-        {edit && <button type="button" onClick={onCancel} className="text-xs text-gray-400 hover:text-gray-600">✕ 取消</button>}
-      </div>
-      <div className="space-y-3">
-        <input className="border rounded px-3 py-2 text-sm w-full" placeholder="主题 ID" value={form.topic_id} onChange={e => setForm({...form, topic_id: e.target.value})} required />
-        <input className="border rounded px-3 py-2 text-sm w-full" placeholder="标题" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
-        <textarea className="border rounded px-3 py-2 text-sm w-full h-24" placeholder="内容描述 (可选，Markdown)" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
-        {!edit && (
+  if (!edit) {
+    return (
+      <form onSubmit={submit} className="bg-white p-4 rounded-lg border space-y-3">
+        <h3 className="font-medium">添加笔记（支持 PDF 上传）</h3>
+        <div className="space-y-3">
+          <input className="border rounded px-3 py-2 text-sm w-full" placeholder="主题 ID" value={form.topic_id} onChange={e => setForm({...form, topic_id: e.target.value})} required />
+          <input className="border rounded px-3 py-2 text-sm w-full" placeholder="标题" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
+          <textarea className="border rounded px-3 py-2 text-sm w-full h-24" placeholder="内容描述 (可选，Markdown)" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">PDF 文件</label>
             <input ref={fileRef} type="file" accept=".pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="border rounded px-3 py-2 text-sm w-full" />
-            {file && <p className="text-xs text-gray-400 mt-1">📄 {file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)</p>}
+            {file && <p className="text-xs text-gray-400 mt-1">📄 {file.name}</p>}
           </div>
-        )}
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.is_free_preview} onChange={e => setForm({...form, is_free_preview: e.target.checked})} /> 免费预览
+          </label>
+        </div>
+        {msg && <p className="text-sm">{msg}</p>}
+        <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
+          {saving ? "保存中..." : "添加笔记"}
+        </button>
+      </form>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="bg-blue-50 border-2 border-blue-400 p-4 rounded-lg space-y-3">
+      <div className="flex justify-between items-center">
+        <h3 className="font-medium text-blue-800">✏️ 编辑笔记：{edit.title}</h3>
+        <button type="button" onClick={onCancel} className="text-sm text-blue-600 hover:text-blue-800">取消编辑</button>
+      </div>
+      <div className="space-y-3">
+        <input className="border rounded px-3 py-2 text-sm w-full bg-white" placeholder="主题 ID" value={form.topic_id} onChange={e => setForm({...form, topic_id: e.target.value})} required />
+        <input className="border rounded px-3 py-2 text-sm w-full bg-white" placeholder="标题" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
+        <textarea className="border rounded px-3 py-2 text-sm w-full h-24 bg-white" placeholder="内容描述" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.is_free_preview} onChange={e => setForm({...form, is_free_preview: e.target.checked})} /> 免费预览
         </label>
       </div>
       {msg && <p className="text-sm">{msg}</p>}
-      <button type="submit" disabled={saving} className="bg-primary-600 text-white px-4 py-2 rounded text-sm hover:bg-primary-700 disabled:opacity-50">
-        {saving ? "保存中..." : edit ? "更新笔记" : "添加笔记"}
+      <button type="submit" disabled={saving} className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50">
+        {saving ? "保存中..." : "更新笔记"}
       </button>
     </form>
   );
