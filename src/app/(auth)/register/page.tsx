@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -12,7 +11,6 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,22 +28,32 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-      },
-    });
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(15000),
+      });
 
-    if (authError) {
-      setError(authError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "注册失败，请重试");
+        setLoading(false);
+        return;
+      }
+
+      // 全页刷新确保 cookie 同步
+      window.location.href = "/login?registered=true";
+    } catch (err: any) {
+      if (err.name === "TimeoutError" || err.name === "AbortError") {
+        setError("网络连接超时，请检查网络后重试");
+      } else {
+        setError("网络错误，请检查连接后重试");
+      }
       setLoading(false);
-      return;
     }
-
-    // 全页刷新确保 cookie 同步
-    window.location.href = "/login?registered=true";
   };
 
   return (

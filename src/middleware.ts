@@ -32,7 +32,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 公开路由
-  const publicPaths = ["/", "/login", "/register", "/subjects", "/pricing"];
+  const publicPaths = [
+    "/", "/login", "/register", "/subjects", "/pricing",
+    "/api/auth",
+  ];
   const isPublic = publicPaths.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );

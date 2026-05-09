@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -11,26 +10,39 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        // 10秒超时（用户在国内，network 可能慢）
+        signal: AbortSignal.timeout(15000),
+      });
 
-    if (authError) {
-      setError(authError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "登录失败，请重试");
+        setLoading(false);
+        return;
+      }
+
+      // 用 window.location 强制全页刷新，确保 cookie 被正确发送给 middleware
+      window.location.href = "/dashboard";
+    } catch (err: any) {
+      if (err.name === "TimeoutError" || err.name === "AbortError") {
+        setError("网络连接超时，请检查网络后重试");
+      } else {
+        setError("网络错误，请检查连接后重试");
+      }
       setLoading(false);
-      return;
     }
-
-    // 用 window.location 强制全页刷新，确保 cookie 被正确发送给 middleware
-    window.location.href = "/dashboard";
   };
 
   return (
