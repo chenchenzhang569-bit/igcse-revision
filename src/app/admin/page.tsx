@@ -115,7 +115,7 @@ export default function AdminPage() {
                     <span className={`text-xs px-2 py-1 rounded ${s.is_published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                       {s.is_published ? "已发布" : "草稿"}
                     </span>
-                    <button onClick={() => setEditSubject(s)} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
+                    <button onClick={() => { setEditSubject(s); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
                     <button onClick={() => handleDelete("subjects", s.id, "这个科目", fetchSubjects)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export default function AdminPage() {
                     <span className="text-xs text-gray-300 ml-2">ID: {t.id.slice(0, 8)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => setEditTopic(t)} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
+                    <button onClick={() => { setEditTopic(t); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
                     <button onClick={() => handleDelete("topics", t.id, "这个主题", fetchTopics)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                   </div>
                 </div>
@@ -166,7 +166,7 @@ export default function AdminPage() {
                     <p className="text-sm text-gray-500 mt-1 truncate">{n.content?.slice(0, 100) || "（仅 PDF）"}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => setEditNote(n)} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
+                    <button onClick={() => { setEditNote(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
                     <button onClick={() => handleDelete("notes", n.id, "这条笔记", fetchNotes)} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">删除</button>
                   </div>
                 </div>
