@@ -11,7 +11,7 @@ export default async function SubjectPage({
 
   const { data: subject } = await supabase
     .from("subjects")
-    .select("name, display_name, code, slug, icon, price_cny, exam_boards!inner(name)")
+    .select("id, name, display_name, code, slug, icon, price_cny, exam_boards!inner(name)")
     .eq("slug", slug)
     .eq("is_published", true)
     .single();
