@@ -9,10 +9,10 @@ const boards = [
     logo: "/caie-logo.png",
     logoHeight: "h-10 sm:h-12",
     subjects: [
-      { name: "Physics 0625", slug: "physics" },
-      { name: "Chemistry 0620", slug: "chemistry" },
-      { name: "Biology 0610", slug: "biology" },
-      { name: "Mathematics 0580", slug: "mathematics" },
+      { name: "Physics 0625", slug: "caie-physics-0625" },
+      { name: "Chemistry 0620", slug: "caie-chemistry-0620" },
+      { name: "Biology 0610", slug: "caie-biology-0610" },
+      { name: "Mathematics 0580", slug: "caie-mathematics-0580" },
     ],
   },
   {
@@ -22,10 +22,10 @@ const boards = [
     logo: "/edexcel-logo.png",
     logoHeight: "h-16 sm:h-20",
     subjects: [
-      { name: "Physics 4PH1", slug: "physics" },
-      { name: "Chemistry 4CH1", slug: "chemistry" },
-      { name: "Biology 4BI1", slug: "biology" },
-      { name: "Mathematics 4MA1", slug: "mathematics" },
+      { name: "Physics 4PH1", slug: "edexcel-physics-4ph1" },
+      { name: "Chemistry 4CH1", slug: "edexcel-chemistry-4ch1" },
+      { name: "Biology 4BI1", slug: "edexcel-biology-4bi1" },
+      { name: "Mathematics 4MA1", slug: "edexcel-mathematics-4ma1" },
     ],
   },
 ];
@@ -76,7 +76,7 @@ export default function HomePage() {
                 {board.subjects.map((s) => (
                   <Link
                     key={`${board.slug}-${s.slug}`}
-                    href={`/subjects/${s.slug}?board=${board.name}`}
+                    href={`/subjects/${s.slug}`}
                     className="text-sm sm:text-base font-bold bg-gray-100 text-primary-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-accent-500 hover:text-white transition-colors no-underline"
                   >
                     {s.name}
