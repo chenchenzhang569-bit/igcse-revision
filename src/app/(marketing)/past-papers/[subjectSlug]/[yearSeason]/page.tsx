@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
+
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
