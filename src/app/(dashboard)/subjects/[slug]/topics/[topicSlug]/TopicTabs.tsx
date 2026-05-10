@@ -249,7 +249,7 @@ export function TopicTabs({
         )
       )}
 
-      {/* MCQ */}
+      {/* MCQ — v3 table-fix */}
       {tab === "mcq" && (
         mcqs.length === 0 && mcqPairs.length === 0 ? (
           <div className="text-center py-20 text-gray-400"><p>暂无选择题，管理员正在添加中...</p></div>
