@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 
-// ---- Inline DATA (same as subject page - known to work) ----
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+
+// ---- Inline DATA ----
 interface Topic { name: string; displayName: string; slug: string; sort: number }
 const TOPIC_DATA: Record<string, Topic[]> = {
   physics: [
@@ -73,6 +75,20 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", subjectKey: "mathematics", topics: TOPIC_DATA.mathematics },
 };
 
+async function supabaseFetch(path: string) {
+  const url = `${SUPABASE_URL}/rest/v1/${path}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+    });
+    if (!res.ok) return [];
+    return (await res.json()) || [];
+  } catch { return []; }
+}
+
 // ---- Page ----
 export default async function PastPapersPage({
   params,
@@ -93,35 +109,36 @@ export default async function PastPapersPage({
 
   const { board, code, name, icon, topics, subjectKey } = data;
 
-  // Query Supabase for past papers
+  // Query Supabase via REST API
   let papersBySeason: { key: string; year: number; season: string; count: number }[] = [];
   let debugInfo = "";
+
   try {
-    const supabase = createClient();
-    // Try to find subject in DB by slug (try composite then simple)
-    let subjectId: string | null = null;
+    // 1. Find subject
     const slugs = [subjectSlug, subjectKey, name.toLowerCase()];
+    let subjectId: string | null = null;
     for (const s of slugs) {
-      const { data: subj, error: err } = await supabase.from("subjects").select("id").eq("slug", s).single();
-      debugInfo += `slug=${s}: ${subj ? "found" : (err ? err.message : "not found")} | `;
-      if (subj) { subjectId = (subj as any).id; break; }
-    }
-    // Also try by name/code
-    if (!subjectId) {
-      const { data: subj } = await supabase.from("subjects").select("id").eq("code", code).single();
-      if (subj) subjectId = (subj as any).id;
+      const results = await supabaseFetch(`subjects?select=id&slug=eq.${encodeURIComponent(s)}`);
+      debugInfo += `slug=${s}: ${results && results.length > 0 ? "found" : "not found"} | `;
+      if (results && results.length > 0) { subjectId = results[0].id; break; }
     }
 
+    // Also try by code
+    if (!subjectId && code) {
+      const results = await supabaseFetch(`subjects?select=id&code=eq.${encodeURIComponent(code)}`);
+      debugInfo += `code=${code}: ${results && results.length > 0 ? "found" : "not found"} | `;
+      if (results && results.length > 0) subjectId = results[0].id;
+    }
+
+    // 2. Fetch papers
     if (subjectId) {
-      const { data: papers } = await supabase
-        .from("past_papers")
-        .select("year, season")
-        .eq("subject_id", subjectId)
-        .limit(5000);
+      debugInfo += `subjectId=${subjectId} | `;
+      const papers = await supabaseFetch(`past_papers?select=year,season&subject_id=eq.${subjectId}&limit=5000`);
+      debugInfo += `papers_count=${papers ? papers.length : 0}`;
 
       if (papers && papers.length > 0) {
         const groups: Record<string, { year: number; season: string; count: number }> = {};
-        for (const p of papers as any[]) {
+        for (const p of papers) {
           const key = `${p.year}-${p.season.toLowerCase().replace(/[\/\s]+/g, "-")}`;
           if (!groups[key]) groups[key] = { year: p.year, season: p.season, count: 0 };
           groups[key].count++;
@@ -137,7 +154,9 @@ export default async function PastPapersPage({
           .map(([key, info]) => ({ key, ...info }));
       }
     }
-  } catch { /* proceed with empty */ }
+  } catch (e: any) {
+    debugInfo = "ERROR: " + (e?.message || String(e));
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
@@ -187,9 +206,8 @@ export default async function PastPapersPage({
       ) : (
         <section className="mt-8">
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-sm">
-            <p className="font-semibold text-yellow-800 mb-2">No past papers in database yet</p>
-            <p className="text-yellow-700">Debug: {debugInfo || "try block not reached"}</p>
-            <p className="text-yellow-600 text-xs mt-1">Slug: {subjectSlug} | Key: {subjectKey} | Name: {name} | Code: {code}</p>
+            <p className="font-semibold text-yellow-800 mb-2">No past papers found</p>
+            <p className="text-yellow-700 break-all">Debug: {debugInfo || "no query attempted"}</p>
           </div>
         </section>
       )}
