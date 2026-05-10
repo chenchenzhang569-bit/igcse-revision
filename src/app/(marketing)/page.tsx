@@ -71,23 +71,23 @@ export default function HomePage() {
                 <p className="text-[10px] sm:text-xs text-gray-400 mt-1">{board.fullName}</p>
               </div>
 
-              {/* Subject tags — bigger and bolder */}
-              <div className="flex flex-wrap gap-2 mb-4">
+              {/* Subject tags — biggest, most prominent element */}
+              <div className="flex flex-wrap gap-3 mb-4">
                 {board.subjects.map((s) => (
                   <Link
                     key={`${board.slug}-${s.slug}`}
                     href={`/subjects/${s.slug}?board=${board.name}`}
-                    className="text-sm sm:text-base font-bold bg-gray-100 text-primary-900 px-3 sm:px-4 py-2 rounded-lg hover:bg-accent-500 hover:text-white transition-colors"
+                    className="text-lg sm:text-xl font-extrabold bg-gray-100 text-primary-900 px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg hover:bg-accent-500 hover:text-white transition-colors no-underline"
                   >
                     {s.name}
                   </Link>
                 ))}
               </div>
 
-              {/* Explore more link */}
+              {/* Explore more link — prominent */}
               <Link
                 href={`/subjects?board=${board.name}`}
-                className="inline-block text-accent-500 font-poppins font-bold uppercase text-xs sm:text-sm tracking-wider transition-colors"
+                className="inline-block text-accent-500 font-poppins font-extrabold uppercase text-sm sm:text-base tracking-wider transition-colors"
               >
                 Explore {board.name} Subjects →
               </Link>
