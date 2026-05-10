@@ -9,10 +9,10 @@ const boards = [
     logo: "/caie-logo.png",
     logoHeight: "h-12",
     subjects: [
-      { name: "Physics 0625", slug: "caie-physics-0625" },
-      { name: "Chemistry 0620", slug: "caie-chemistry-0620" },
-      { name: "Biology 0610", slug: "caie-biology-0610" },
-      { name: "Mathematics 0580", slug: "caie-mathematics-0580" },
+      { name: "Physics 0625", slug: "physics" },
+      { name: "Chemistry 0620", slug: "chemistry" },
+      { name: "Biology 0610", slug: "biology" },
+      { name: "Mathematics 0580", slug: "mathematics" },
     ],
   },
   {
@@ -22,10 +22,10 @@ const boards = [
     logo: "/edexcel-logo.png",
     logoHeight: "h-20",
     subjects: [
-      { name: "Physics 4PH1", slug: "edexcel-physics-4ph1" },
-      { name: "Chemistry 4CH1", slug: "edexcel-chemistry-4ch1" },
-      { name: "Biology 4BI1", slug: "edexcel-biology-4bi1" },
-      { name: "Mathematics 4MA1", slug: "edexcel-mathematics-4ma1" },
+      { name: "Physics 4PH1", slug: "physics" },
+      { name: "Chemistry 4CH1", slug: "chemistry" },
+      { name: "Biology 4BI1", slug: "biology" },
+      { name: "Mathematics 4MA1", slug: "mathematics" },
     ],
   },
 ];
@@ -71,12 +71,12 @@ export default function HomePage() {
                 <p className="text-xs text-gray-400 mt-1">{board.fullName}</p>
               </div>
 
-              {/* Subject tags */}
+              {/* Subject tags — go to subject with board param */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {board.subjects.map((s) => (
                   <Link
-                    key={s.slug}
-                    href={`/subjects/${s.slug}`}
+                    key={`${board.slug}-${s.slug}`}
+                    href={`/subjects/${s.slug}?board=${board.name}`}
                     className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded-full hover:bg-accent-500 hover:text-white transition-colors"
                   >
                     {s.name}
