@@ -46,7 +46,7 @@ export default async function SubtopicPage({
 
   const { data: subtopic } = await supabase
     .from("subtopics")
-    .select("id, pmt_code, display_name, name, slug, topic_id, topics!inner(id, display_name, slug, sort_order, subjects!inner(slug))")
+    .select("id, pmt_code, display_name, name, slug, topic_id, topics!inner(id, display_name, slug, sort_order, subject_id)")
     .eq("slug", subtopicSlug)
     .single();
 
@@ -54,7 +54,7 @@ export default async function SubtopicPage({
     return (
       <div className="text-center py-20">
         <p className="text-gray-400 text-lg">小主题不存在</p>
-        <Link href={`/subjects/${params.slug}/topics/${params.topicSlug}`} className="text-primary-600 mt-4 inline-block">
+        <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="text-primary-600 mt-4 inline-block">
           ← 返回主题
         </Link>
       </div>
