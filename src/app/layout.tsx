@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Master IGCSE — Smart. Targeted. Revision.",
+  title: "Master IGCSE — Achieve More",
   description: "Your ultimate destination for CAIE and Edexcel IGCSE preparation. Past papers, revision notes, and topic questions.",
 };
 

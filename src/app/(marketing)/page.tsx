@@ -28,20 +28,10 @@ const tiles = [
 export default function HomePage() {
   return (
     <div>
-      {/* Logo + Hero — full navy background */}
-      <section className="bg-primary-900 text-center px-5 py-12">
-        <div className="max-w-[400px] mx-auto mb-8">
-          <Image
-            src="/logo.png"
-            alt="Master IGCSE"
-            width={400}
-            height={169}
-            className="w-full h-auto"
-            priority
-          />
-        </div>
+      {/* Hero — full navy background, no center logo */}
+      <section className="bg-primary-900 text-center px-5 py-8">
         <h2 className="font-urbanist text-3xl md:text-4xl font-bold text-white mb-4">
-          Smart. Targeted. Revision.
+          Master IGCSE, Achieve More
         </h2>
         <p className="text-white/60 text-base md:text-lg max-w-[600px] mx-auto mb-8 leading-relaxed">
           Your ultimate destination for CAIE and Edexcel preparation. Master every

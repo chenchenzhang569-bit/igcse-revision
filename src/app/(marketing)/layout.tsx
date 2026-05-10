@@ -22,7 +22,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               alt="Master IGCSE"
               width={129}
               height={54}
-              className="h-9 w-auto"
+              className="h-18 w-auto"
               priority
             />
           </Link>
