@@ -10,46 +10,57 @@ const supabase = createClient(
 );
 
 export function PastPapersTab({
-  slug, board, name, code, icon, subjectKey,
+  subjectId,
+  slug,
+  board,
+  name,
+  code,
+  icon,
+  subjectKey,
 }: {
-  slug: string; board: string; name: string; code: string; icon: string; subjectKey: string;
+  subjectId: string | null;
+  slug: string;
+  board: string;
+  name: string;
+  code: string;
+  icon: string;
+  subjectKey: string;
 }) {
   const [papers, setPapers] = useState<{ key: string; year: number; season: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!subjectId) { setError("Subject not found in database — run SQL migration first"); setLoading(false); return; }
+
     (async () => {
       try {
-        let subjectId: string | null = null;
-        for (const s of [slug, subjectKey, name.toLowerCase()]) {
-          const { data } = await supabase.from("subjects").select("id").eq("slug", s);
-          if (data && data.length > 0) { subjectId = data[0].id; break; }
-        }
-        if (!subjectId && code) {
-          const { data } = await supabase.from("subjects").select("id").eq("code", code);
-          if (data && data.length > 0) subjectId = data[0].id;
-        }
-        if (!subjectId) { setError("Subject not found in database"); setLoading(false); return; }
+        const { data: raw, error: qerr } = await supabase
+          .from("past_papers")
+          .select("year, season")
+          .eq("subject_id", subjectId)
+          .limit(5000);
 
-        const { data: raw } = await supabase.from("past_papers").select("year, season").eq("subject_id", subjectId).limit(5000);
+        if (qerr) { setError(qerr.message); setLoading(false); return; }
         if (!raw || raw.length === 0) { setError("No papers in database yet"); setLoading(false); return; }
 
         const groups: Record<string, { year: number; season: string; count: number }> = {};
         for (const p of raw) {
-          const k = `${p.year}-${p.season.toLowerCase().replace(/[\/\s]+/g, "-")}`;
+          const k = `${p.year}-${p.season.toLowerCase().replace(/[\\/\s]+/g, "-")}`;
           if (!groups[k]) groups[k] = { year: p.year, season: p.season, count: 0 };
           groups[k].count++;
         }
         const seo = (s: string) =>
-          s.includes("Mar")||s.includes("Feb") ? 1 : s.includes("May")||s.includes("Jun") ? 2 : s.includes("Oct")||s.includes("Nov") ? 3 : 9;
+          s.includes("Mar") || s.includes("Feb") ? 1
+          : s.includes("May") || s.includes("Jun") ? 2
+          : s.includes("Oct") || s.includes("Nov") ? 3 : 9;
         setPapers(Object.entries(groups)
           .sort((a, b) => b[1].year - a[1].year || seo(a[1].season) - seo(b[1].season))
           .map(([key, info]) => ({ key, ...info })));
       } catch (e: any) { setError(e.message || "Fetch error"); }
       setLoading(false);
     })();
-  }, [slug, subjectKey, name, code]);
+  }, [subjectId, slug]);
 
   return (
     <section className="mt-6">
