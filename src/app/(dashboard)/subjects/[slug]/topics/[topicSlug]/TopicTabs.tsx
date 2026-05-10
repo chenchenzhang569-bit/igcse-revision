@@ -79,13 +79,13 @@ export function TopicTabs({
   }
 
   function isTableQuestion(text: string): boolean {
-    // Table questions have markdown tables but no A)/B)/C)/D) option lines
-    return text.includes("|") && text.includes("---") && !/^[A-D]\)/m.test(text);
+    // Table questions have markdown tables but no A)/B)/C)/D) or A./B./C./D. option lines
+    return text.includes("|") && text.includes("---") && !/^[A-D][.)]/m.test(text);
   }
 
   function parseOptions(text: string): string[] {
     const lines = text.split("\n");
-    return lines.filter((l) => /^[A-D]\)/.test(l.trim()));
+    return lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
   }
 
   function renderMcqQuestion(q: Question, i: number) {
