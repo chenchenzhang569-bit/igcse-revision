@@ -51,7 +51,7 @@ export default function HomePage() {
       </section>
 
       {/* Exam Board Selector */}
-      <section className="w-full px-5 -mt-6 relative z-10 pb-12">
+      <section className="w-full px-5 -mt-9 relative z-10 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {boards.map((board) => (
             <div
@@ -87,7 +87,7 @@ export default function HomePage() {
               {/* Explore more link */}
               <Link
                 href={`/subjects?board=${board.name}`}
-                className="inline-block text-accent-500 font-poppins font-bold uppercase text-xs tracking-wider hover:text-accent-600 transition-colors"
+                className="inline-block text-accent-500 font-poppins font-bold uppercase text-xs tracking-wider transition-colors"
               >
                 Explore {board.name} Subjects →
               </Link>

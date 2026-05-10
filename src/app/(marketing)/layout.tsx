@@ -15,14 +15,14 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex flex-col">
       {/* Nav — matches design spec */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-[1200px] mx-auto px-5 h-[72px] flex items-center justify-between">
+        <div className="max-w-[1200px] mx-auto px-5 h-[60px] flex items-center justify-between">
           <Link href="/" className="flex items-center shrink-0">
             <Image
               src="/logo.png"
               alt="Master IGCSE"
               width={129}
               height={54}
-              className="h-14 w-auto"
+              className="h-12 w-auto"
               priority
             />
           </Link>
@@ -40,13 +40,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="font-poppins font-bold uppercase tracking-wider text-[1.02rem] text-primary-900 border-2 border-primary-900 px-5 py-2.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
+              className="font-poppins font-extrabold uppercase tracking-wider text-[1.02rem] text-primary-900 border-2 border-primary-900 px-5 py-2.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="font-poppins font-bold uppercase tracking-wider text-[1.02rem] bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-colors"
+              className="font-poppins font-extrabold uppercase tracking-wider text-[1.02rem] bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-colors"
             >
               Register
             </Link>
