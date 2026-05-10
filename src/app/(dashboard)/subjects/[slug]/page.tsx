@@ -36,8 +36,8 @@ export default async function SubjectPage({
     if (!fallback) {
       return (
         <div className="text-center py-20">
-          <p className="text-gray-400 text-lg">科目不存在</p>
-          <Link href="/subjects" className="text-primary-600 mt-4 inline-block">浏览全部科目 →</Link>
+          <p className="text-gray-400 text-lg">Subject not found</p>
+          <Link href="/subjects" className="text-primary-600 mt-4 inline-block">Browse all subjects →</Link>
         </div>
       );
     }
@@ -47,7 +47,7 @@ export default async function SubjectPage({
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Link href="/subjects" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">
-          ← 全部科目
+          ← All Subjects
         </Link>
         <div className="flex items-center gap-4 mt-4">
           <span className="text-5xl">📚</span>
@@ -59,12 +59,12 @@ export default async function SubjectPage({
           </div>
         </div>
         <div className="mt-8 p-8 bg-gray-50 rounded-xl text-center">
-          <p className="text-gray-500 mb-4">内容正在准备中，即将上线</p>
+          <p className="text-gray-500 mb-4">Content is being prepared, coming soon.</p>
           <Link
             href={`/subjects?board=${displayBoard}`}
             className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition"
           >
-            浏览 {displayBoard} 全部科目 →
+            Browse all {displayBoard} subjects →
           </Link>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default async function SubjectPage({
       {/* Header */}
       <div>
         <Link href="/subjects" className="text-sm text-gray-400 hover:text-primary-600 transition mb-2 inline-block">
-          ← 全部科目
+          ← All Subjects
         </Link>
         <div className="flex items-center gap-4 mt-2">
           <span className="text-5xl">{subject.icon || "📚"}</span>
@@ -104,19 +104,19 @@ export default async function SubjectPage({
           href={`/past-papers/${slug}`}
           className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
         >
-          📄 历年真题
+          📄 Past Papers
         </Link>
         <Link
           href={`/mock-exams/${slug}`}
           className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
         >
-          📝 模拟试卷
+          📝 Mock Exams
         </Link>
       </div>
 
       {/* Topics */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">主题列表</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Topics</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(topics || []).map((topic: any) => (
             <Link
@@ -135,7 +135,7 @@ export default async function SubjectPage({
           ))}
         </div>
         {(!topics || topics.length === 0) && (
-          <p className="text-gray-400 text-center py-8">暂无主题</p>
+          <p className="text-gray-400 text-center py-8">No topics yet</p>
         )}
       </div>
     </div>

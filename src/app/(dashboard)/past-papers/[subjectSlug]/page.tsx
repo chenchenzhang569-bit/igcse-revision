@@ -18,8 +18,8 @@ export default async function PastPapersYearListPage({
   if (!subject) {
     return (
       <div className="text-center py-20 text-gray-400">
-        <p>科目不存在</p>
-        <Link href="/dashboard" className="text-primary-600 mt-4 inline-block">← 返回</Link>
+        <p>Subject not found</p>
+        <Link href="/dashboard" className="text-primary-600 mt-4 inline-block">← Back</Link>
       </div>
     );
   }
@@ -56,21 +56,21 @@ export default async function PastPapersYearListPage({
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="text-sm text-gray-400">
-        <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
+        <Link href="/dashboard" className="hover:text-primary-600">Dashboard</Link>
         {" / "}
         <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subj.display_name}</Link>
         {" / "}
-        <span className="text-gray-600">历年真题</span>
+        <span className="text-gray-600">Past Papers</span>
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">📄 {subj.display_name} 历年真题</h1>
-        <p className="text-gray-500 mt-1">选择考季查看试卷和答案</p>
+        <h1 className="text-3xl font-bold text-primary-900">📄 {subj.display_name} Past Papers</h1>
+        <p className="text-gray-500 mt-1">Select an exam season to view papers and mark schemes</p>
       </div>
 
       {entries.length === 0 ? (
-        <div className="bg-yellow-50 border rounded-xl p-6 text-center text-yellow-700">
-          暂无真题
+        <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600">
+          No past papers available yet
         </div>
       ) : (
         <div className="space-y-4">
@@ -82,7 +82,7 @@ export default async function PastPapersYearListPage({
               return (
                 <div key={slug}>
                   {showYear && (
-                    <h2 className="text-lg font-bold text-gray-900 mt-6 mb-3 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-primary-900 mt-6 mb-3 flex items-center gap-2">
                       <span className="bg-primary-600 text-white text-sm px-3 py-0.5 rounded-full">{info.year}</span>
                     </h2>
                   )}
@@ -95,7 +95,7 @@ export default async function PastPapersYearListPage({
                         📅 {info.season}
                       </span>
                       <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                        {info.count} 份
+                        {info.count} papers
                       </span>
                     </div>
                     <span className="text-gray-300 group-hover:text-primary-500 transition">→</span>

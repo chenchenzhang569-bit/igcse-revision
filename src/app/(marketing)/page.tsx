@@ -35,7 +35,7 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <section className="bg-primary-900 text-center px-5 py-10">
-        <h2 className="font-urbanist text-3xl md:text-4xl font-bold text-white mb-3">
+        <h2 className="font-poppins text-3xl md:text-4xl font-bold text-white mb-3">
           Master IGCSE, Achieve More
         </h2>
         <p className="text-white/60 text-sm md:text-base max-w-[500px] mx-auto mb-6 leading-relaxed">
@@ -44,7 +44,7 @@ export default function HomePage() {
         </p>
         <Link
           href="/subjects"
-          className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-urbanist font-bold uppercase tracking-wider text-base px-8 py-3 rounded transition-colors"
+          className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-base px-8 py-3 rounded transition-colors"
         >
           Start Revising Now
         </Link>
@@ -87,7 +87,7 @@ export default function HomePage() {
               {/* Explore more link */}
               <Link
                 href={`/subjects?board=${board.name}`}
-                className="inline-block text-accent-500 font-urbanist font-bold uppercase text-xs tracking-wider hover:text-accent-600 transition-colors"
+                className="inline-block text-accent-500 font-poppins font-bold uppercase text-xs tracking-wider hover:text-accent-600 transition-colors"
               >
                 Explore {board.name} Subjects →
               </Link>

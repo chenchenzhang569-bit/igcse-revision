@@ -1,55 +1,48 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-export default async function PricingPage() {
-  const supabase = createClient();
-  const { data: subjects } = await supabase
-    .from("subjects")
-    .select("price_cny")
-    .eq("is_published", true);
+const PRICE_PER_SUBJECT = 299;
 
-  const price = subjects && subjects.length > 0 ? (subjects[0] as any).price_cny : 29900;
-  const singlePrice = (price / 100).toFixed(0);
-  const bundlePrice = Math.floor((price * 3 * 0.78) / 100); // ~22% discount
+const plans = [
+  {
+    name: "Single Subject",
+    price: `¥${PRICE_PER_SUBJECT}`,
+    period: "One-time payment. Lifetime access.",
+    features: [
+      "Complete topic notes",
+      "Practice questions with answers",
+      "Past papers with mark schemes",
+      "Mock exam downloads",
+      "Free preview available",
+    ],
+    cta: "Choose Subject",
+    href: "/subjects",
+    popular: false,
+  },
+  {
+    name: "Science Bundle",
+    price: `¥${Math.floor(PRICE_PER_SUBJECT * 3 * 0.78)}`,
+    period: "Physics + Chemistry + Biology",
+    features: [
+      "All three science subjects",
+      "Full notes + questions + past papers",
+      "Mock exam downloads",
+      `Save ¥${Math.floor(PRICE_PER_SUBJECT * 3 * 0.22)} vs buying separately`,
+      "Free preview available",
+    ],
+    cta: "Get Bundle",
+    href: "/register",
+    popular: true,
+  },
+];
 
-  const plans = [
-    {
-      name: "单科永久",
-      price: `¥${singlePrice}`,
-      period: "一次性付费，永久访问",
-      features: [
-        "完整笔记（全部主题）",
-        "配套试题 + 详细答案",
-        "历年真题（含评分标准）",
-        "模拟试卷下载",
-        "免费预览开放笔记",
-      ],
-      cta: "选择科目",
-      href: "/subjects",
-      popular: false,
-    },
-    {
-      name: "理科套装",
-      price: `¥${bundlePrice}`,
-      period: "数学 + 物理 + 化学",
-      features: [
-        "三门科目全部内容",
-        "完整笔记 + 试题 + 真题",
-        "模拟试卷下载",
-        `比单买省 ¥${singlePrice * 3 - bundlePrice}`,
-        "免费预览开放笔记",
-      ],
-      cta: "立即购买",
-      href: "/register",
-      popular: true,
-    },
-  ];
-
+export default function PricingPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">简单透明的定价</h1>
-        <p className="text-gray-500 text-lg">按需购买，无隐藏费用</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">
+          Simple, Transparent Pricing
+        </h1>
+        <p className="text-gray-500 text-lg">Pay per subject. No subscriptions. No hidden fees.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -63,17 +56,17 @@ export default async function PricingPage() {
             }`}
           >
             {plan.popular && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white text-xs font-semibold px-4 py-1 rounded-full">
-                最受欢迎
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-500 text-white text-xs font-semibold px-4 py-1 rounded-full">
+                Best Value
               </span>
             )}
-            <h3 className="text-xl font-bold text-gray-900 mb-1">{plan.name}</h3>
+            <h3 className="text-xl font-bold text-primary-900 mb-1">{plan.name}</h3>
             <p className="text-sm text-gray-400 mb-4">{plan.period}</p>
-            <p className="text-4xl font-bold text-primary-600 mb-6">{plan.price}</p>
+            <p className="text-4xl font-bold text-accent-500 mb-6">{plan.price}</p>
             <ul className="space-y-3 mb-8">
               {plan.features.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                  <span className="text-green-500 mt-0.5">✓</span>
+                  <span className="text-accent-500 mt-0.5 shrink-0">✓</span>
                   {f}
                 </li>
               ))}
@@ -82,7 +75,7 @@ export default async function PricingPage() {
               href={plan.href}
               className={`block text-center py-3 rounded-xl font-semibold transition ${
                 plan.popular
-                  ? "bg-primary-600 text-white hover:bg-primary-700"
+                  ? "bg-accent-500 text-white hover:bg-accent-600"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -93,9 +86,9 @@ export default async function PricingPage() {
       </div>
 
       <div className="text-center mt-16 pt-12 border-t">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">有疑问？</h3>
+        <h3 className="text-lg font-semibold text-primary-900 mb-2">Questions?</h3>
         <p className="text-gray-500">
-          所有科目均可免费预览部分内容，满意后再购买。
+          Preview content for free on every subject before you buy.
         </p>
       </div>
     </div>

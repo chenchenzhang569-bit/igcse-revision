@@ -79,20 +79,20 @@ export default async function PastPapersSeasonPage({
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="text-sm text-gray-400">
-        <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
+        <Link href="/dashboard" className="hover:text-primary-600">Dashboard</Link>
         {" / "}
         <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subj.display_name}</Link>
         {" / "}
-        <Link href={`/past-papers/${subjectSlug}`} className="hover:text-primary-600">历年真题</Link>
+        <Link href={`/past-papers/${subjectSlug}`} className="hover:text-primary-600">Past Papers</Link>
       </div>
 
-      <h1 className="text-3xl font-bold text-gray-900">
+      <h1 className="text-3xl font-bold text-primary-900">
         <span className="bg-primary-600 text-white text-lg px-3 py-1 rounded-full mr-2 align-middle">{year}</span>
         📅 {season}
       </h1>
 
       {pairs.length === 0 ? (
-        <div className="bg-yellow-50 border rounded-xl p-6 text-center text-yellow-700">暂无试卷</div>
+        <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600">No papers available yet</div>
       ) : (
         <div className="space-y-4">
           {pairs.map((pair, i) => (
@@ -114,7 +114,7 @@ export default async function PastPapersSeasonPage({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition"
                     >
-                      📄 题目
+                      📄 QP
                     </a>
                   )}
                   {pair.ms && pair.ms.id !== pair.qp?.id && (
@@ -122,9 +122,9 @@ export default async function PastPapersSeasonPage({
                       href={pair.ms.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition"
+                      className="inline-flex items-center gap-1.5 bg-accent-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-accent-600 transition"
                     >
-                      📝 答案
+                      📝 MS
                     </a>
                   )}
                 </div>

@@ -18,9 +18,9 @@ export default async function TopicPage({
   if (!topic) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400 text-lg">主题不存在</p>
+        <p className="text-gray-400 text-lg">Topic not found</p>
         <Link href="/dashboard" className="text-primary-600 mt-4 inline-block">
-          ← 返回仪表盘
+          ← Back to Dashboard
         </Link>
       </div>
     );
@@ -36,10 +36,10 @@ export default async function TopicPage({
   return (
     <div className="space-y-6">
       <div className="text-sm text-gray-400">
-        <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
+        <Link href="/dashboard" className="hover:text-primary-600">Dashboard</Link>
         {" / "}
         <Link href={`/subjects/${slug}`} className="hover:text-primary-600">
-          科目
+          Subject
         </Link>
       </div>
 
@@ -55,7 +55,7 @@ export default async function TopicPage({
             className="bg-white border rounded-xl p-5 hover:shadow-md hover:border-primary-300 transition-all group"
           >
             <div className="flex items-center gap-3">
-              <span className="text-sm font-mono font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
+              <span className="text-sm font-poppins font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
                 {st.pmt_code}
               </span>
               <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition">
@@ -67,7 +67,7 @@ export default async function TopicPage({
       </div>
 
       {subtopics.length === 0 && (
-        <p className="text-gray-400 text-center py-12">暂无小主题</p>
+        <p className="text-gray-400 text-center py-12">No subtopics yet</p>
       )}
     </div>
   );

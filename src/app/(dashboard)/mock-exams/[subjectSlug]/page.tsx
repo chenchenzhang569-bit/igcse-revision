@@ -45,18 +45,18 @@ export default function MockExamsPage({
     <div className="space-y-8">
       <div>
         <Link href={`/subjects/${subjectSlug}`} className="text-sm text-gray-400 hover:text-primary-600 transition">
-          ← 返回{subjectName || "科目"}
+          ← Back to {subjectName || "Subject"}
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mt-2">📝 {subjectName} 模拟试卷</h1>
-        <p className="text-gray-500 mt-1">自测模拟，查漏补缺</p>
+        <h1 className="text-3xl font-bold text-primary-900 mt-2">📝 {subjectName} Mock Exams</h1>
+        <p className="text-gray-500 mt-1">Self-assessment mock exams to identify gaps</p>
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-center py-20">加载中...</p>
+        <p className="text-gray-400 text-center py-20">Loading...</p>
       ) : exams.length === 0 ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center text-yellow-700">
-          <p className="font-medium mb-1">暂无模拟试卷</p>
-          <p className="text-sm">管理员正在准备中，请稍后再来</p>
+        <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600">
+          <p className="font-medium mb-1">No mock exams yet</p>
+          <p className="text-sm">Our team is preparing them. Check back soon!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -65,9 +65,9 @@ export default function MockExamsPage({
               <h3 className="text-lg font-semibold text-gray-900">{exam.title}</h3>
               {exam.description && <p className="text-sm text-gray-500 mt-1 mb-4">{exam.description}</p>}
               <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-                {exam.duration_minutes && <span>⏱ {exam.duration_minutes} 分钟</span>}
-                {exam.total_marks && <span>📊 {exam.total_marks} 分</span>}
-                {exam.answer_url ? <span>✅ 含答案</span> : <span>⏳ 答案待发布</span>}
+                {exam.duration_minutes && <span>⏱ {exam.duration_minutes} min</span>}
+                {exam.total_marks && <span>📊 {exam.total_marks} marks</span>}
+                {exam.answer_url ? <span>✅ Answers included</span> : <span>⏳ Answers pending</span>}
               </div>
               <div className="flex gap-3">
                 <a
@@ -76,7 +76,7 @@ export default function MockExamsPage({
                   rel="noopener noreferrer"
                   className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
                 >
-                  下载试卷
+                  Download Paper
                 </a>
                 {exam.answer_url && (
                   <a
@@ -85,7 +85,7 @@ export default function MockExamsPage({
                     rel="noopener noreferrer"
                     className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
                   >
-                    下载答案
+                    Download Answers
                   </a>
                 )}
               </div>

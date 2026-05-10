@@ -1,6 +1,8 @@
 "use client";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function DashboardLayout({
   children,
@@ -22,40 +24,50 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r hidden md:flex flex-col">
         <div className="p-6 border-b">
-          <a href="/dashboard" className="text-xl font-bold text-primary-600">
-            🎓 IGCSE
-          </a>
+          <Link href="/">
+            <Image
+              src="/logo.png"
+              alt="IGMaster"
+              width={120}
+              height={50}
+              className="h-10 w-auto"
+            />
+          </Link>
         </div>
         <nav className="flex-1 p-4 space-y-1">
-          <a
+          <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition"
+            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
           >
-            📊 仪表盘
-          </a>
-          <a
+            📊 Dashboard
+          </Link>
+          <Link
             href="/subjects"
-            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition"
+            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
           >
-            📚 浏览科目
-          </a>
+            📚 Browse Subjects
+          </Link>
+          <Link
+            href="/past-papers"
+            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
+          >
+            📄 Past Papers
+          </Link>
         </nav>
         <div className="p-4 border-t">
           {user && (
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
+              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-sm">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
               <div className="text-sm flex-1 min-w-0">
-                <p className="text-gray-700 font-medium truncate">
-                  {user.email}
-                </p>
+                <p className="text-gray-700 font-medium truncate">{user.email}</p>
               </div>
               <button
                 onClick={signOut}
-                className="text-xs text-gray-400 hover:text-red-500 transition"
+                className="text-xs text-gray-400 hover:text-accent-500 transition"
               >
-                退出
+                Sign out
               </button>
             </div>
           )}
@@ -64,19 +76,19 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b z-50 px-4 py-3 flex items-center justify-between">
-        <a href="/dashboard" className="text-lg font-bold text-primary-600">
-          🎓 IGCSE
-        </a>
+        <Link href="/" className="text-lg font-bold text-primary-900">
+          <Image src="/logo.png" alt="IGMaster" width={100} height={42} className="h-8 w-auto" />
+        </Link>
         {user && (
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-xs">
+            <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <button
               onClick={signOut}
-              className="text-xs text-gray-400 hover:text-red-500 transition"
+              className="text-xs text-gray-400 hover:text-accent-500 transition"
             >
-              退出
+              Sign out
             </button>
           </div>
         )}

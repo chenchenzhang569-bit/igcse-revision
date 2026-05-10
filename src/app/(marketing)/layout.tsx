@@ -40,13 +40,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="font-urbanist font-bold uppercase tracking-wider text-[1.02rem] text-primary-900 border-2 border-primary-900 px-5 py-2.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
+              className="font-poppins font-bold uppercase tracking-wider text-[1.02rem] text-primary-900 border-2 border-primary-900 px-5 py-2.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="font-urbanist font-bold uppercase tracking-wider text-[1.02rem] bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-colors"
+              className="font-poppins font-bold uppercase tracking-wider text-[1.02rem] bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-colors"
             >
               Register
             </Link>
@@ -58,7 +58,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 
       {/* Footer */}
       <footer className="bg-primary-900 text-white py-10 text-center">
-        <p className="font-urbanist text-2xl font-bold mb-2">IGMaster</p>
+        <p className="font-poppins text-2xl font-bold mb-2">IGMaster</p>
         <p className="text-white/60 mb-5 text-sm">Targeted Preparation for IGCSE Success.</p>
         <p className="text-xs text-white/40">
           &copy; 2026 Master IGCSE Revision. All rights reserved.

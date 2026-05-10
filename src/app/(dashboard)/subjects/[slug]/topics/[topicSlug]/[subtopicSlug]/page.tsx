@@ -54,9 +54,9 @@ export default async function SubtopicPage({
   if (!subtopic || subError) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400 text-lg">小主题不存在</p>
+        <p className="text-gray-400 text-lg">Subtopic not found</p>
         <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="text-primary-600 mt-4 inline-block">
-          ← 返回主题
+          ← Back to Topic
         </Link>
       </div>
     );
@@ -69,7 +69,7 @@ export default async function SubtopicPage({
     .eq("id", subtopic.topic_id)
     .single();
 
-  const topicDisplay = topic || { display_name: "未知主题", sort_order: 0, slug: topicSlug };
+  const topicDisplay = topic || { display_name: "Unknown Topic", sort_order: 0, slug: topicSlug };
 
   // Fetch notes
   const { data: notes = [] } = await supabase
@@ -142,9 +142,9 @@ export default async function SubtopicPage({
   return (
     <div className="space-y-6">
       <div className="text-sm text-gray-400">
-        <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
+        <Link href="/dashboard" className="hover:text-primary-600">Dashboard</Link>
         {" / "}
-        <Link href={`/subjects/${slug}`} className="hover:text-primary-600">科目</Link>
+        <Link href={`/subjects/${slug}`} className="hover:text-primary-600">Subject</Link>
         {" / "}
         <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="hover:text-primary-600">
           {topicDisplay.sort_order}. {topicDisplay.display_name}
@@ -152,7 +152,7 @@ export default async function SubtopicPage({
       </div>
 
       <h1 className="text-3xl font-bold text-gray-900">
-        <span className="text-primary-600 font-mono mr-2">{subtopic.pmt_code}</span>
+        <span className="text-primary-600 font-poppins mr-2">{subtopic.pmt_code}</span>
         {subtopic.name}
       </h1>
 
