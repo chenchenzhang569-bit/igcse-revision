@@ -88,12 +88,20 @@ export default async function SubtopicPage({
 
   const allNotes = [...notes, ...topicNotes];
 
-  // Fetch online MCQs
-  const { data: mcqs = [] } = await supabase
+  // Fetch online MCQs (deduplicate by question_text)
+  const { data: mcqsRaw = [] } = await supabase
     .from("questions")
     .select("*")
     .eq("subtopic_id", subtopic.id)
     .order("sort_order");
+
+  const seen = new Set<string>();
+  const mcqs = mcqsRaw.filter((q: any) => {
+    const key = q.question_text.trim();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   // Fetch all papers by subtopic_id
   const { data: subPapers = [] } = await supabase
