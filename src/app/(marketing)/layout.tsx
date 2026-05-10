@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -15,8 +16,15 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       {/* Nav — matches design spec */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-[1200px] mx-auto px-5 h-[72px] flex items-center justify-between">
-          <Link href="/" className="font-urbanist text-2xl font-bold text-primary-900">
-            Master
+          <Link href="/" className="flex items-center shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Master IGCSE"
+              width={129}
+              height={54}
+              className="h-9 w-auto"
+              priority
+            />
           </Link>
           <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (

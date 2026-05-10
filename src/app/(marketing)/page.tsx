@@ -29,7 +29,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Logo + Hero — full navy background */}
-      <section className="bg-primary-900 text-center px-5 pt-16 pb-20">
+      <section className="bg-primary-900 text-center px-5 py-12">
         <div className="max-w-[400px] mx-auto mb-8">
           <Image
             src="/logo.png"
