@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const DATA: Record<string, { board: string; code: string; name: string; icon: string }> = {
   "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️" },
@@ -26,16 +28,6 @@ function getSeasonFromSlug(slug: string): string {
   return map[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-async function supabaseFetch(path: string) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-    });
-    if (!res.ok) return [];
-    return (await res.json()) || [];
-  } catch { return []; }
-}
-
 export default async function PastPapersSeasonPage({
   params,
 }: {
@@ -54,26 +46,30 @@ export default async function PastPapersSeasonPage({
   let pairs: { paper_number: number; qp: PastPaper | null; ms: PastPaper | null }[] = [];
 
   try {
-    // Find subject
     let subjectId: string | null = null;
     const slugs = [subjectSlug, subjectSlug.split("-")[1] || "physics", subjInfo.name.toLowerCase()];
     for (const s of slugs) {
-      const results = await supabaseFetch(`subjects?select=id&slug=eq.${encodeURIComponent(s)}`);
-      if (results.length > 0) { subjectId = results[0].id; break; }
+      const { data } = await supabase.from("subjects").select("id").eq("slug", s);
+      if (data && data.length > 0) { subjectId = data[0].id; break; }
     }
     if (!subjectId && subjInfo.code) {
-      const results = await supabaseFetch(`subjects?select=id&code=eq.${encodeURIComponent(subjInfo.code)}`);
-      if (results.length > 0) subjectId = results[0].id;
+      const { data } = await supabase.from("subjects").select("id").eq("code", subjInfo.code);
+      if (data && data.length > 0) subjectId = data[0].id;
     }
 
     if (subjectId) {
-      const papers: PastPaper[] = await supabaseFetch(
-        `past_papers?select=*&subject_id=eq.${subjectId}&year=eq.${year}&season=eq.${encodeURIComponent(season)}&order=paper_number&limit=500`
-      );
+      const { data: papers } = await supabase
+        .from("past_papers")
+        .select("*")
+        .eq("subject_id", subjectId)
+        .eq("year", year)
+        .eq("season", season)
+        .order("paper_number")
+        .limit(500);
 
-      if (papers.length > 0) {
+      if (papers && papers.length > 0) {
         const pairMap = new Map<number, { qp: PastPaper | null; ms: PastPaper | null }>();
-        for (const p of papers) {
+        for (const p of papers as PastPaper[]) {
           const n = p.paper_number;
           if (!pairMap.has(n)) pairMap.set(n, { qp: null, ms: null });
           const entry = pairMap.get(n)!;

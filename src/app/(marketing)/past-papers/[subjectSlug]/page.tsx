@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---- Inline DATA ----
 interface Topic { name: string; displayName: string; slug: string; sort: number }
@@ -75,20 +78,6 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", subjectKey: "mathematics", topics: TOPIC_DATA.mathematics },
 };
 
-async function supabaseFetch(path: string) {
-  const url = `${SUPABASE_URL}/rest/v1/${path}`;
-  try {
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    });
-    if (!res.ok) return [];
-    return (await res.json()) || [];
-  } catch { return []; }
-}
-
 // ---- Page ----
 export default async function PastPapersPage({
   params,
@@ -118,22 +107,28 @@ export default async function PastPapersPage({
     const slugs = [subjectSlug, subjectKey, name.toLowerCase()];
     let subjectId: string | null = null;
     for (const s of slugs) {
-      const results = await supabaseFetch(`subjects?select=id&slug=eq.${encodeURIComponent(s)}`);
-      debugInfo += `slug=${s}: ${results && results.length > 0 ? "found" : "not found"} | `;
-      if (results && results.length > 0) { subjectId = results[0].id; break; }
+      const { data: results } = await supabase.from("subjects").select("id").eq("slug", s);
+      const found = results && results.length > 0;
+      debugInfo += `slug=${s}: ${found ? "found" : "not found"} | `;
+      if (found) { subjectId = results[0].id; break; }
     }
 
     // Also try by code
     if (!subjectId && code) {
-      const results = await supabaseFetch(`subjects?select=id&code=eq.${encodeURIComponent(code)}`);
-      debugInfo += `code=${code}: ${results && results.length > 0 ? "found" : "not found"} | `;
-      if (results && results.length > 0) subjectId = results[0].id;
+      const { data: results } = await supabase.from("subjects").select("id").eq("code", code);
+      const found = results && results.length > 0;
+      debugInfo += `code=${code}: ${found ? "found" : "not found"} | `;
+      if (found) subjectId = results[0].id;
     }
 
     // 2. Fetch papers
     if (subjectId) {
       debugInfo += `subjectId=${subjectId} | `;
-      const papers = await supabaseFetch(`past_papers?select=year,season&subject_id=eq.${subjectId}&limit=5000`);
+      const { data: papers } = await supabase
+        .from("past_papers")
+        .select("year, season")
+        .eq("subject_id", subjectId)
+        .limit(5000);
       debugInfo += `papers_count=${papers ? papers.length : 0}`;
 
       if (papers && papers.length > 0) {
