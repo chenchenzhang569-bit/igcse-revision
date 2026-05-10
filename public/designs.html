@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGCSE Revision — Homepage Design Options</title>
+<style>
+:root {
+  --navy: #001C71;
+  --navy-light: #002a9e;
+  --orange: #F48120;
+  --orange-hover: #e07315;
+  --white: #FFFFFF;
+  --gray-50: #F8F9FA;
+  --gray-100: #F1F3F5;
+  --gray-200: #E9ECEF;
+  --gray-300: #DEE2E6;
+  --gray-600: #868E96;
+  --gray-800: #343A40;
+  --gray-900: #212529;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background:#F1F3F5; color:var(--gray-900); }
+.selector-bar {
+  position:sticky; top:0; z-index:100; background:#fff; border-bottom:1px solid var(--gray-200);
+  display:flex; gap:8px; padding:12px 24px; align-items:center;
+}
+.selector-bar span { font-weight:600; font-size:14px; color:var(--gray-600); margin-right:8px; }
+.selector-btn {
+  padding:8px 20px; border-radius:8px; border:2px solid var(--gray-300); background:#fff;
+  font-weight:600; font-size:14px; cursor:pointer; transition:all .15s;
+}
+.selector-btn:hover { border-color:var(--navy); color:var(--navy); }
+.selector-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* ============ OPTION 1: MODERN BOLD ============ */
+.opt1-nav { display:flex; align-items:center; justify-content:space-between; padding:16px 48px; background:var(--white); border-bottom:1px solid var(--gray-200); }
+.opt1-logo { font-size:22px; font-weight:800; color:var(--navy); display:flex; align-items:center; gap:10px; }
+.opt1-logo svg { width:36px; height:36px; }
+.opt1-links { display:flex; gap:32px; list-style:none; }
+.opt1-links a { text-decoration:none; color:var(--gray-800); font-weight:500; font-size:15px; transition:color .15s; }
+.opt1-links a:hover { color:var(--navy); }
+.opt1-actions { display:flex; gap:12px; align-items:center; }
+.opt1-btn-outline { padding:10px 22px; border-radius:8px; border:2px solid var(--navy); color:var(--navy); background:transparent; font-weight:600; font-size:14px; cursor:pointer; transition:all .15s; }
+.opt1-btn-outline:hover { background:var(--navy); color:#fff; }
+.opt1-btn-fill { padding:10px 22px; border-radius:8px; border:none; background:var(--orange); color:#fff; font-weight:600; font-size:14px; cursor:pointer; transition:background .15s; }
+.opt1-btn-fill:hover { background:var(--orange-hover); }
+.opt1-hero { background:var(--navy); padding:100px 48px; text-align:center; color:#fff; }
+.opt1-hero h1 { font-size:52px; font-weight:800; line-height:1.15; max-width:700px; margin:0 auto 16px; }
+.opt1-hero p { font-size:18px; color:rgba(255,255,255,.75); max-width:550px; margin:0 auto 36px; line-height:1.6; }
+.opt1-hero-btns { display:flex; gap:16px; justify-content:center; }
+.opt1-hero .opt1-btn-fill { padding:14px 32px; font-size:16px; border-radius:10px; }
+.opt1-hero .opt1-btn-outline { padding:14px 32px; font-size:16px; border-radius:10px; border-color:rgba(255,255,255,.4); color:#fff; }
+.opt1-hero .opt1-btn-outline:hover { border-color:#fff; background:rgba(255,255,255,.1); }
+.opt1-subjects { padding:80px 48px; background:var(--white); }
+.opt1-subjects h2 { text-align:center; font-size:32px; font-weight:700; color:var(--navy); margin-bottom:48px; }
+.opt1-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; max-width:1100px; margin:0 auto; }
+.opt1-card { background:var(--gray-50); border-radius:16px; padding:32px 24px; text-align:center; transition:transform .2s,box-shadow .2s; cursor:pointer; border:2px solid transparent; }
+.opt1-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,28,113,.12); border-color:var(--navy); }
+.opt1-card-icon { width:56px; height:56px; border-radius:14px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; font-size:28px; }
+.opt1-card h3 { font-size:18px; font-weight:700; color:var(--gray-900); margin-bottom:6px; }
+.opt1-card p { font-size:13px; color:var(--gray-600); }
+.opt1-footer { background:var(--navy); color:rgba(255,255,255,.6); text-align:center; padding:32px; font-size:14px; }
+
+/* ============ OPTION 2: CLEAN ACADEMIC ============ */
+.opt2-nav { display:flex; align-items:center; justify-content:space-between; padding:14px 48px; background:var(--navy); }
+.opt2-logo { font-size:20px; font-weight:700; color:#fff; display:flex; align-items:center; gap:10px; }
+.opt2-links { display:flex; gap:28px; list-style:none; }
+.opt2-links a { text-decoration:none; color:rgba(255,255,255,.75); font-weight:500; font-size:14px; }
+.opt2-links a:hover { color:#fff; }
+.opt2-actions { display:flex; gap:10px; }
+.opt2-btn-login { padding:8px 20px; border-radius:6px; border:1px solid rgba(255,255,255,.3); color:#fff; background:transparent; font-weight:600; font-size:14px; cursor:pointer; }
+.opt2-btn-login:hover { background:rgba(255,255,255,.1); }
+.opt2-btn-reg { padding:8px 20px; border-radius:6px; border:none; background:var(--orange); color:#fff; font-weight:600; font-size:14px; cursor:pointer; }
+.opt2-hero { padding:80px 48px; background:linear-gradient(135deg, #001C71 0%, #002ea6 100%); color:#fff; }
+.opt2-hero-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:60px; }
+.opt2-hero-text { flex:1; }
+.opt2-hero-text .badge { display:inline-block; background:rgba(255,255,255,.15); padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; margin-bottom:20px; }
+.opt2-hero-text h1 { font-size:44px; font-weight:800; line-height:1.15; margin-bottom:16px; }
+.opt2-hero-text p { font-size:17px; color:rgba(255,255,255,.7); line-height:1.6; margin-bottom:32px; }
+.opt2-hero-visual { flex:0 0 380px; background:rgba(255,255,255,.08); border-radius:20px; padding:40px; text-align:center; backdrop-filter:blur(10px); }
+.opt2-hero-visual .stat { font-size:48px; font-weight:800; }
+.opt2-hero-visual .stat-label { font-size:14px; color:rgba(255,255,255,.5); }
+.opt2-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:48px; margin-top:32px; }
+.opt2-section { padding:80px 48px; background:var(--white); }
+.opt2-section h2 { font-size:28px; font-weight:700; color:var(--navy); margin-bottom:36px; }
+.opt2-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:1100px; margin:0 auto; }
+.opt2-item { background:var(--gray-50); border-radius:12px; padding:24px; border-left:4px solid var(--navy); transition:border-color .2s; }
+.opt2-item:hover { border-left-color:var(--orange); }
+.opt2-item h4 { font-size:16px; font-weight:700; margin-bottom:6px; }
+.opt2-item p { font-size:13px; color:var(--gray-600); }
+.opt2-footer { background:var(--gray-50); padding:48px 48px 24px; display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:32px; }
+
+/* ============ OPTION 3: MINIMAL ELEGANT ============ */
+.opt3-body { background:var(--white); }
+.opt3-nav { display:flex; align-items:center; justify-content:space-between; padding:20px 64px; background:var(--white); }
+.opt3-logo { font-size:24px; font-weight:300; color:var(--navy); letter-spacing:2px; display:flex; align-items:center; gap:12px; }
+.opt3-logo strong { font-weight:700; }
+.opt3-links { display:flex; gap:40px; list-style:none; }
+.opt3-links a { text-decoration:none; color:var(--gray-600); font-weight:400; font-size:15px; letter-spacing:0.5px; position:relative; }
+.opt3-links a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px; background:var(--orange); transition:width .25s; }
+.opt3-links a:hover::after { width:100%; }
+.opt3-links a:hover { color:var(--navy); }
+.opt3-actions { display:flex; gap:16px; align-items:center; }
+.opt3-btn-text { background:none; border:none; color:var(--gray-800); font-weight:500; font-size:14px; cursor:pointer; padding:8px 16px; }
+.opt3-btn-text:hover { color:var(--navy); }
+.opt3-btn-cta { padding:10px 24px; border-radius:24px; border:none; background:var(--orange); color:#fff; font-weight:600; font-size:14px; cursor:pointer; }
+.opt3-hero { padding:120px 64px 100px; max-width:900px; margin:0 auto; text-align:center; }
+.opt3-hero .overline { font-size:12px; text-transform:uppercase; letter-spacing:3px; color:var(--orange); font-weight:600; margin-bottom:24px; }
+.opt3-hero h1 { font-size:56px; font-weight:300; color:var(--navy); line-height:1.2; margin-bottom:24px; }
+.opt3-hero h1 strong { font-weight:700; }
+.opt3-hero p { font-size:18px; color:var(--gray-600); line-height:1.7; max-width:600px; margin:0 auto 40px; }
+.opt3-hero-btns { display:flex; gap:16px; justify-content:center; }
+.opt3-btn-primary { padding:14px 36px; border-radius:24px; border:none; background:var(--orange); color:#fff; font-weight:600; font-size:15px; cursor:pointer; }
+.opt3-btn-secondary { padding:14px 36px; border-radius:24px; border:1px solid var(--gray-300); background:#fff; color:var(--gray-800); font-weight:500; font-size:15px; cursor:pointer; }
+.opt3-features { padding:80px 64px; background:var(--gray-50); }
+.opt3-features h2 { text-align:center; font-size:14px; text-transform:uppercase; letter-spacing:3px; color:var(--gray-600); margin-bottom:48px; }
+.opt3-fgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; max-width:1000px; margin:0 auto; background:var(--gray-200); border-radius:20px; overflow:hidden; }
+.opt3-fitem { background:var(--white); padding:48px 32px; text-align:center; }
+.opt3-fitem .num { font-size:42px; font-weight:300; color:var(--navy); margin-bottom:8px; }
+.opt3-fitem .label { font-size:14px; color:var(--gray-600); font-weight:500; }
+.opt3-footer { border-top:1px solid var(--gray-200); padding:32px 64px; display:flex; justify-content:space-between; color:var(--gray-600); font-size:13px; }
+
+@media (max-width:768px) {
+  .opt1-cards, .opt2-grid, .opt3-fgrid { grid-template-columns:1fr 1fr; }
+  .opt2-hero-inner { flex-direction:column; }
+  .opt1-nav, .opt2-nav, .opt3-nav { flex-wrap:wrap; gap:12px; padding:16px 24px; }
+  .opt1-links, .opt2-links, .opt3-links { gap:16px; }
+  .opt2-footer { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="selector-bar">
+  <span>Select Design:</span>
+  <button class="selector-btn active" onclick="switchPanel('opt1',this)">Option 1 — Modern Bold</button>
+  <button class="selector-btn" onclick="switchPanel('opt2',this)">Option 2 — Clean Academic</button>
+  <button class="selector-btn" onclick="switchPanel('opt3',this)">Option 3 — Minimal Elegant</button>
+</div>
+
+<!-- ==================== OPTION 1 ==================== -->
+<div id="opt1" class="panel active">
+  <!-- Nav -->
+  <nav class="opt1-nav">
+    <div class="opt1-logo">
+      <svg viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#001C71"/><text x="18" y="24" text-anchor="middle" fill="white" font-size="16" font-weight="800">IR</text></svg>
+      IGCSE Revision
+    </div>
+    <ul class="opt1-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Revision</a></li>
+      <li><a href="#">Past Papers</a></li>
+      <li><a href="#">Notes</a></li>
+      <li><a href="#">Purchase</a></li>
+      <li><a href="#">Submit Errors</a></li>
+    </ul>
+    <div class="opt1-actions">
+      <button class="opt1-btn-outline">Log In</button>
+      <button class="opt1-btn-fill">Register</button>
+    </div>
+  </nav>
+  <!-- Hero -->
+  <section class="opt1-hero">
+    <h1>Master Your IGCSE Exams with Confidence</h1>
+    <p>Comprehensive revision resources for CAIE &amp; Edexcel — past papers, topic questions, notes, and more.</p>
+    <div class="opt1-hero-btns">
+      <button class="opt1-btn-fill">Start Revising Free</button>
+      <button class="opt1-btn-outline">Browse Subjects</button>
+    </div>
+  </section>
+  <!-- Subjects -->
+  <section class="opt1-subjects">
+    <h2>Explore Subjects</h2>
+    <div class="opt1-cards">
+      <div class="opt1-card">
+        <div class="opt1-card-icon" style="background:#e8f0ff;">⚛</div>
+        <h3>Physics</h3>
+        <p>CAIE 0625 &amp; Edexcel</p>
+      </div>
+      <div class="opt1-card">
+        <div class="opt1-card-icon" style="background:#fff0e8;">⚗</div>
+        <h3>Chemistry</h3>
+        <p>CAIE 0620 &amp; Edexcel</p>
+      </div>
+      <div class="opt1-card">
+        <div class="opt1-card-icon" style="background:#e8ffe8;">🧬</div>
+        <h3>Biology</h3>
+        <p>CAIE 0610 &amp; Edexcel</p>
+      </div>
+      <div class="opt1-card">
+        <div class="opt1-card-icon" style="background:#f0e8ff;">📐</div>
+        <h3>Mathematics</h3>
+        <p>CAIE 0580 &amp; Edexcel</p>
+      </div>
+    </div>
+  </section>
+  <footer class="opt1-footer">&copy; 2026 IGCSE Revision. All rights reserved.</footer>
+</div>
+
+<!-- ==================== OPTION 2 ==================== -->
+<div id="opt2" class="panel">
+  <nav class="opt2-nav">
+    <div class="opt2-logo">
+      <svg viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#F48120"/><text x="18" y="24" text-anchor="middle" fill="white" font-size="16" font-weight="800">IR</text></svg>
+      IGCSE Revision
+    </div>
+    <ul class="opt2-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Revision</a></li>
+      <li><a href="#">Past Papers</a></li>
+      <li><a href="#">Notes</a></li>
+      <li><a href="#">Purchase</a></li>
+      <li><a href="#">Submit Errors</a></li>
+    </ul>
+    <div class="opt2-actions">
+      <button class="opt2-btn-login">Log In</button>
+      <button class="opt2-btn-reg">Register</button>
+    </div>
+  </nav>
+  <section class="opt2-hero">
+    <div class="opt2-hero-inner">
+      <div class="opt2-hero-text">
+        <div class="badge">📚 CAIE &amp; Edexcel IGCSE</div>
+        <h1>Everything you need to ace your IGCSEs</h1>
+        <p>Past papers, revision notes, and topic questions — all in one place. Built for students who want top grades.</p>
+        <button class="opt1-btn-fill" style="padding:14px 32px; font-size:15px; border-radius:8px;">Get Started Free</button>
+      </div>
+      <div class="opt2-hero-visual">
+        <div class="stat">2,000+</div>
+        <div class="stat-label">Past Papers</div>
+        <div class="opt2-stats" style="margin-top:24px;">
+          <div><div class="stat" style="font-size:32px;">4</div><div class="stat-label">Subjects</div></div>
+          <div><div class="stat" style="font-size:32px;">500+</div><div class="stat-label">Topic Qs</div></div>
+          <div><div class="stat" style="font-size:32px;">24/7</div><div class="stat-label">Access</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="opt2-section">
+    <h2 style="max-width:1100px; margin:0 auto 36px;">What We Offer</h2>
+    <div class="opt2-grid">
+      <div class="opt2-item"><h4>📄 Past Papers</h4><p>Complete CAIE &amp; Edexcel past papers with mark schemes, organized by year and season.</p></div>
+      <div class="opt2-item"><h4>📝 Topic Questions</h4><p>Practice by topic with MCQ and structured questions from PMT, with instant feedback.</p></div>
+      <div class="opt2-item"><h4>📖 Revision Notes</h4><p>Concise, exam-focused notes covering every syllabus point.</p></div>
+      <div class="opt2-item"><h4>✅ Mock Exams</h4><p>Timed mock exams to simulate real test conditions.</p></div>
+      <div class="opt2-item"><h4>💰 Per-Subject Access</h4><p>Pay only for what you need — ¥299 per subject, full access.</p></div>
+      <div class="opt2-item"><h4>🔄 Regular Updates</h4><p>Content updated with each exam cycle.</p></div>
+    </div>
+  </section>
+  <footer class="opt2-footer">
+    <div><strong style="color:var(--navy);">IGCSE Revision</strong><p style="font-size:13px;color:var(--gray-600);margin-top:8px;">Your complete IGCSE revision platform.</p></div>
+    <div><strong style="font-size:13px;color:var(--gray-800);">Subjects</strong><p style="font-size:13px;color:var(--gray-600);margin-top:8px;">Physics<br>Chemistry<br>Biology<br>Math</p></div>
+    <div><strong style="font-size:13px;color:var(--gray-800);">Resources</strong><p style="font-size:13px;color:var(--gray-600);margin-top:8px;">Past Papers<br>Notes<br>Topic Qs<br>Mock Exams</p></div>
+    <div><strong style="font-size:13px;color:var(--gray-800);">Support</strong><p style="font-size:13px;color:var(--gray-600);margin-top:8px;">Submit Errors<br>Contact<br>FAQ</p></div>
+  </footer>
+</div>
+
+<!-- ==================== OPTION 3 ==================== -->
+<div id="opt3" class="panel">
+  <div class="opt3-body">
+    <nav class="opt3-nav">
+      <div class="opt3-logo">
+        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="none" stroke="#001C71" stroke-width="2"/><text x="20" y="26" text-anchor="middle" fill="#001C71" font-size="16" font-weight="300">IR</text></svg>
+        <strong>IGCSE</strong> Revision
+      </div>
+      <ul class="opt3-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Revision</a></li>
+        <li><a href="#">Past Papers</a></li>
+        <li><a href="#">Notes</a></li>
+        <li><a href="#">Purchase</a></li>
+        <li><a href="#">Submit Errors</a></li>
+      </ul>
+      <div class="opt3-actions">
+        <button class="opt3-btn-text">Log In</button>
+        <button class="opt3-btn-cta">Register</button>
+      </div>
+    </nav>
+    <section class="opt3-hero">
+      <div class="overline">IGCSE Revision Platform</div>
+      <h1>Study <strong>smarter</strong>,<br>not harder.</h1>
+      <p>Past papers, revision notes, and interactive topic questions for CAIE and Edexcel IGCSE — designed for students who want results.</p>
+      <div class="opt3-hero-btns">
+        <button class="opt3-btn-primary">Start Free</button>
+        <button class="opt3-btn-secondary">View Subjects →</button>
+      </div>
+    </section>
+    <section class="opt3-features">
+      <h2>Why IGCSE Revision</h2>
+      <div class="opt3-fgrid">
+        <div class="opt3-fitem"><div class="num">2,000+</div><div class="label">Past Papers</div></div>
+        <div class="opt3-fitem"><div class="num">4</div><div class="label">Core Subjects</div></div>
+        <div class="opt3-fitem"><div class="num">500+</div><div class="label">Topic Questions</div></div>
+        <div class="opt3-fitem"><div class="num">2</div><div class="label">Exam Boards</div></div>
+        <div class="opt3-fitem"><div class="num">¥299</div><div class="label">Per Subject</div></div>
+        <div class="opt3-fitem"><div class="num">24/7</div><div class="label">Access</div></div>
+      </div>
+    </section>
+    <footer class="opt3-footer">
+      <span>&copy; 2026 IGCSE Revision</span>
+      <span>CAIE &amp; Edexcel</span>
+    </footer>
+  </div>
+</div>
+
+<script>
+function switchPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.selector-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
