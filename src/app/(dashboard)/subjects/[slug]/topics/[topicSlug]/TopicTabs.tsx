@@ -110,7 +110,7 @@ export function TopicTabs({
       // Extract option text from table rows (e.g. "A | ruler | measuring cylinder")
       const tableOptions: Record<string, string> = {};
       for (const line of text.split('\n')) {
-        const m = line.match(/^([A-D])\s*\|\s*(.+?)\s*\|/);
+        const m = line.match(/^\|?\s*([A-D])\s*\|\s*(.+?)\s*\|/);
         if (m) tableOptions[m[1]] = m[2].trim();
       }
 
