@@ -27,7 +27,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               alt="IGMaster"
               width={129}
               height={54}
-              className="h-10 sm:h-12 w-auto"
+              className="h-11 sm:h-14 w-auto"
               priority
             />
           </Link>
@@ -38,49 +38,43 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[1.1rem] lg:text-[1.35rem] font-extrabold text-primary-900 hover:text-accent-500 transition-colors"
+                className="text-[0.95rem] lg:text-[1.15rem] font-extrabold text-primary-900 hover:text-accent-500 transition-colors"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          {/* Nav links + auth — always visible */}
+          {/* Auth + hamburger */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Mobile auth links — compact text */}
+            {/* Mobile auth — compact text */}
             <div className="flex lg:hidden items-center gap-1 mr-1">
-              <Link
-                href="/login"
-                className="font-poppins font-extrabold text-xs text-primary-900 px-1.5 py-1 hover:text-accent-500 transition-colors"
-              >
+              <Link href="/login" className="font-poppins font-extrabold text-xs text-primary-900 px-1 py-1">
                 Login
               </Link>
               <span className="text-gray-300 text-xs">|</span>
-              <Link
-                href="/register"
-                className="font-poppins font-extrabold text-xs text-accent-500 px-1.5 py-1 hover:text-accent-600 transition-colors"
-              >
+              <Link href="/register" className="font-poppins font-extrabold text-xs text-accent-500 px-1 py-1">
                 Register
               </Link>
             </div>
 
-            {/* Desktop auth buttons */}
-            <div className="hidden lg:flex items-center gap-3">
+            {/* Desktop auth — small buttons */}
+            <div className="hidden lg:flex items-center gap-2">
               <Link
                 href="/login"
-                className="font-poppins font-extrabold uppercase tracking-wider text-sm text-primary-900 border-2 border-primary-900 px-4 py-2 rounded hover:bg-primary-900 hover:text-white transition-colors"
+                className="font-poppins font-extrabold uppercase tracking-wider text-xs text-primary-900 border-2 border-primary-900 px-3 py-1.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className="font-poppins font-extrabold uppercase tracking-wider text-sm bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded transition-colors"
+                className="font-poppins font-extrabold uppercase tracking-wider text-xs bg-accent-500 hover:bg-accent-600 text-white px-3 py-1.5 rounded transition-colors"
               >
                 Register
               </Link>
             </div>
 
-            {/* Mobile hamburger */}
+            {/* Hamburger */}
             <button
               className="lg:hidden p-1.5 text-primary-900"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -97,7 +91,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
-        {/* Mobile menu dropdown — nav links only */}
+        {/* Mobile dropdown — nav only */}
         {menuOpen && (
           <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-2">
             {navLinks.map((link) => (
@@ -105,7 +99,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 key={link.label}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className="block text-lg font-extrabold text-primary-900 hover:text-accent-500 transition-colors py-1"
+                className="block text-base font-extrabold text-primary-900 hover:text-accent-500 transition-colors py-1"
               >
                 {link.label}
               </Link>
