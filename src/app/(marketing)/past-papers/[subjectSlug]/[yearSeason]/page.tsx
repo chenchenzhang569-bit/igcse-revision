@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-// ---- Inline DATA ----
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+
 const DATA: Record<string, { board: string; code: string; name: string; icon: string }> = {
   "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️" },
   "caie-chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪" },
@@ -14,25 +15,25 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐" },
 };
 
-type PastPaper = {
-  id: string;
-  title: string;
-  year: number;
-  season: string;
-  paper_number: number;
-  paper_type: string;
-  file_url: string;
-};
+type PastPaper = { id: string; title: string; year: number; season: string; paper_number: number; paper_type: string; file_url: string };
 
 function getSeasonFromSlug(slug: string): string {
   const map: Record<string, string> = {
-    march: "Mar", mar: "Mar",
-    "feb-march": "Feb/Mar", "feb-mar": "Feb/Mar",
-    "may-june": "May/Jun", "may-jun": "May/Jun",
-    jun: "Jun",
+    march: "Mar", mar: "Mar", "feb-march": "Feb/Mar", "feb-mar": "Feb/Mar",
+    "may-june": "May/Jun", "may-jun": "May/Jun", jun: "Jun",
     "oct-nov": "Oct/Nov", nov: "Nov",
   };
   return map[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+async function supabaseFetch(path: string) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return [];
+    return (await res.json()) || [];
+  } catch { return []; }
 }
 
 export default async function PastPapersSeasonPage({
@@ -50,40 +51,34 @@ export default async function PastPapersSeasonPage({
   const season = getSeasonFromSlug(seasonSlug);
   if (isNaN(year)) notFound();
 
-  // Try to fetch from Supabase
   let pairs: { paper_number: number; qp: PastPaper | null; ms: PastPaper | null }[] = [];
 
   try {
-    const supabase = createClient();
-
-    // Find subject by trying multiple slugs
+    // Find subject
     let subjectId: string | null = null;
-    const simpleName = subjectSlug.split("-")[1] || "physics";
-    const slugs = [subjectSlug, simpleName, subjInfo.name.toLowerCase()];
+    const slugs = [subjectSlug, subjectSlug.split("-")[1] || "physics", subjInfo.name.toLowerCase()];
     for (const s of slugs) {
-      const { data: subj } = await supabase.from("subjects").select("id").eq("slug", s).single();
-      if (subj) { subjectId = (subj as any).id; break; }
+      const results = await supabaseFetch(`subjects?select=id&slug=eq.${encodeURIComponent(s)}`);
+      if (results.length > 0) { subjectId = results[0].id; break; }
+    }
+    if (!subjectId && subjInfo.code) {
+      const results = await supabaseFetch(`subjects?select=id&code=eq.${encodeURIComponent(subjInfo.code)}`);
+      if (results.length > 0) subjectId = results[0].id;
     }
 
     if (subjectId) {
-      const { data: papers } = await supabase
-        .from("past_papers")
-        .select("*")
-        .eq("subject_id", subjectId)
-        .eq("year", year)
-        .eq("season", season)
-        .order("paper_number")
-        .limit(500);
+      const papers: PastPaper[] = await supabaseFetch(
+        `past_papers?select=*&subject_id=eq.${subjectId}&year=eq.${year}&season=eq.${encodeURIComponent(season)}&order=paper_number&limit=500`
+      );
 
-      if (papers && papers.length > 0) {
-        // Pair QP + MS by paper_number
+      if (papers.length > 0) {
         const pairMap = new Map<number, { qp: PastPaper | null; ms: PastPaper | null }>();
-        for (const p of papers as PastPaper[]) {
+        for (const p of papers) {
           const n = p.paper_number;
           if (!pairMap.has(n)) pairMap.set(n, { qp: null, ms: null });
           const entry = pairMap.get(n)!;
-          if (p.paper_type === "Question Paper" || p.paper_type?.toLowerCase().includes("question")) entry.qp = p;
-          else if (p.paper_type === "Mark Scheme" || p.paper_type?.toLowerCase().includes("mark")) entry.ms = p;
+          if (p.paper_type?.toLowerCase().includes("question")) entry.qp = p;
+          else if (p.paper_type?.toLowerCase().includes("mark")) entry.ms = p;
           else entry.qp = p;
         }
         pairs = [...pairMap.entries()]
@@ -97,7 +92,6 @@ export default async function PastPapersSeasonPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
-      {/* Breadcrumb */}
       <div className="text-sm text-gray-400 mb-2 space-x-1">
         <Link href="/" className="hover:text-primary-600">Home</Link>
         <span>/</span>
@@ -111,9 +105,7 @@ export default async function PastPapersSeasonPage({
       <div className="flex items-center gap-4 mt-4">
         <span className="text-4xl sm:text-5xl">{icon}</span>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">
-            {board} {name} — {year} {season}
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">{board} {name} — {year} {season}</h1>
           <p className="text-gray-500 mt-1">Code: {code} · {pairs.length} paper pairs</p>
         </div>
       </div>
@@ -123,12 +115,8 @@ export default async function PastPapersSeasonPage({
           {pairs.map(({ paper_number, qp, ms }) => (
             <div key={paper_number} className="bg-white border rounded-xl p-4 sm:p-5 hover:shadow-sm transition flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <h3 className="font-semibold text-primary-900">
-                  Paper {paper_number}
-                </h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {qp?.title || ms?.title || ""}
-                </p>
+                <h3 className="font-semibold text-primary-900">Paper {paper_number}</h3>
+                <p className="text-xs text-gray-400 mt-0.5 truncate">{qp?.title || ms?.title || ""}</p>
               </div>
               <div className="flex gap-2 shrink-0">
                 {qp && (
@@ -151,9 +139,7 @@ export default async function PastPapersSeasonPage({
       ) : (
         <div className="mt-8 bg-gray-50 border rounded-xl p-8 text-center text-gray-500">
           <p className="font-medium">No papers found for {year} {season}</p>
-          <Link href={`/past-papers/${subjectSlug}`} className="text-primary-600 text-sm mt-2 inline-block">
-            ← Back to season list
-          </Link>
+          <Link href={`/past-papers/${subjectSlug}`} className="text-primary-600 text-sm mt-2 inline-block">← Back to season list</Link>
         </div>
       )}
     </div>
