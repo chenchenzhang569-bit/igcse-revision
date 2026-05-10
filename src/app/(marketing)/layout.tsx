@@ -45,39 +45,59 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             ))}
           </nav>
 
-          {/* Desktop buttons */}
-          <div className="hidden sm:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="font-poppins font-extrabold uppercase tracking-wider text-sm text-primary-900 border-2 border-primary-900 px-4 py-2 rounded hover:bg-primary-900 hover:text-white transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="font-poppins font-extrabold uppercase tracking-wider text-sm bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded transition-colors"
-            >
-              Register
-            </Link>
-          </div>
+          {/* Nav links + auth — always visible */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Mobile auth links — compact text */}
+            <div className="flex lg:hidden items-center gap-1 mr-1">
+              <Link
+                href="/login"
+                className="font-poppins font-extrabold text-xs text-primary-900 px-1.5 py-1 hover:text-accent-500 transition-colors"
+              >
+                Login
+              </Link>
+              <span className="text-gray-300 text-xs">|</span>
+              <Link
+                href="/register"
+                className="font-poppins font-extrabold text-xs text-accent-500 px-1.5 py-1 hover:text-accent-600 transition-colors"
+              >
+                Register
+              </Link>
+            </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="lg:hidden p-2 text-primary-900"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+            {/* Desktop auth buttons */}
+            <div className="hidden lg:flex items-center gap-3">
+              <Link
+                href="/login"
+                className="font-poppins font-extrabold uppercase tracking-wider text-sm text-primary-900 border-2 border-primary-900 px-4 py-2 rounded hover:bg-primary-900 hover:text-white transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="font-poppins font-extrabold uppercase tracking-wider text-sm bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              className="lg:hidden p-1.5 text-primary-900"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {menuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Mobile menu dropdown */}
+        {/* Mobile menu dropdown — nav links only */}
         {menuOpen && (
           <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-2">
             {navLinks.map((link) => (
@@ -90,22 +110,6 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 {link.label}
               </Link>
             ))}
-            <div className="flex gap-2 pt-2 border-t border-gray-100">
-              <Link
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="flex-1 text-center font-poppins font-extrabold uppercase tracking-wider text-sm text-primary-900 border-2 border-primary-900 px-3 py-2 rounded"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMenuOpen(false)}
-                className="flex-1 text-center font-poppins font-extrabold uppercase tracking-wider text-sm bg-accent-500 text-white px-3 py-2 rounded"
-              >
-                Register
-              </Link>
-            </div>
           </div>
         )}
       </header>
