@@ -1,96 +1,75 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { parseSlug, TOPICS, SUBJECT_NAMES, type Topic } from "@/lib/topics-data";
 import Link from "next/link";
 
-type MockExam = {
-  id: string;
-  title: string;
-  description: string | null;
-  file_url: string;
-  answer_url: string | null;
-  duration_minutes: number | null;
-  total_marks: number | null;
-  is_free_preview: boolean;
-};
-
-export default function MockExamsPage({
+export default async function MockExamsPage({
   params,
 }: {
-  params: { subjectSlug: string };
+  params: Promise<{ subjectSlug: string }>;
 }) {
-  const subjectSlug = params.subjectSlug;
-  const [exams, setExams] = useState<MockExam[]>([]);
-  const [subjectName, setSubjectName] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!subjectSlug) return;
-    async function load() {
-      const subRes = await fetch(`/api/subjects?slug=${subjectSlug}`);
-      if (subRes.ok) {
-        const subs = await subRes.json();
-        if (subs[0]) {
-          setSubjectName(subs[0].display_name);
-          const examRes = await fetch(`/api/mock-exams?subject_id=${subs[0].id}`);
-          if (examRes.ok) setExams(await examRes.json());
-        }
-      }
-      setLoading(false);
-    }
-    load();
-  }, [subjectSlug]);
+  const { subjectSlug } = await params;
+  const parsed = parseSlug(subjectSlug);
+  const subjectKey = parsed?.subjectSlug || subjectSlug;
+  const board = parsed?.board || "";
+  const code = parsed?.code || "";
+  const topics: Topic[] = TOPICS[subjectKey] || [];
+  const info = SUBJECT_NAMES[subjectKey] || { displayName: subjectKey, icon: "📚" };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <Link href={`/subjects/${subjectSlug}`} className="text-sm text-gray-400 hover:text-primary-600 transition">
-          ← Back to {subjectName || "Subject"}
-        </Link>
-        <h1 className="text-3xl font-bold text-primary-900 mt-2">📝 {subjectName} Mock Exams</h1>
-        <p className="text-gray-500 mt-1">Self-assessment mock exams to identify gaps</p>
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">
+        ← Back to Home
+      </Link>
+
+      {/* Header */}
+      <div className="flex items-center gap-4 mt-4">
+        <span className="text-4xl sm:text-5xl">{info.icon}</span>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">
+            📝 {board} {info.displayName} Mock Exams
+          </h1>
+          {code && <p className="text-gray-500 mt-1">Code: {code}</p>}
+        </div>
       </div>
 
-      {loading ? (
-        <p className="text-gray-400 text-center py-20">Loading...</p>
-      ) : exams.length === 0 ? (
-        <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600">
-          <p className="font-medium mb-1">No mock exams yet</p>
-          <p className="text-sm">Our team is preparing them. Check back soon!</p>
+      {/* Topics grid — always shown */}
+      {topics.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-primary-900 mb-4">Topics</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {topics.map((topic) => (
+              <Link
+                key={topic.slug}
+                href={`/subjects/${subjectSlug}/topics/${topic.slug}`}
+                className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">
+                    {topic.sort}
+                  </span>
+                  <div>
+                    <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">
+                      {topic.displayName}
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-0.5">{topic.name}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {exams.map((exam) => (
-            <div key={exam.id} className="bg-white border rounded-xl p-6 hover:shadow-md transition">
-              <h3 className="text-lg font-semibold text-gray-900">{exam.title}</h3>
-              {exam.description && <p className="text-sm text-gray-500 mt-1 mb-4">{exam.description}</p>}
-              <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-                {exam.duration_minutes && <span>⏱ {exam.duration_minutes} min</span>}
-                {exam.total_marks && <span>📊 {exam.total_marks} marks</span>}
-                {exam.answer_url ? <span>✅ Answers included</span> : <span>⏳ Answers pending</span>}
-              </div>
-              <div className="flex gap-3">
-                <a
-                  href={exam.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
-                >
-                  Download Paper
-                </a>
-                {exam.answer_url && (
-                  <a
-                    href={exam.answer_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
-                  >
-                    Download Answers
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
+      )}
+
+      {/* Mock exam placeholder */}
+      <div className="mt-8 pt-6 border-t">
+        <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600">
+          <p className="font-medium mb-1">Mock exams coming soon</p>
+          <p className="text-sm">Our team is preparing timed mock exams for each topic. Check back soon!</p>
+        </div>
+      </div>
+
+      {topics.length === 0 && (
+        <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600 mt-8">
+          No content available for this subject yet
         </div>
       )}
     </div>

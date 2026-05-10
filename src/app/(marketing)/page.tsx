@@ -33,25 +33,15 @@ const boards = [
 export default function HomePage() {
   return (
     <div>
-      {/* Hero — left-aligned, sales copy */}
-      <section className="bg-primary-900 px-4 sm:px-6 py-12 sm:py-16">
-        <div className="max-w-[640px]">
-          <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
+      {/* Hero */}
+      <section className="bg-primary-900 px-4 sm:px-6 py-10 sm:py-14">
+        <div>
+          <h1 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white">
             Master IGCSE, Achieve More
-          </h2>
-          <p className="text-white/70 text-sm md:text-base mb-2 leading-relaxed">
-            The most comprehensive IGCSE revision platform for CAIE and Edexcel.
+          </h1>
+          <p className="text-white/60 text-sm md:text-base mt-2 max-w-xl">
+            Past papers, topic questions, and revision notes for CAIE and Edexcel
           </p>
-          <p className="text-white/50 text-sm md:text-base mb-8 leading-relaxed">
-            Access expertly curated past papers, topic questions, and revision notes — 
-            all organized by subject and topic so you can focus on what matters most.
-          </p>
-          <Link
-            href="/subjects"
-            className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
-          >
-            Start Revising Now
-          </Link>
         </div>
       </section>
 
