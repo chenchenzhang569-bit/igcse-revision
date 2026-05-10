@@ -95,13 +95,15 @@ export default async function PastPapersPage({
 
   // Query Supabase for past papers
   let papersBySeason: { key: string; year: number; season: string; count: number }[] = [];
+  let debugInfo = "";
   try {
     const supabase = createClient();
     // Try to find subject in DB by slug (try composite then simple)
     let subjectId: string | null = null;
     const slugs = [subjectSlug, subjectKey, name.toLowerCase()];
     for (const s of slugs) {
-      const { data: subj } = await supabase.from("subjects").select("id").eq("slug", s).single();
+      const { data: subj, error: err } = await supabase.from("subjects").select("id").eq("slug", s).single();
+      debugInfo += `slug=${s}: ${subj ? "found" : (err ? err.message : "not found")} | `;
       if (subj) { subjectId = (subj as any).id; break; }
     }
     // Also try by name/code
@@ -184,9 +186,10 @@ export default async function PastPapersPage({
         </section>
       ) : (
         <section className="mt-8">
-          <div className="bg-gray-50 border rounded-xl p-6 text-center text-gray-600">
-            <p className="font-medium">No past papers in database yet</p>
-            <p className="text-sm mt-1">Papers are being uploaded. Check back soon.</p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-sm">
+            <p className="font-semibold text-yellow-800 mb-2">No past papers in database yet</p>
+            <p className="text-yellow-700">Debug: {debugInfo || "try block not reached"}</p>
+            <p className="text-yellow-600 text-xs mt-1">Slug: {subjectSlug} | Key: {subjectKey} | Name: {name} | Code: {code}</p>
           </div>
         </section>
       )}
