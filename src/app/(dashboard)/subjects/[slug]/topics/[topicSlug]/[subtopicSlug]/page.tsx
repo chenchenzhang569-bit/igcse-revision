@@ -44,13 +44,14 @@ export default async function SubtopicPage({
   const { slug, topicSlug, subtopicSlug } = await params;
   const supabase = createClient();
 
-  const { data: subtopic } = await supabase
+  // Fetch subtopic
+  const { data: subtopic, error: subError } = await supabase
     .from("subtopics")
-    .select("id, pmt_code, display_name, name, slug, topic_id, topics!inner(id, display_name, slug, sort_order, subject_id)")
+    .select("id, pmt_code, display_name, name, slug, topic_id")
     .eq("slug", subtopicSlug)
     .single();
 
-  if (!subtopic) {
+  if (!subtopic || subError) {
     return (
       <div className="text-center py-20">
         <p className="text-gray-400 text-lg">小主题不存在</p>
@@ -61,7 +62,14 @@ export default async function SubtopicPage({
     );
   }
 
-  const topic = (subtopic as any).topics;
+  // Fetch topic separately
+  const { data: topic } = await supabase
+    .from("topics")
+    .select("id, display_name, slug, sort_order")
+    .eq("id", subtopic.topic_id)
+    .single();
+
+  const topicDisplay = topic || { display_name: "未知主题", sort_order: 0, slug: topicSlug };
 
   // Fetch notes
   const { data: notes = [] } = await supabase
@@ -70,6 +78,16 @@ export default async function SubtopicPage({
     .eq("subtopic_id", subtopic.id)
     .order("sort_order");
 
+  // Also fetch notes by topic_id (for fallback)
+  const { data: topicNotes = [] } = await supabase
+    .from("notes")
+    .select("*")
+    .eq("topic_id", subtopic.topic_id)
+    .is("subtopic_id", null)
+    .order("sort_order");
+
+  const allNotes = [...notes, ...topicNotes];
+
   // Fetch online MCQs
   const { data: mcqs = [] } = await supabase
     .from("questions")
@@ -77,12 +95,22 @@ export default async function SubtopicPage({
     .eq("subtopic_id", subtopic.id)
     .order("sort_order");
 
-  // Fetch all papers, then split MCQ vs Structured
-  const { data: allPapers = [] } = await supabase
+  // Fetch all papers by subtopic_id
+  const { data: subPapers = [] } = await supabase
     .from("past_papers")
     .select("id, title, file_url, paper_type")
     .eq("subtopic_id", subtopic.id)
     .order("title");
+
+  // Also fetch papers by topic_id (for papers without subtopic assignment)
+  const { data: topicPapers = [] } = await supabase
+    .from("past_papers")
+    .select("id, title, file_url, paper_type")
+    .eq("topic_id", subtopic.topic_id)
+    .is("subtopic_id", null)
+    .order("title");
+
+  const allPapers = [...subPapers, ...topicPapers];
 
   const mcqPapers = allPapers.filter((p: any) =>
     p.paper_type?.includes("MCQ")
@@ -102,7 +130,7 @@ export default async function SubtopicPage({
         <Link href={`/subjects/${slug}`} className="hover:text-primary-600">科目</Link>
         {" / "}
         <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="hover:text-primary-600">
-          {topic.sort_order}. {topic.display_name}
+          {topicDisplay.sort_order}. {topicDisplay.display_name}
         </Link>
       </div>
 
@@ -112,7 +140,7 @@ export default async function SubtopicPage({
       </h1>
 
       <TopicTabs
-        notes={notes}
+        notes={allNotes}
         mcqs={mcqs}
         mcqPairs={mcqPairs}
         pairedPapers={structPairs}
