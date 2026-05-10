@@ -138,8 +138,14 @@ export function TopicTabs({
 
     // Normal question: parse stem + options
     const options = parseOptions(text);
+    const hasImage = /!\[/.test(text);
     const stemEnd = options.length > 0 ? text.indexOf(options[0]) : text.length;
     const stem = text.slice(0, stemEnd).trim();
+
+    // Option labels (A/B/C/D) — show even if text options missing (image-based Qs)
+    const optionLabels = options.length >= 4 
+      ? options.map((opt) => opt.charAt(0))
+      : ["A", "B", "C", "D"];
 
     return (
       <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
@@ -154,9 +160,9 @@ export function TopicTabs({
           </div>
         </div>
         <div className="px-5 pb-5 space-y-2">
-          {options.map((opt) => {
-            const label = opt.charAt(0);
-            const optText = opt.slice(3).trim();
+          {optionLabels.map((label) => {
+            const opt = options.find(o => o.startsWith(label));
+            const optText = opt ? opt.slice(3).trim() : "";
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
@@ -173,7 +179,7 @@ export function TopicTabs({
                   : selected ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-600"
                 }`}>{label}</span>
-                <span className="text-sm">{optText}</span>
+                {optText ? <span className="text-sm">{optText}</span> : null}
                 {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ 正确</span>}
                 {showResults && selected && !isCorrect && <span className="ml-auto text-red-600 text-sm">✗</span>}
               </button>
