@@ -35,16 +35,16 @@ export default async function SubjectPage({
         <span className="text-4xl sm:text-5xl">{info.icon}</span>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">
-            {board} IGCSE {info.displayName}
+            {board} IGCSE {info.displayName} <span className="text-xs text-gray-300">v3</span>
           </h1>
           <p className="text-gray-500 mt-1">Code: {code}</p>
         </div>
       </div>
 
       {/* Topics */}
-      {topics.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-primary-900 mb-4">Topics</h2>
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-primary-900 mb-4">Topics (debug: {topics.length} items, key={subjectSlug})</h2>
+        {topics.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {topics.map((topic) => (
               <Link
