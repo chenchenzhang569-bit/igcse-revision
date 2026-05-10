@@ -1,98 +1,107 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-type PastPaper = {
-  id: string;
-  title: string;
-  year: number;
-  season: string;
-  paper_number: number;
-  paper_type: string;
-  file_url: string;
-  is_free: boolean;
-};
-
-export default function PastPapersPage({
+export default async function PastPapersYearListPage({
   params,
 }: {
-  params: { subjectSlug: string };
+  params: Promise<{ subjectSlug: string }>;
 }) {
-  const subjectSlug = params.subjectSlug;
-  const [papers, setPapers] = useState<PastPaper[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { subjectSlug } = await params;
+  const supabase = createClient();
 
-  useEffect(() => {
-    if (!subjectSlug) return;
-    async function load() {
-      // 先通过 slug 找到 subject_id
-      const subRes = await fetch(`/api/subjects?slug=${subjectSlug}`);
-      if (!subRes.ok) { setLoading(false); return; }
-      const subjects = await subRes.json();
-      const subject = subjects[0];
-      if (!subject) { setLoading(false); return; }
+  const { data: subject } = await supabase
+    .from("subjects")
+    .select("id, display_name")
+    .eq("slug", subjectSlug)
+    .single();
 
-      const res = await fetch(`/api/past-papers?subject_id=${subject.id}`);
-      if (res.ok) setPapers(await res.json());
-      setLoading(false);
-    }
-    load();
-  }, [subjectSlug]);
+  if (!subject) {
+    return (
+      <div className="text-center py-20 text-gray-400">
+        <p>科目不存在</p>
+        <Link href="/dashboard" className="text-primary-600 mt-4 inline-block">← 返回</Link>
+      </div>
+    );
+  }
 
-  // 按年份分组
-  const grouped: Record<string, PastPaper[]> = {};
-  papers.forEach((p) => {
-    const key = `${p.year} · ${p.season}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(p);
+  const { data: papers = [] } = await supabase
+    .from("past_papers")
+    .select("year, season")
+    .eq("subject_id", subject.id);
+
+  // Group by year+season and count
+  const groups: Record<string, { year: number; season: string; count: number }> = {};
+  for (const p of papers as any[]) {
+    const key = `${p.year}-${p.season.toLowerCase().replace(/[\/\s]+/g, "-")}`;
+    if (!groups[key]) groups[key] = { year: p.year, season: p.season, count: 0 };
+    groups[key].count++;
+  }
+
+  // Sort: newest first, then season order
+  const seasonOrder = (s: string) => {
+    if (s.includes("Mar") || s.includes("Feb")) return 1;
+    if (s.includes("May") || s.includes("Jun")) return 2;
+    if (s.includes("Oct") || s.includes("Nov")) return 3;
+    return 9;
+  };
+
+  const entries = Object.entries(groups).sort((a, b) => {
+    if (a[1].year !== b[1].year) return b[1].year - a[1].year;
+    return seasonOrder(a[1].season) - seasonOrder(b[1].season);
   });
 
   return (
-    <div className="space-y-8">
-      <div>
-        <Link href={`/subjects/${subjectSlug}`} className="text-sm text-gray-400 hover:text-primary-600 transition">
-          ← 返回科目
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mt-2">📄 历年真题</h1>
-        <p className="text-gray-500 mt-1">IGCSE 历年考试真题 PDF 下载</p>
+    <div className="space-y-6 max-w-3xl">
+      <div className="text-sm text-gray-400">
+        <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
+        {" / "}
+        <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subject.display_name}</Link>
+        {" / "}
+        <span className="text-gray-600">历年真题</span>
       </div>
 
-      {loading ? (
-        <p className="text-gray-400 text-center py-20">加载中...</p>
-      ) : Object.keys(grouped).length === 0 ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center text-yellow-700">
-          <p className="font-medium mb-1">暂无真题</p>
-          <p className="text-sm">管理员正在上传中，请稍后再来</p>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">📄 {subject.display_name} 历年真题</h1>
+        <p className="text-gray-500 mt-1">选择考季查看试卷和答案</p>
+      </div>
+
+      {entries.length === 0 ? (
+        <div className="bg-yellow-50 border rounded-xl p-6 text-center text-yellow-700">
+          暂无真题
         </div>
       ) : (
-        <div className="space-y-8">
-          {Object.entries(grouped).map(([key, yearPapers]) => (
-            <div key={key}>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">{key}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {yearPapers.map((paper) => (
-                  <div
-                    key={paper.id}
-                    className="bg-white border rounded-lg p-4 flex items-center justify-between hover:shadow-md transition"
+        <div className="space-y-4">
+          {/* Group by year for header */}
+          {(() => {
+            let lastYear = -1;
+            return entries.map(([slug, info]) => {
+              const showYear = info.year !== lastYear;
+              lastYear = info.year;
+              return (
+                <div key={slug}>
+                  {showYear && (
+                    <h2 className="text-lg font-bold text-gray-900 mt-6 mb-3 flex items-center gap-2">
+                      <span className="bg-primary-600 text-white text-sm px-3 py-0.5 rounded-full">{info.year}</span>
+                    </h2>
+                  )}
+                  <Link
+                    href={`/past-papers/${subjectSlug}/${slug}`}
+                    className="bg-white border rounded-xl p-4 hover:shadow-md hover:border-primary-300 transition-all flex items-center justify-between group ml-0"
                   >
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">{paper.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{paper.paper_type}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-gray-800 group-hover:text-primary-600 transition">
+                        📅 {info.season}
+                      </span>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                        {info.count} 份试卷
+                      </span>
                     </div>
-                    <a
-                      href={paper.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-600 text-sm font-medium hover:text-primary-700 transition"
-                    >
-                      下载
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                    <span className="text-gray-300 group-hover:text-primary-500 transition">→</span>
+                  </Link>
+                </div>
+              );
+            });
+          })()}
         </div>
       )}
     </div>

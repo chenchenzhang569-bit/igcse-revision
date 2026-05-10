@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
 
   // 公开路由 OR API 路由（API 自带 requireAdmin 校验）
   const publicPaths = [
-    "/", "/login", "/register", "/subjects", "/pricing",
+    "/", "/login", "/register", "/subjects", "/pricing", "/past-papers",
     "/api/auth",
   ];
   const isPublic = publicPaths.some(
