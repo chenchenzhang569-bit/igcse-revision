@@ -24,10 +24,13 @@ export default async function PastPapersYearListPage({
     );
   }
 
+  const subj = subject as any;
+
   const { data: papers = [] } = await supabase
     .from("past_papers")
     .select("year, season")
-    .eq("subject_id", subject.id);
+    .eq("subject_id", subj.id)
+    .limit(5000);
 
   // Group by year+season and count
   const groups: Record<string, { year: number; season: string; count: number }> = {};
@@ -55,13 +58,13 @@ export default async function PastPapersYearListPage({
       <div className="text-sm text-gray-400">
         <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
         {" / "}
-        <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subject.display_name}</Link>
+        <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subj.display_name}</Link>
         {" / "}
         <span className="text-gray-600">历年真题</span>
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">📄 {subject.display_name} 历年真题</h1>
+        <h1 className="text-3xl font-bold text-gray-900">📄 {subj.display_name} 历年真题</h1>
         <p className="text-gray-500 mt-1">选择考季查看试卷和答案</p>
       </div>
 
@@ -71,7 +74,6 @@ export default async function PastPapersYearListPage({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Group by year for header */}
           {(() => {
             let lastYear = -1;
             return entries.map(([slug, info]) => {
@@ -93,7 +95,7 @@ export default async function PastPapersYearListPage({
                         📅 {info.season}
                       </span>
                       <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                        {info.count} 份试卷
+                        {info.count} 份
                       </span>
                     </div>
                     <span className="text-gray-300 group-hover:text-primary-500 transition">→</span>

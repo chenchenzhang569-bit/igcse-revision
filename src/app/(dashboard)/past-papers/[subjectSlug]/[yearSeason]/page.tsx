@@ -24,8 +24,6 @@ function getSeasonFromSlug(slug: string): string {
 }
 
 function shortTitle(title: string): string {
-  // Strip long prefix like "CAIE IGCSE Mathematics-0580 (0580) - 2025 Oct/Nov - QP Paper 11"
-  // Keep just: "Paper 11"
   const match = title.match(/Paper\s+\d+/i);
   return match ? match[0] : title;
 }
@@ -53,13 +51,16 @@ export default async function PastPapersSeasonPage({
 
   if (!subject) notFound();
 
+  const subj = subject as any;
+
   const { data: papers = [] } = await supabase
     .from("past_papers")
     .select("*")
-    .eq("subject_id", subject.id)
+    .eq("subject_id", subj.id)
     .eq("year", year)
     .eq("season", season)
-    .order("paper_number");
+    .order("paper_number")
+    .limit(500);
 
   // Pair QP + MS
   const pairMap = new Map<number, { qp: PastPaper | null; ms: PastPaper | null }>();
@@ -80,7 +81,7 @@ export default async function PastPapersSeasonPage({
       <div className="text-sm text-gray-400">
         <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
         {" / "}
-        <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subject.display_name}</Link>
+        <Link href={`/subjects/${subjectSlug}`} className="hover:text-primary-600">{subj.display_name}</Link>
         {" / "}
         <Link href={`/past-papers/${subjectSlug}`} className="hover:text-primary-600">历年真题</Link>
       </div>
