@@ -7,14 +7,14 @@ const boards = [
     fullName: "Cambridge Assessment International Education",
     slug: "caie",
     subjects: ["Physics 0625", "Chemistry 0620", "Biology 0610", "Mathematics 0580"],
-    color: "from-blue-600 to-blue-800",
+    logo: "/caie-logo.png",
   },
   {
     name: "Edexcel",
     fullName: "Pearson Edexcel International GCSE",
     slug: "edexcel",
     subjects: ["Physics 4PH1", "Chemistry 4CH1", "Biology 4BI1", "Mathematics 4MA1"],
-    color: "from-slate-600 to-slate-800",
+    logo: "/edexcel-logo.png",
   },
 ];
 
@@ -65,8 +65,13 @@ export default function HomePage() {
               className="group block bg-white border border-gray-200 rounded-lg p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${board.color} flex items-center justify-center text-white font-urbanist font-bold text-lg`}>
-                  {board.name[0]}
+                <div className="w-28 h-12 relative flex items-center">
+                  <Image
+                    src={board.logo}
+                    alt={`${board.name} logo`}
+                    fill
+                    className="object-contain object-left"
+                  />
                 </div>
                 <div>
                   <h3 className="font-urbanist text-xl font-bold text-primary-900">
