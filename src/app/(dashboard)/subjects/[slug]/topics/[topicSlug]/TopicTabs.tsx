@@ -100,7 +100,20 @@ export function TopicTabs({
       q.difficulty === "easy" ? "简单" : q.difficulty === "medium" ? "中等" : "困难";
 
     if (isTableQuestion(text)) {
-      // Table question: render markdown, then row buttons
+      // Table question: render markdown table + option buttons with extracted text
+      // Fix leading spaces in table rows that break markdown rendering
+      const cleanText = text.split('\n').map(line => {
+        if (line.includes('|')) return line.trim();
+        return line;
+      }).join('\n');
+      
+      // Extract option text from table rows (e.g. "A | ruler | measuring cylinder")
+      const tableOptions: Record<string, string> = {};
+      for (const line of text.split('\n')) {
+        const m = line.match(/^([A-D])\s*\|\s*(.+?)\s*\|/);
+        if (m) tableOptions[m[1]] = m[2].trim();
+      }
+
       return (
         <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
           <div className="px-5 pt-5 pb-3">
@@ -110,12 +123,13 @@ export function TopicTabs({
               <span className="text-xs text-gray-400">{q.marks} 分</span>
             </div>
             <div className="text-gray-800 prose prose-sm max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
             </div>
           </div>
-          <div className="px-5 pb-5 flex gap-2">
+          <div className="px-5 pb-5 flex flex-wrap gap-2">
             {["A", "B", "C", "D"].map((label) => {
               const selected = userAnswer === label;
+              const optLabel = tableOptions[label] ? `${label}. ${tableOptions[label]}` : label;
               let cls = "border-gray-200 hover:bg-gray-50";
               if (showResults) {
                 if (label === q.answer_text) cls = "bg-green-50 border-green-400";
