@@ -31,7 +31,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[0.95rem] font-semibold text-primary-900 hover:text-accent-500 transition-colors"
+                className="text-[1.14rem] font-bold text-primary-900 hover:text-accent-500 transition-colors"
               >
                 {link.label}
               </Link>
@@ -40,13 +40,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="font-urbanist font-bold uppercase tracking-wider text-[0.85rem] text-primary-900 border-2 border-primary-900 px-5 py-2.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
+              className="font-urbanist font-bold uppercase tracking-wider text-[1.02rem] text-primary-900 border-2 border-primary-900 px-5 py-2.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="font-urbanist font-bold uppercase tracking-wider text-[0.85rem] bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-colors"
+              className="font-urbanist font-bold uppercase tracking-wider text-[1.02rem] bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-colors"
             >
               Register
             </Link>

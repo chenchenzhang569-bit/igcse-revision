@@ -6,15 +6,25 @@ const boards = [
     name: "CAIE",
     fullName: "Cambridge Assessment International Education",
     slug: "caie",
-    subjects: ["Physics 0625", "Chemistry 0620", "Biology 0610", "Mathematics 0580"],
     logo: "/caie-logo.png",
+    subjects: [
+      { name: "Physics 0625", slug: "physics" },
+      { name: "Chemistry 0620", slug: "chemistry" },
+      { name: "Biology 0610", slug: "biology" },
+      { name: "Mathematics 0580", slug: "mathematics" },
+    ],
   },
   {
     name: "Edexcel",
     fullName: "Pearson Edexcel International GCSE",
     slug: "edexcel",
-    subjects: ["Physics 4PH1", "Chemistry 4CH1", "Biology 4BI1", "Mathematics 4MA1"],
     logo: "/edexcel-logo.png",
+    subjects: [
+      { name: "Physics 4PH1", slug: "physics" },
+      { name: "Chemistry 4CH1", slug: "chemistry" },
+      { name: "Biology 4BI1", slug: "biology" },
+      { name: "Mathematics 4MA1", slug: "mathematics" },
+    ],
   },
 ];
 
@@ -28,8 +38,8 @@ const tiles = [
 export default function HomePage() {
   return (
     <div>
-      {/* Hero — full navy background, no center logo */}
-      <section className="bg-primary-900 text-center px-5 py-8">
+      {/* Hero — moved down, widened */}
+      <section className="bg-primary-900 text-center px-5 mt-10 py-14">
         <h2 className="font-urbanist text-3xl md:text-4xl font-bold text-white mb-4">
           Master IGCSE, Achieve More
         </h2>
@@ -49,38 +59,35 @@ export default function HomePage() {
       <section className="max-w-[900px] mx-auto px-5 -mt-10 relative z-10 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {boards.map((board) => (
-            <Link
+            <div
               key={board.slug}
-              href={`/subjects`}
               className="group block bg-white border border-gray-200 rounded-lg p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-28 h-12 relative flex items-center">
+              {/* Logo — enlarged, replaces text name entirely */}
+              <div className="mb-5">
+                <div className="w-44 h-16 relative">
                   <Image
                     src={board.logo}
-                    alt={`${board.name} logo`}
+                    alt={board.fullName}
                     fill
                     className="object-contain object-left"
                   />
                 </div>
-                <div>
-                  <h3 className="font-urbanist text-xl font-bold text-primary-900">
-                    {board.name}
-                  </h3>
-                  <p className="text-xs text-gray-400">{board.fullName}</p>
-                </div>
+                <p className="text-xs text-gray-400 mt-1">{board.fullName}</p>
               </div>
+              {/* Subject tags — clickable links */}
               <div className="flex flex-wrap gap-2">
                 {board.subjects.map((s) => (
-                  <span key={s} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">
-                    {s}
-                  </span>
+                  <Link
+                    key={s.name}
+                    href={`/subjects/${s.slug}`}
+                    className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full hover:bg-accent-500 hover:text-white transition-colors"
+                  >
+                    {s.name}
+                  </Link>
                 ))}
               </div>
-              <p className="text-accent-500 font-urbanist font-bold uppercase text-xs tracking-wider mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                Explore {board.name} Subjects →
-              </p>
-            </Link>
+            </div>
           ))}
         </div>
       </section>
