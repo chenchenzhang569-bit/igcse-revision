@@ -1,14 +1,15 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = "force-dynamic";
+const supabase = createClient(
+  "https://aondldqwwvttwpervrfq.supabase.co",
+  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
+);
 
-const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-interface Topic { name: string; displayName: string; slug: string; sort: number }
-const TOPIC_DATA: Record<string, Topic[]> = {
+const TOPIC_LIST: Record<string, { name: string; displayName: string; slug: string; sort: number }[]> = {
   physics: [
     { name: "Motion, forces and energy", displayName: "Motion, Forces & Energy", slug: "motion-forces-energy", sort: 1 },
     { name: "Thermal physics", displayName: "Thermal Physics", slug: "thermal-physics", sort: 2 },
@@ -67,99 +68,98 @@ const TOPIC_DATA: Record<string, Topic[]> = {
   ],
 };
 
-const DATA: Record<string, { board: string; code: string; name: string; icon: string; subjectKey: string; topics: Topic[] }> = {
-  "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", subjectKey: "physics", topics: TOPIC_DATA.physics },
-  "caie-chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", subjectKey: "chemistry", topics: TOPIC_DATA.chemistry },
-  "caie-biology-0610":     { board: "CAIE", code: "0610", name: "Biology",     icon: "🧬", subjectKey: "biology", topics: TOPIC_DATA.biology },
-  "caie-mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐", subjectKey: "mathematics", topics: TOPIC_DATA.mathematics },
-  "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", subjectKey: "physics", topics: TOPIC_DATA.physics },
-  "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", subjectKey: "chemistry", topics: TOPIC_DATA.chemistry },
-  "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", subjectKey: "biology", topics: TOPIC_DATA.biology },
-  "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", subjectKey: "mathematics", topics: TOPIC_DATA.mathematics },
+const INFO: Record<string, { board: string; code: string; name: string; icon: string; key: string }> = {
+  "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics" },
+  "caie-chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry" },
+  "caie-biology-0610":     { board: "CAIE", code: "0610", name: "Biology",     icon: "🧬", key: "biology" },
+  "caie-mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐", key: "mathematics" },
+  "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics" },
+  "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry" },
+  "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology" },
+  "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "mathematics" },
 };
 
-export default async function PastPapersPage({
-  params,
-}: {
-  params: Promise<{ subjectSlug: string }>;
-}) {
-  const { subjectSlug } = await params;
-  const data = DATA[subjectSlug];
-  if (!data) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <p className="text-gray-400 text-lg">Subject not found</p>
-        <Link href="/" className="text-primary-600 mt-4 inline-block font-semibold">Browse all subjects →</Link>
-      </div>
-    );
-  }
-  const { board, code, name, icon, topics } = data;
+export default function PastPapersPage({ params }: { params: { subjectSlug: string } }) {
+  const { subjectSlug } = params;
+  const info = INFO[subjectSlug];
+  const [papers, setPapers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Query Supabase for past papers
-  let papersBySeason: { key: string; year: number; season: string; count: number }[] = [];
-  try {
-    // Find subject by slug
-    let subjectId: string | null = null;
-    const slugs = [subjectSlug, data.subjectKey, name.toLowerCase()];
-    for (const s of slugs) {
-      const { data: results } = await supabase.from("subjects").select("id").eq("slug", s);
-      if (results && results.length > 0) { subjectId = results[0].id; break; }
-    }
-    if (!subjectId && code) {
-      const { data: results } = await supabase.from("subjects").select("id").eq("code", code);
-      if (results && results.length > 0) subjectId = results[0].id;
-    }
-
-    if (subjectId) {
-      const { data: papers } = await supabase
-        .from("past_papers").select("year, season").eq("subject_id", subjectId).limit(5000);
-      if (papers && papers.length > 0) {
-        const groups: Record<string, { year: number; season: string; count: number }> = {};
-        for (const p of papers as any[]) {
-          const key = `${p.year}-${p.season.toLowerCase().replace(/[\/\s]+/g, "-")}`;
-          if (!groups[key]) groups[key] = { year: p.year, season: p.season, count: 0 };
-          groups[key].count++;
+  useEffect(() => {
+    if (!info) { setLoading(false); return; }
+    (async () => {
+      try {
+        let subjectId: string | null = null;
+        for (const slug of [subjectSlug, info.key, info.name.toLowerCase()]) {
+          const { data } = await supabase.from("subjects").select("id").eq("slug", slug);
+          if (data && data.length > 0) { subjectId = data[0].id; break; }
         }
-        const seo = (s: string) => {
-          if (s.includes("Mar") || s.includes("Feb")) return 1;
-          if (s.includes("May") || s.includes("Jun")) return 2;
-          if (s.includes("Oct") || s.includes("Nov")) return 3;
-          return 9;
-        };
-        papersBySeason = Object.entries(groups)
+        if (!subjectId) {
+          const { data } = await supabase.from("subjects").select("id").eq("code", info.code);
+          if (data && data.length > 0) subjectId = data[0].id;
+        }
+        if (!subjectId) { setError("Subject not found in database"); setLoading(false); return; }
+
+        const { data: raw } = await supabase
+          .from("past_papers").select("year, season").eq("subject_id", subjectId).limit(5000);
+        if (!raw || raw.length === 0) { setError("No papers in database"); setLoading(false); return; }
+
+        const groups: Record<string, { year: number; season: string; count: number }> = {};
+        for (const p of raw) {
+          const k = `${p.year}-${p.season.toLowerCase().replace(/[\/\s]+/g, "-")}`;
+          if (!groups[k]) groups[k] = { year: p.year, season: p.season, count: 0 };
+          groups[k].count++;
+        }
+        const seo = (s: string) => s.includes("Mar")||s.includes("Feb") ? 1 : s.includes("May")||s.includes("Jun") ? 2 : s.includes("Oct")||s.includes("Nov") ? 3 : 9;
+        const sorted = Object.entries(groups)
           .sort((a, b) => b[1].year - a[1].year || seo(a[1].season) - seo(b[1].season))
           .map(([key, info]) => ({ key, ...info }));
-      }
-    }
-  } catch { /* empty */ }
+        setPapers(sorted);
+      } catch (e: any) { setError(e.message || "Fetch error"); }
+      setLoading(false);
+    })();
+  }, [subjectSlug, info]);
+
+  if (!info) return (
+    <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+      <p className="text-gray-400 text-lg">Subject not found</p>
+      <Link href="/" className="text-primary-600 mt-4 inline-block font-semibold">← Home</Link>
+    </div>
+  );
+
+  const topics = TOPIC_LIST[info.key] || [];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">← Back to Home</Link>
       <div className="flex items-center gap-4 mt-4">
-        <span className="text-4xl sm:text-5xl">{icon}</span>
+        <span className="text-4xl sm:text-5xl">{info.icon}</span>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">📄 {board} {name} Past Papers</h1>
-          <p className="text-gray-500 mt-1">Code: {code}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">📄 {info.board} {info.name} Past Papers</h1>
+          <p className="text-gray-500 mt-1">Code: {info.code}</p>
         </div>
       </div>
 
-      {papersBySeason.length > 0 ? (
+      {loading && <p className="text-gray-400 mt-8 text-center py-12">Loading past papers...</p>}
+      {error && (
+        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-yellow-800 text-sm">⚠ {error}</div>
+      )}
+
+      {papers.length > 0 && (
         <section className="mt-8">
           <h2 className="text-xl font-bold text-primary-900 mb-4">Past Papers by Exam Season</h2>
           <div className="space-y-3">
             {(() => {
               let lastYear = -1;
-              return papersBySeason.map((item) => {
+              return papers.map((item) => {
                 const showYear = item.year !== lastYear;
                 lastYear = item.year;
                 return (
                   <div key={item.key}>
-                    {showYear && (
-                      <h3 className="text-lg font-bold text-primary-900 mt-6 mb-3">
-                        <span className="bg-primary-600 text-white text-sm px-3 py-0.5 rounded-full">{item.year}</span>
-                      </h3>
-                    )}
+                    {showYear && <h3 className="text-lg font-bold text-primary-900 mt-6 mb-3">
+                      <span className="bg-primary-600 text-white text-sm px-3 py-0.5 rounded-full">{item.year}</span>
+                    </h3>}
                     <Link href={`/past-papers/${subjectSlug}/${item.key}`}
                       className="bg-white border rounded-xl p-4 hover:shadow-md hover:border-primary-300 transition-all flex items-center justify-between group">
                       <span className="text-sm font-semibold text-gray-800 group-hover:text-primary-600">📅 {item.season}</span>
@@ -174,23 +174,19 @@ export default async function PastPapersPage({
             })()}
           </div>
         </section>
-      ) : (
-        <div className="mt-8 bg-gray-50 border rounded-xl p-8 text-center text-gray-500">
-          <p className="font-medium">No past papers in database yet</p>
-        </div>
       )}
 
       <section className="mt-8 pt-6 border-t">
         <h2 className="text-xl font-bold text-primary-900 mb-4">Topics</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {topics.map((topic) => (
-            <Link key={topic.slug} href={`/subjects/${subjectSlug}/topics/${topic.slug}`}
+          {topics.map((t) => (
+            <Link key={t.slug} href={`/subjects/${subjectSlug}/topics/${t.slug}`}
               className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group">
               <div className="flex items-start gap-3">
-                <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{topic.sort}</span>
+                <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{t.sort}</span>
                 <div>
-                  <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">{topic.displayName}</h3>
-                  <p className="text-sm text-gray-400 mt-0.5">{topic.name}</p>
+                  <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">{t.displayName}</h3>
+                  <p className="text-sm text-gray-400 mt-0.5">{t.name}</p>
                 </div>
               </div>
             </Link>
