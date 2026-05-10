@@ -28,44 +28,37 @@ const boards = [
   },
 ];
 
-const tiles = [
-  { icon: "fa-book-open", title: "Revision", desc: "Step-by-step topic mastery with structured learning paths designed for high scores.", href: "/subjects" },
-  { icon: "fa-file-lines", title: "Past Paper", desc: "Access 10+ years of solved past papers for CAIE and Edexcel boards instantly.", href: "/past-papers" },
-  { icon: "fa-note-sticky", title: "Notes", desc: "Concise, visual summary notes optimized for quick revision before exams.", href: "/subjects" },
-  { icon: "fa-circle-exclamation", title: "Submit Errors", desc: "Found a typo? Help us maintain 100% accuracy by reporting errors to our team.", href: "/submit-errors" },
-];
-
 export default function HomePage() {
   return (
     <div>
-      {/* Hero — moved down, widened */}
-      <section className="bg-primary-900 text-center px-5 mt-10 py-14">
-        <h2 className="font-urbanist text-3xl md:text-4xl font-bold text-white mb-4">
+      {/* Hero — moved up, compact */}
+      <section className="bg-primary-900 text-center px-5 py-10">
+        <h2 className="font-urbanist text-3xl md:text-4xl font-bold text-white mb-3">
           Master IGCSE, Achieve More
         </h2>
-        <p className="text-white/60 text-base md:text-lg max-w-[600px] mx-auto mb-8 leading-relaxed">
+        <p className="text-white/60 text-sm md:text-base max-w-[500px] mx-auto mb-6 leading-relaxed">
           Your ultimate destination for CAIE and Edexcel preparation. Master every
           topic with expert-curated notes and past papers.
         </p>
         <Link
           href="/subjects"
-          className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-urbanist font-bold uppercase tracking-wider text-xs px-6 py-3 rounded transition-colors"
+          className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-urbanist font-bold uppercase tracking-wider text-xs px-6 py-2.5 rounded transition-colors"
         >
           Start Revising Now
         </Link>
       </section>
 
-      {/* Exam Board Selector */}
-      <section className="max-w-[900px] mx-auto px-5 -mt-10 relative z-10 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Exam Board Selector — full width, large cards */}
+      <section className="w-full px-5 -mt-6 relative z-10 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {boards.map((board) => (
             <div
               key={board.slug}
-              className="group block bg-white border border-gray-200 rounded-lg p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-white border border-gray-200 rounded-lg p-6 md:p-8 hover:shadow-lg transition-all duration-300"
             >
-              {/* Logo — enlarged, replaces text name entirely */}
-              <div className="mb-5">
-                <div className="w-44 h-16 relative">
+              {/* Logo — large, takes full width */}
+              <div className="mb-4">
+                <div className="h-14 relative max-w-[220px]">
                   <Image
                     src={board.logo}
                     alt={board.fullName}
@@ -75,38 +68,30 @@ export default function HomePage() {
                 </div>
                 <p className="text-xs text-gray-400 mt-1">{board.fullName}</p>
               </div>
+
               {/* Subject tags — clickable links */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {board.subjects.map((s) => (
                   <Link
                     key={s.name}
                     href={`/subjects/${s.slug}`}
-                    className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full hover:bg-accent-500 hover:text-white transition-colors"
+                    className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded-full hover:bg-accent-500 hover:text-white transition-colors"
                   >
                     {s.name}
                   </Link>
                 ))}
               </div>
+
+              {/* Explore more link */}
+              <Link
+                href={`/subjects`}
+                className="inline-block text-accent-500 font-urbanist font-bold uppercase text-xs tracking-wider hover:text-accent-600 transition-colors"
+              >
+                Explore {board.name} Subjects →
+              </Link>
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Ecosystem Tiles */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7 px-5 pb-24 max-w-[1200px] mx-auto">
-        {tiles.map((tile) => (
-          <Link
-            key={tile.title}
-            href={tile.href}
-            className="group block bg-white p-10 border border-gray-200 rounded transition-all duration-300 hover:border-t-accent-500 hover:border-t-4 hover:shadow-lg hover:-translate-y-1"
-          >
-            <i className={`fa-solid ${tile.icon} text-4xl text-primary-900 mb-5 block`} />
-            <h3 className="font-urbanist text-2xl font-bold text-primary-900 mb-4">
-              {tile.title}
-            </h3>
-            <p className="text-gray-400 leading-relaxed">{tile.desc}</p>
-          </Link>
-        ))}
       </section>
     </div>
   );
