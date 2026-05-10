@@ -8,6 +8,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        urbanist: ["Urbanist", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
+      },
       colors: {
         primary: {
           50:  "#e8ecf5",
@@ -22,16 +26,16 @@ const config: Config = {
           900: "#001C71",
         },
         accent: {
-          50:  "#fff3e8",
-          100: "#ffe1c5",
-          200: "#ffce9f",
-          300: "#ffba78",
-          400: "#ffab5b",
-          500: "#ff9c3e",
-          600: "#f49032",
-          700: "#e68324",
-          800: "#d87616",
-          900: "#F48120",
+          50:  "#fff3e6",
+          100: "#ffe0b3",
+          200: "#ffcc80",
+          300: "#ffb84d",
+          400: "#ffa826",
+          500: "#FF8C00",
+          600: "#e67e00",
+          700: "#cc6f00",
+          800: "#b36100",
+          900: "#995200",
         },
       },
     },
