@@ -39,14 +39,15 @@ function pairPapers(papers: PastPaper[]) {
 export default async function SubtopicPage({
   params,
 }: {
-  params: { slug: string; topicSlug: string; subtopicSlug: string };
+  params: Promise<{ slug: string; topicSlug: string; subtopicSlug: string }>;
 }) {
+  const { slug, topicSlug, subtopicSlug } = await params;
   const supabase = createClient();
 
   const { data: subtopic } = await supabase
     .from("subtopics")
     .select("id, pmt_code, display_name, name, slug, topic_id, topics!inner(id, display_name, slug, sort_order, subjects!inner(slug))")
-    .eq("slug", params.subtopicSlug)
+    .eq("slug", subtopicSlug)
     .single();
 
   if (!subtopic) {
@@ -98,9 +99,9 @@ export default async function SubtopicPage({
       <div className="text-sm text-gray-400">
         <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
         {" / "}
-        <Link href={`/subjects/${params.slug}`} className="hover:text-primary-600">科目</Link>
+        <Link href={`/subjects/${slug}`} className="hover:text-primary-600">科目</Link>
         {" / "}
-        <Link href={`/subjects/${params.slug}/topics/${params.topicSlug}`} className="hover:text-primary-600">
+        <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="hover:text-primary-600">
           {topic.sort_order}. {topic.display_name}
         </Link>
       </div>

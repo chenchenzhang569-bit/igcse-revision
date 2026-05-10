@@ -4,14 +4,15 @@ import Link from "next/link";
 export default async function TopicPage({
   params,
 }: {
-  params: { slug: string; topicSlug: string };
+  params: Promise<{ slug: string; topicSlug: string }>;
 }) {
+  const { slug, topicSlug } = await params;
   const supabase = createClient();
 
   const { data: topic } = await supabase
     .from("topics")
     .select("id, display_name, slug, sort_order")
-    .eq("slug", params.topicSlug)
+    .eq("slug", topicSlug)
     .single();
 
   if (!topic) {
@@ -37,7 +38,7 @@ export default async function TopicPage({
       <div className="text-sm text-gray-400">
         <Link href="/dashboard" className="hover:text-primary-600">仪表盘</Link>
         {" / "}
-        <Link href={`/subjects/${params.slug}`} className="hover:text-primary-600">
+        <Link href={`/subjects/${slug}`} className="hover:text-primary-600">
           科目
         </Link>
       </div>
@@ -50,7 +51,7 @@ export default async function TopicPage({
         {subtopics.map((st: any) => (
           <Link
             key={st.id}
-            href={`/subjects/${params.slug}/topics/${params.topicSlug}/${st.slug}`}
+            href={`/subjects/${slug}/topics/${topicSlug}/${st.slug}`}
             className="bg-white border rounded-xl p-5 hover:shadow-md hover:border-primary-300 transition-all group"
           >
             <div className="flex items-center gap-3">
