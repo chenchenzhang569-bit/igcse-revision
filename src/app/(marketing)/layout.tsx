@@ -31,7 +31,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[1.14rem] font-bold text-primary-900 hover:text-accent-500 transition-colors"
+                className="text-[1.35rem] font-extrabold text-primary-900 hover:text-accent-500 transition-colors"
               >
                 {link.label}
               </Link>
@@ -58,7 +58,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 
       {/* Footer */}
       <footer className="bg-primary-900 text-white py-10 text-center">
-        <p className="font-urbanist text-2xl font-bold mb-2">Master</p>
+        <p className="font-urbanist text-2xl font-bold mb-2">IGMaster</p>
         <p className="text-white/60 mb-5 text-sm">Targeted Preparation for IGCSE Success.</p>
         <p className="text-xs text-white/40">
           &copy; 2026 Master IGCSE Revision. All rights reserved.

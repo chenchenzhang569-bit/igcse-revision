@@ -7,6 +7,7 @@ const boards = [
     fullName: "Cambridge Assessment International Education",
     slug: "caie",
     logo: "/caie-logo.png",
+    logoHeight: "h-12",
     subjects: [
       { name: "Physics 0625", slug: "physics" },
       { name: "Chemistry 0620", slug: "chemistry" },
@@ -19,6 +20,7 @@ const boards = [
     fullName: "Pearson Edexcel International GCSE",
     slug: "edexcel",
     logo: "/edexcel-logo.png",
+    logoHeight: "h-16",
     subjects: [
       { name: "Physics 4PH1", slug: "physics" },
       { name: "Chemistry 4CH1", slug: "chemistry" },
@@ -31,7 +33,7 @@ const boards = [
 export default function HomePage() {
   return (
     <div>
-      {/* Hero — moved up, compact */}
+      {/* Hero */}
       <section className="bg-primary-900 text-center px-5 py-10">
         <h2 className="font-urbanist text-3xl md:text-4xl font-bold text-white mb-3">
           Master IGCSE, Achieve More
@@ -42,13 +44,13 @@ export default function HomePage() {
         </p>
         <Link
           href="/subjects"
-          className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-urbanist font-bold uppercase tracking-wider text-xs px-6 py-2.5 rounded transition-colors"
+          className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-urbanist font-bold uppercase tracking-wider text-base px-8 py-3 rounded transition-colors"
         >
           Start Revising Now
         </Link>
       </section>
 
-      {/* Exam Board Selector — full width, large cards */}
+      {/* Exam Board Selector */}
       <section className="w-full px-5 -mt-6 relative z-10 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {boards.map((board) => (
@@ -56,9 +58,9 @@ export default function HomePage() {
               key={board.slug}
               className="bg-white border border-gray-200 rounded-lg p-6 md:p-8 hover:shadow-lg transition-all duration-300"
             >
-              {/* Logo — large, takes full width */}
+              {/* Logo — per-board sizing */}
               <div className="mb-4">
-                <div className="h-14 relative max-w-[220px]">
+                <div className={`${board.logoHeight} relative max-w-[240px]`}>
                   <Image
                     src={board.logo}
                     alt={board.fullName}
@@ -69,12 +71,12 @@ export default function HomePage() {
                 <p className="text-xs text-gray-400 mt-1">{board.fullName}</p>
               </div>
 
-              {/* Subject tags — clickable links */}
+              {/* Subject tags — jump to board-filtered subjects */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {board.subjects.map((s) => (
                   <Link
                     key={s.name}
-                    href={`/subjects/${s.slug}`}
+                    href={`/subjects/${s.slug}?board=${board.name}`}
                     className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded-full hover:bg-accent-500 hover:text-white transition-colors"
                   >
                     {s.name}
@@ -84,7 +86,7 @@ export default function HomePage() {
 
               {/* Explore more link */}
               <Link
-                href={`/subjects`}
+                href={`/subjects?board=${board.name}`}
                 className="inline-block text-accent-500 font-urbanist font-bold uppercase text-xs tracking-wider hover:text-accent-600 transition-colors"
               >
                 Explore {board.name} Subjects →
