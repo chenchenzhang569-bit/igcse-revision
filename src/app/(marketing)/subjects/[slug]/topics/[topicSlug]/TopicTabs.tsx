@@ -187,16 +187,17 @@ export function TopicTabs({
               else if (selected) cls = "bg-red-50 border-red-400";
               else cls = "border-gray-200 opacity-60";
             } else if (selected) cls = "bg-primary-50 border-primary-400";
+            const hasText = !!optText;
             return (
               <button key={label} onClick={() => selectAnswer(q.id, label)} disabled={showResults}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${cls}`}>
-                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition ${cls} ${hasText ? "text-left" : "justify-center"}`}>
+                <span className={`${hasText ? "w-8 h-8" : "w-12 h-12 text-lg"} rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                   showResults && label === q.answer_text ? "bg-green-500 text-white"
                   : showResults && selected ? "bg-red-500 text-white"
                   : selected ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-600"
                 }`}>{label}</span>
-                {optText ? <span className="text-sm">{optText}</span> : <span className="text-gray-400 text-sm italic">Select {label}</span>}
+                {hasText && <span className="text-sm">{optText}</span>}
                 {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ Correct</span>}
                 {showResults && selected && !isCorrect && <span className="ml-auto text-red-600 text-sm">✗</span>}
               </button>
