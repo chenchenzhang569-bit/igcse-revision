@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
+import { FALLBACK_DATA } from "@/lib/fallback-content";
 import { createClient } from "@supabase/supabase-js";
 import { TopicTabs } from "../TopicTabs";
 
@@ -19,7 +20,6 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-chemistry-4ch1": "chemistry", "chemistry-4ch1": "chemistry",
   "edexcel-biology-4bi1": "biology", "biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics", "mathematics-4ma1": "mathematics",
-  // Short aliases (board-only, no code)
   "caie-physics": "physics", "caie-chemistry": "chemistry",
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
@@ -49,7 +49,6 @@ export default async function SubtopicPage({
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <p className="text-gray-400 text-lg">Subtopic not found</p>
-        <p className="text-xs text-gray-400 mt-1">subjectKey={subjectKey} topicSlug={topicSlug} subtopicSlug={subtopicSlug}</p>
         <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="text-primary-600 mt-4 inline-block font-semibold">
           ← Back to Topic
         </Link>
@@ -57,36 +56,66 @@ export default async function SubtopicPage({
     );
   }
 
-  // Fetch content from Supabase
   let notes: any[] = [];
   let mcqs: any[] = [];
   let structuredQuestions: any[] = [];
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
 
+  // Try Supabase first
   try {
-    // Get topic ID from DB
     const { data: topicRow } = await supabase
       .from("topics").select("id").eq("slug", topicSlug).single();
 
     if (topicRow) {
-      // Notes
       const { data: dbNotes } = await supabase
         .from("notes").select("*").eq("topic_id", topicRow.id).order("sort_order").limit(20);
       notes = dbNotes || [];
 
-      // MCQ questions
       const { data: dbMcqs } = await supabase
         .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq").order("sort_order").limit(30);
       mcqs = dbMcqs || [];
 
-      // Structured / essay questions
       const { data: dbStructured } = await supabase
         .from("questions").select("*").eq("topic_id", topicRow.id).in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
       structuredQuestions = dbStructured || [];
     }
   } catch {
-    // DB unavailable — show empty content gracefully
+    // DB unavailable
+  }
+
+  // Fallback: use built-in content when DB is empty
+  const fallback = FALLBACK_DATA[subjectKey]?.[topicSlug];
+  if (fallback && notes.length === 0 && mcqs.length === 0 && structuredQuestions.length === 0) {
+    notes = fallback.notes.map((n, i) => ({
+      id: `fb-note-${i}`,
+      title: n.title,
+      content: n.content,
+      is_free_preview: n.is_free_preview,
+      file_url: null,
+      file_name: null,
+    }));
+
+    mcqs = fallback.mcqs.map((q, i) => ({
+      id: `fb-mcq-${i}`,
+      question_text: q.question_text,
+      answer_text: q.answer_text,
+      options: q.options,
+      correct_answer: q.answer_text,
+      explanation: q.explanation,
+      difficulty: q.difficulty,
+      marks: 1,
+      sort_order: i + 1,
+    }));
+
+    structuredQuestions = fallback.structured.map((q, i) => ({
+      id: `fb-struct-${i}`,
+      question_text: q.question_text,
+      answer_text: q.answer_text,
+      difficulty: q.difficulty,
+      marks: q.marks,
+      sort_order: i + 1,
+    }));
   }
 
   return (
