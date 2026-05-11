@@ -1,14 +1,24 @@
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { getSubtopics } from "@/lib/subtopic-data";
 
-export const dynamic = "force-dynamic";
+// Subject key lookup from composite slug
+const SLUG_TO_KEY: Record<string, string> = {
+  "caie-physics-0625": "physics",
+  "caie-chemistry-0620": "chemistry",
+  "caie-biology-0610": "biology",
+  "caie-mathematics-0580": "mathematics",
+  "edexcel-physics-4ph1": "physics",
+  "edexcel-chemistry-4ch1": "chemistry",
+  "edexcel-biology-4bi1": "biology",
+  "edexcel-mathematics-4ma1": "mathematics",
+  "physics-0625": "physics",
+  "chemistry-0620": "chemistry",
+  "biology-0610": "biology",
+  "mathematics-0580": "mathematics",
+};
 
-const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Static topic display names for fallback
-const TOPIC_NAMES: Record<string, string> = {
+// Display names for topic slugs
+const TOPIC_DISPLAY: Record<string, string> = {
   "motion-forces-energy": "Motion, Forces & Energy",
   "thermal-physics": "Thermal Physics",
   "waves": "Waves",
@@ -65,35 +75,9 @@ export default async function TopicPage({
   params: Promise<{ slug: string; topicSlug: string }>;
 }) {
   const { slug, topicSlug } = await params;
-  const displayName = TOPIC_NAMES[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-
-  // Fetch subtopics from Supabase
-  let subtopics: any[] = [];
-  try {
-    // First get topic by compound slug or short slug
-    const topicSlugs = [
-      `${slug}-${topicSlug}`.toLowerCase().replace(/_/g, "-"),
-      topicSlug,
-    ];
-    let topicId: string | null = null;
-    for (const ts of topicSlugs) {
-      const { data } = await supabase.from("topics").select("id").eq("slug", ts).limit(1);
-      if (data && data.length > 0) { topicId = data[0].id; break; }
-    }
-    // Fallback: match by short slug pattern
-    if (!topicId) {
-      const { data } = await supabase.from("topics").select("id,slug").limit(200);
-      if (data) {
-        const found = data.find((t: any) => t.slug?.includes(topicSlug));
-        if (found) topicId = found.id;
-      }
-    }
-    if (topicId) {
-      const { data } = await supabase.from("subtopics").select("id,slug,name,display_name,pmt_code,sort_order")
-        .eq("topic_id", topicId).order("sort_order");
-      subtopics = data || [];
-    }
-  } catch { /* use empty */ }
+  const subjectKey = SLUG_TO_KEY[slug] || "physics";
+  const displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const subtopics = getSubtopics(subjectKey, topicSlug);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
@@ -111,18 +95,18 @@ export default async function TopicPage({
       {/* Subtopics */}
       {subtopics.length > 0 ? (
         <div className="mt-8 space-y-3">
-          {subtopics.map((st: any) => (
+          {subtopics.map((st) => (
             <Link
-              key={st.id}
+              key={st.slug}
               href={`/subjects/${slug}/topics/${topicSlug}/${st.slug}`}
               className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group flex items-center gap-4"
             >
               <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">
-                {st.pmt_code || st.sort_order}
+                {st.pmtCode}
               </span>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">
-                  {st.display_name || st.name}
+                  {st.displayName}
                 </h3>
               </div>
               <span className="text-gray-300 group-hover:text-accent-500 transition">→</span>
@@ -131,8 +115,8 @@ export default async function TopicPage({
         </div>
       ) : (
         <div className="mt-8 bg-gray-50 border rounded-xl p-8 text-center text-gray-500">
-          <p className="font-medium">No subtopics yet</p>
-          <p className="text-sm mt-1">Content is being prepared.</p>
+          <p className="font-medium">No subtopics found</p>
+          <p className="text-sm mt-1">Topic slug: {topicSlug} (subject: {subjectKey})</p>
         </div>
       )}
     </div>
