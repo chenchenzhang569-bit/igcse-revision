@@ -57,7 +57,7 @@ export function TopicTabs({
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "notes", label: "📝 Notes", count: notes.length },
     { key: "mcq", label: "📋 Multiple Choice", count: mcqs.length + mcqPairs.length },
-    { key: "structured", label: "📄 Paper Question", count: pairedPapers.length + structuredQuestions.length },
+    { key: "structured", label: "📄 Question Paper", count: pairedPapers.length + structuredQuestions.length },
   ];
 
   const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };

@@ -26,14 +26,6 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
 };
 
-// Map URL topic slugs → DB topic slugs (DB still uses old slug names)
-const TOPIC_SLUG_TO_DB: Record<string, string> = {
-  "motion-forces-energy": "general-physics",
-  "waves": "properties-of-waves",
-  "electricity-magnetism": "electricity-and-magnetism",
-  "nuclear-physics": "atomic-physics",
-};
-
 const TOPIC_DISPLAY: Record<string, string> = {
   "motion-forces-energy": "Motion, Forces & Energy",
   "thermal-physics": "Thermal Physics",
@@ -70,14 +62,13 @@ export default async function SubtopicPage({
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
 
-  // Try Supabase with BOTH new and old topic slugs
-  const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
+  // Try Supabase first
+  // Try Supabase — fall back to old DB slug if new slug doesn't match
+  const dbSlug = (TOPIC_SLUG_TO_DB as any)[topicSlug] || topicSlug;
   try {
-    // Try new slug first, then old
     let topicRow = null;
     let { data } = await supabase.from("topics").select("id").eq("slug", topicSlug).single();
     topicRow = data;
-    
     if (!topicRow && dbSlug !== topicSlug) {
       const { data: data2 } = await supabase.from("topics").select("id").eq("slug", dbSlug).single();
       topicRow = data2;
