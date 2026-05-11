@@ -104,13 +104,19 @@ export default async function SubjectPage({
   const { board, code, name, icon, key, topics } = data;
 
   // 服务端用 admin client 查 subject_id（绕过 RLS）
-  const adminClient = createAdminClient();
-  const { data: subjectRow } = await adminClient
-    .from("subjects")
-    .select("id")
-    .eq("code", code)
-    .single();
-  const subjectId = subjectRow?.id || null;
+  let subjectId: string | null = null;
+  try {
+    const adminClient = createAdminClient();
+    const { data: subjectRow } = await adminClient
+      .from("subjects")
+      .select("id")
+      .eq("code", code)
+      .single();
+    subjectId = subjectRow?.id || null;
+  } catch (e) {
+    console.error("Admin client failed:", e);
+    subjectId = null;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
