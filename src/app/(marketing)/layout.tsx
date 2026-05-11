@@ -68,7 +68,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               </Link>
               <Link
                 href="/register"
-                className="font-poppins font-extrabold uppercase tracking-wider text-xs bg-accent-500 hover:bg-accent-600 text-white px-3 py-1.5 rounded transition-colors"
+                className="font-poppins font-extrabold uppercase tracking-wider text-xs bg-accent-500 border-2 border-accent-500 hover:bg-accent-600 hover:border-accent-600 text-white px-3 py-1.5 rounded transition-colors"
               >
                 Register
               </Link>

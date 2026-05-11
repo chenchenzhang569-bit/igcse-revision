@@ -20,7 +20,7 @@ const boards = [
     label: "Pearson Edexcel",
     slug: "edexcel",
     logo: "/edexcel-logo.png",
-    logoHeight: "h-16 sm:h-20",
+    logoHeight: "h-10 sm:h-12",
     subjects: [
       { name: "Physics 4PH1", slug: "edexcel-physics-4ph1" },
       { name: "Chemistry 4CH1", slug: "edexcel-chemistry-4ch1" },
@@ -34,26 +34,36 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-primary-900 px-4 sm:px-6 py-10 sm:py-14">
-        <div>
-          <h1 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+      <section className="bg-primary-900 px-4 sm:px-6 py-14 sm:py-20">
+        <div className="max-w-[720px]">
+          <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
             Master IGCSE, Achieve More
-          </h1>
-          <p className="text-white/60 text-sm md:text-base mt-2 max-w-xl">
-            Past papers, topic questions, and revision notes for CAIE and Edexcel
+          </h2>
+          <p className="text-white/70 text-sm md:text-base mb-2 leading-relaxed">
+            The most comprehensive IGCSE revision platform for CAIE and Edexcel.
           </p>
+          <p className="text-white/50 text-sm md:text-base mb-8 leading-relaxed">
+            Access expertly curated past papers, topic questions, and revision notes — 
+            all organized by subject and topic so you can focus on what matters most.
+          </p>
+          <Link
+            href="/subjects"
+            className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
+          >
+            Start Revising
+          </Link>
         </div>
       </section>
 
       {/* Exam Board Selector */}
-      <section className="w-full px-3 sm:px-5 -mt-7 sm:-mt-9 relative z-10 pb-10 sm:pb-12">
+      <section className="w-full px-3 sm:px-5 -mt-10 sm:-mt-14 relative z-10 pb-6 sm:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
           {boards.map((board) => (
             <div
               key={board.slug}
               className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 md:p-8 hover:shadow-lg transition-all duration-300"
             >
-              {/* Logo + custom label */}
+              {/* Logo */}
               <div className="mb-4">
                 <div className={`${board.logoHeight} relative max-w-[200px] sm:max-w-[240px] ${board.slug === "edexcel" ? "-mt-1" : ""}`}>
                   <Image
@@ -63,16 +73,15 @@ export default function HomePage() {
                     className="object-contain object-left"
                   />
                 </div>
-                <p className="text-xs sm:text-sm font-bold text-primary-900 mt-2">{board.label}</p>
               </div>
 
-              {/* Subject tags — smaller */}
+              {/* Subject tags */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {board.subjects.map((s) => (
                   <Link
                     key={`${board.slug}-${s.slug}`}
                     href={`/subjects/${s.slug}`}
-                    className="text-sm sm:text-base font-bold bg-gray-100 text-primary-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-accent-500 hover:text-white transition-colors no-underline"
+                    className="text-xs sm:text-sm font-bold bg-gray-100 text-primary-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-accent-500 hover:text-white transition-colors no-underline"
                   >
                     {s.name}
                   </Link>
