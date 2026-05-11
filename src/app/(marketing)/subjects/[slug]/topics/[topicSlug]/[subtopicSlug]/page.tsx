@@ -57,9 +57,10 @@ export default async function SubtopicPage({
     );
   }
 
-  // Try to fetch content from Supabase (best-effort)
+  // Fetch content from Supabase
   let notes: any[] = [];
   let mcqs: any[] = [];
+  let structuredQuestions: any[] = [];
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
 
@@ -78,9 +79,14 @@ export default async function SubtopicPage({
       const { data: dbMcqs } = await supabase
         .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq").order("sort_order").limit(30);
       mcqs = dbMcqs || [];
+
+      // Structured / essay questions
+      const { data: dbStructured } = await supabase
+        .from("questions").select("*").eq("topic_id", topicRow.id).in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
+      structuredQuestions = dbStructured || [];
     }
   } catch {
-    // DB unavailable — show empty content
+    // DB unavailable — show empty content gracefully
   }
 
   return (
@@ -105,6 +111,7 @@ export default async function SubtopicPage({
         mcqs={mcqs}
         mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any}
+        structuredQuestions={structuredQuestions}
       />
     </div>
   );

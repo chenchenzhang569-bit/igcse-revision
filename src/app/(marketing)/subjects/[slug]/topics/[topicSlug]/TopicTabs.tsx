@@ -38,14 +38,16 @@ type Tab = "notes" | "mcq" | "structured";
 
 export function TopicTabs({
   notes,
-  mcqs,
+  mcqs = [],
   mcqPairs = [],
   pairedPapers,
+  structuredQuestions = [],
 }: {
   notes: Note[];
   mcqs: Question[];
   mcqPairs?: PaperPair[];
   pairedPapers: PaperPair[];
+  structuredQuestions?: Question[];
 }) {
   const [tab, setTab] = useState<Tab>("notes");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
@@ -54,7 +56,7 @@ export function TopicTabs({
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "notes", label: "📝 Notes", count: notes.length },
     { key: "mcq", label: "📋 Multiple Choice", count: mcqs.length + mcqPairs.length },
-    { key: "structured", label: "📄 Paper Question", count: pairedPapers.length },
+    { key: "structured", label: "📄 Paper Question", count: pairedPapers.length + structuredQuestions.length },
   ];
 
   const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
@@ -79,7 +81,6 @@ export function TopicTabs({
   }
 
   function isTableQuestion(text: string): boolean {
-    // Table questions have markdown tables but no A)/B)/C)/D) or A./B./C./D. option lines
     return text.includes("|") && text.includes("---") && !/^[A-D][.)]/m.test(text);
   }
 
@@ -97,17 +98,14 @@ export function TopicTabs({
       : q.difficulty === "medium" ? "bg-yellow-50 text-yellow-600"
       : "bg-red-50 text-red-600";
     const diffLabel =
-      q.difficulty === "easy" ? "简单" : q.difficulty === "medium" ? "中等" : "困难";
+      q.difficulty === "easy" ? "Easy" : q.difficulty === "medium" ? "Medium" : "Hard";
 
     if (isTableQuestion(text)) {
-      // Table question: render markdown table + option buttons with extracted text
-      // Fix leading spaces in table rows that break markdown rendering
       const cleanText = text.split('\n').map(line => {
         if (line.includes('|')) return line.trim();
         return line;
       }).join('\n');
       
-      // Extract option text from table rows (e.g. "A | ruler | measuring cylinder")
       const tableOptions: Record<string, string> = {};
       for (const line of text.split('\n')) {
         const m = line.match(/^\|?\s*([A-D])\s*\|\s*(.+?)\s*\|/);
@@ -120,7 +118,7 @@ export function TopicTabs({
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
               <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
-              <span className="text-xs text-gray-400">{q.marks} 分</span>
+              <span className="text-xs text-gray-400">{q.marks} marks</span>
             </div>
             <div className="text-gray-800 prose prose-sm max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
@@ -129,7 +127,6 @@ export function TopicTabs({
           <div className="px-5 pb-5 flex flex-wrap gap-2">
             {["A", "B", "C", "D"].map((label) => {
               const selected = userAnswer === label;
-              const optLabel = tableOptions[label] ? `${label}. ${tableOptions[label]}` : label;
               let cls = "border-gray-200 hover:bg-gray-50";
               if (showResults) {
                 if (label === q.answer_text) cls = "bg-green-50 border-green-400";
@@ -150,13 +147,9 @@ export function TopicTabs({
       );
     }
 
-    // Normal question: parse stem + options
     const options = parseOptions(text);
-    const hasImage = /!\[/.test(text);
     const stemEnd = options.length > 0 ? text.indexOf(options[0]) : text.length;
     const stem = text.slice(0, stemEnd).trim();
-
-    // Option labels (A/B/C/D) — show even if text options missing (image-based Qs)
     const optionLabels = options.length >= 4 
       ? options.map((opt) => opt.charAt(0))
       : ["A", "B", "C", "D"];
@@ -167,7 +160,7 @@ export function TopicTabs({
           <div className="flex items-center gap-2 mb-3">
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
-            <span className="text-xs text-gray-400">{q.marks} 分</span>
+            <span className="text-xs text-gray-400">{q.marks} marks</span>
           </div>
           <div className="text-gray-800 prose prose-sm max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
@@ -194,7 +187,7 @@ export function TopicTabs({
                   : "bg-gray-100 text-gray-600"
                 }`}>{label}</span>
                 {optText ? <span className="text-sm">{optText}</span> : null}
-                {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ 正确</span>}
+                {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ Correct</span>}
                 {showResults && selected && !isCorrect && <span className="ml-auto text-red-600 text-sm">✗</span>}
               </button>
             );
@@ -221,7 +214,10 @@ export function TopicTabs({
       {/* NOTES */}
       {tab === "notes" && (
         notes.length === 0 ? (
-          <div className="text-center py-20 text-gray-400"><p>暂无笔记，管理员正在添加中...</p></div>
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-lg font-medium">No notes yet</p>
+            <p className="text-sm mt-2">Our team is adding study notes for this topic</p>
+          </div>
         ) : (
           <div className="space-y-6">
             {notes.map((note) => (
@@ -229,8 +225,8 @@ export function TopicTabs({
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">{note.title}</h3>
                   {note.is_free_preview
-                    ? <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">免费预览</span>
-                    : <span className="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">付费</span>}
+                    ? <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">Free Preview</span>
+                    : <span className="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">Premium</span>}
                 </div>
                 {note.content && (
                   <div className="prose prose-sm max-w-none text-gray-700 mb-4">
@@ -240,7 +236,7 @@ export function TopicTabs({
                 {note.file_url && (
                   <a href={note.file_url} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
-                    📥 下载 PDF{note.file_name ? ` (${note.file_name})` : ""}
+                    📥 Download PDF{note.file_name ? ` (${note.file_name})` : ""}
                   </a>
                 )}
               </div>
@@ -249,15 +245,18 @@ export function TopicTabs({
         )
       )}
 
-      {/* MCQ — v3 table-fix */}
+      {/* MCQ */}
       {tab === "mcq" && (
         mcqs.length === 0 && mcqPairs.length === 0 ? (
-          <div className="text-center py-20 text-gray-400"><p>暂无选择题，管理员正在添加中...</p></div>
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-lg font-medium">No multiple choice questions yet</p>
+            <p className="text-sm mt-2">Our team is adding questions for this topic</p>
+          </div>
         ) : (
           <div className="space-y-8">
             {mcqPairs.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📥 MCQ 题目 & 答案下载</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📥 MCQ Papers & Answer Keys</h3>
                 <div className="space-y-3">
                   {mcqPairs.map((pair, i) => (
                     <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
@@ -269,10 +268,10 @@ export function TopicTabs({
                       </div>
                       <div className="flex gap-2">
                         <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 题目</a>
+                          className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 Paper</a>
                         {pair.ms && pair.ms.id !== pair.qp.id && (
                           <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 答案</a>
+                            className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 Answer</a>
                         )}
                       </div>
                     </div>
@@ -284,18 +283,18 @@ export function TopicTabs({
             {sortedMcqs.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">💻 在线作答 ({sortedMcqs.length} 题)</h3>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">💻 Practice Online ({sortedMcqs.length} questions)</h3>
                   <div className="flex gap-2">
                     {!showResults ? (
                       <button onClick={handleSubmit}
                         disabled={Object.keys(userAnswers).length < sortedMcqs.length}
                         className="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        提交答案
+                        Submit Answers
                       </button>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-gray-700">得分: {score}/{sortedMcqs.length} ({Math.round((score / sortedMcqs.length) * 100)}%)</span>
-                        <button onClick={handleReset} className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">重新作答</button>
+                        <span className="text-sm font-bold text-gray-700">Score: {score}/{sortedMcqs.length} ({Math.round((score / sortedMcqs.length) * 100)}%)</span>
+                        <button onClick={handleReset} className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">Retry</button>
                       </div>
                     )}
                   </div>
@@ -309,32 +308,69 @@ export function TopicTabs({
         )
       )}
 
-      {/* STRUCTURED */}
+      {/* STRUCTURED / PAPER QUESTIONS */}
       {tab === "structured" && (
-        pairedPapers.length === 0 ? (
-          <div className="text-center py-20 text-gray-400"><p>暂无问答题，管理员正在添加中...</p></div>
+        pairedPapers.length === 0 && structuredQuestions.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-lg font-medium">No structured questions yet</p>
+            <p className="text-sm mt-2">Our team is adding past paper questions for this topic</p>
+          </div>
         ) : (
-          <div className="space-y-4">
-            {pairedPapers.map((pair, i) => (
-              <div key={pair.qp.id} className="bg-white border rounded-xl p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium mr-2">Q{i + 1}</span>
-                    <span className="text-sm text-gray-700">
-                      {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "")}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 题目</a>
-                    {pair.ms && pair.ms.id !== pair.qp.id && (
-                      <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 答案</a>
+          <div className="space-y-6">
+            {/* Structured questions from DB */}
+            {structuredQuestions.length > 0 && (
+              <div className="space-y-6">
+                {structuredQuestions.map((q, i) => (
+                  <div key={q.id} className="bg-white border rounded-xl p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
+                      <span className="text-xs text-gray-400">{q.marks} marks</span>
+                    </div>
+                    <div className="text-gray-800 prose prose-sm max-w-none mb-4">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.question_text}</ReactMarkdown>
+                    </div>
+                    {q.answer_text && (
+                      <details className="group">
+                        <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
+                          Show Answer
+                        </summary>
+                        <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text}</ReactMarkdown>
+                        </div>
+                      </details>
                     )}
                   </div>
+                ))}
+              </div>
+            )}
+            {/* Paired past papers */}
+            {pairedPapers.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📄 Past Paper Questions & Mark Schemes</h3>
+                <div className="space-y-4">
+                  {pairedPapers.map((pair, i) => (
+                    <div key={pair.qp.id} className="bg-white border rounded-xl p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium mr-2">Q{i + 1}</span>
+                          <span className="text-sm text-gray-700">
+                            {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "")}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 Paper</a>
+                          {pair.ms && pair.ms.id !== pair.qp.id && (
+                            <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 Answers</a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         )
       )}
