@@ -27,10 +27,46 @@ const SLUG_TO_KEY: Record<string, string> = {
 };
 
 const TOPIC_SLUG_TO_DB: Record<string, string> = {
+  // Physics CAIE
   "motion-forces-energy": "general-physics",
   "waves": "properties-of-waves",
   "electricity-magnetism": "electricity-and-magnetism",
   "nuclear-physics": "atomic-physics",
+  // Chemistry CAIE
+  "states-of-matter": "caie-chemistry-0620-1-states-of-matter",
+  "atoms-elements-compounds": "caie-chemistry-0620-2-atoms-elements-and-compounds",
+  "stoichiometry": "caie-chemistry-0620-3-stoichiometry",
+  "electrochemistry": "caie-chemistry-0620-4-electrochemistry",
+  "chemical-energetics": "caie-chemistry-0620-5-chemical-energetics",
+  "chemical-reactions": "caie-chemistry-0620-6-chemical-reactions",
+  "acids-bases-salts": "caie-chemistry-0620-7-acids-bases-and-salts",
+  "periodic-table": "caie-chemistry-0620-8-the-periodic-table",
+  "metals": "caie-chemistry-0620-9-metals",
+  "chemistry-environment": "caie-chemistry-0620-10-chemistry-of-the-environment",
+  "organic-chemistry": "caie-chemistry-0620-11-organic-chemistry",
+  "experimental-techniques": "caie-chemistry-0620-12-experimental-techniques",
+  // Biology CAIE
+  "characteristics-living-organisms": "caie-biology-0610-1-characteristics-and-classification-of-living-organ",
+  "organisation-organism": "caie-biology-0610-2-organisation-of-the-organism",
+  "movement-cells": "caie-biology-0610-3-movement-into-and-out-of-cells",
+  "biological-molecules": "caie-biology-0610-4-biological-molecules",
+  "enzymes": "caie-biology-0610-5-enzymes",
+  "plant-nutrition": "caie-biology-0610-6-plant-nutrition",
+  "human-nutrition": "caie-biology-0610-7-human-nutrition",
+  "transport-plants": "caie-biology-0610-8-transport-in-plants",
+  "transport-animals": "caie-biology-0610-9-transport-in-animals",
+  "diseases-immunity": "caie-biology-0610-10-diseases-and-immunity",
+  "gas-exchange-humans": "caie-biology-0610-11-gas-exchange-in-humans",
+  "respiration": "caie-biology-0610-12-respiration",
+  "excretion-humans": "caie-biology-0610-13-excretion-in-humans",
+  "coordination-response": "caie-biology-0610-14-coordination-and-response",
+  "drugs": "caie-biology-0610-15-drugs",
+  "reproduction": "caie-biology-0610-16-reproduction",
+  "inheritance": "caie-biology-0610-17-inheritance",
+  "variation-selection": "caie-biology-0610-18-variation-and-selection",
+  "organisms-environment": "caie-biology-0610-19-organisms-and-their-environment",
+  "biotechnology": "caie-biology-0610-20-biotechnology-and-genetic-engineering",
+  "human-influences-ecosystems": "caie-biology-0610-21-human-influences-on-ecosystems",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {
