@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { PastPapersTab } from "./PastPapersTab";
 
 interface Topic { name: string; displayName: string; slug: string; sort: number }
@@ -103,18 +103,18 @@ export default async function SubjectPage({
 
   const { board, code, name, icon, key, topics } = data;
 
-  // 服务端用 admin client 查 subject_id（绕过 RLS）
+  // 服务端查 subject_id（Physics/Chemistry/Math is_published=true，anon key 可读）
   let subjectId: string | null = null;
   try {
-    const adminClient = createAdminClient();
-    const { data: subjectRow } = await adminClient
+    const supabase = createClient();
+    const { data: subjectRow } = await supabase
       .from("subjects")
       .select("id")
       .eq("code", code)
       .single();
     subjectId = subjectRow?.id || null;
   } catch (e) {
-    console.error("Admin client failed:", e);
+    console.error("Subject lookup failed:", e);
     subjectId = null;
   }
 
