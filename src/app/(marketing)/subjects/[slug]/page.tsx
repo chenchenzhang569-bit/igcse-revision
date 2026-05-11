@@ -70,6 +70,15 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "mathematics", topics: MATHEMATICS },
+  // Old format aliases (without board prefix)
+  "physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
+  "chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
+  "biology-0610":     { board: "CAIE", code: "0610", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
+  "mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐", key: "mathematics", topics: MATHEMATICS },
+  "physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
+  "chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
+  "biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
+  "mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "mathematics", topics: MATHEMATICS },
 };
 
 export default async function SubjectPage({
@@ -81,21 +90,8 @@ export default async function SubjectPage({
 }) {
   const { slug } = await params;
   const { tab } = await searchParams;
-  
-  // Try exact match first, then try with board prefix from searchParams
-  let lookupSlug = slug;
-  let data = DATA[lookupSlug];
-  
-  if (!data) {
-    // Might be old format like /subjects/physics-0625?board=CAIE
-    const sp = await searchParams;
-    const board = (sp as any).board;
-    if (board) {
-      lookupSlug = `${board.toLowerCase()}-${slug}`;
-      data = DATA[lookupSlug];
-    }
-  }
-  
+  const data = DATA[slug];
+
   if (!data) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
