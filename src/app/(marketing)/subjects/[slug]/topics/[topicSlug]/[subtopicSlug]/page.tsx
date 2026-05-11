@@ -84,16 +84,17 @@ export default async function SubtopicPage({
     // DB unavailable
   }
 
-  // Fallback: use built-in content when DB is empty
-  const fallback = FALLBACK_DATA[subjectKey]?.[topicSlug];
+  // Fallback: built-in content, matched by SUBTOPIC slug
+  const fallback = FALLBACK_DATA[subjectKey]?.[topicSlug]?.[subtopicSlug];
   if (fallback && notes.length === 0 && mcqs.length === 0 && structuredQuestions.length === 0) {
     notes = fallback.notes.map((n, i) => ({
       id: `fb-note-${i}`,
       title: n.title,
       content: n.content,
       is_free_preview: n.is_free_preview,
-      file_url: null,
-      file_name: null,
+      file_url: n.file_url || null,
+      file_name: n.file_name || null,
+      source: n.source || null,
     }));
 
     mcqs = fallback.mcqs.map((q, i) => ({

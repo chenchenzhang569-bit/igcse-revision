@@ -27,6 +27,7 @@ type Note = {
   file_url: string | null;
   file_name: string | null;
   is_free_preview: boolean;
+  source?: string | null;
 };
 
 type PaperPair = {
@@ -227,16 +228,25 @@ export function TopicTabs({
                   {note.is_free_preview
                     ? <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">Free Preview</span>
                     : <span className="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">Premium</span>}
+                  {note.source && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                      note.source === "PMT" ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"
+                    }`}>
+                      {note.source}
+                    </span>
+                  )}
                 </div>
                 {note.content && (
                   <div className="prose prose-sm max-w-none text-gray-700 mb-4">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
                   </div>
                 )}
-                {note.file_url && (
-                  <a href={note.file_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
-                    📥 Download PDF{note.file_name ? ` (${note.file_name})` : ""}
+                {note.file_name && (
+                  <a href={note.file_url || "#"} target={note.file_url ? "_blank" : undefined} rel={note.file_url ? "noopener noreferrer" : undefined}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                      note.file_url ? "bg-primary-600 text-white hover:bg-primary-700" : "bg-gray-100 text-gray-500 cursor-default"
+                    }`}>
+                    📥 {note.source ? `[${note.source}] ` : ""}{note.file_name}
                   </a>
                 )}
               </div>
