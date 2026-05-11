@@ -52,9 +52,9 @@ export function TopicTabs({
   const [showResults, setShowResults] = useState(false);
 
   const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: "notes", label: "📝 笔记", count: notes.length },
-    { key: "mcq", label: "📋 选择题", count: mcqs.length + mcqPairs.length },
-    { key: "structured", label: "📄 问答题", count: pairedPapers.length },
+    { key: "notes", label: "📝 Notes", count: notes.length },
+    { key: "mcq", label: "📋 Multiple Choice", count: mcqs.length + mcqPairs.length },
+    { key: "structured", label: "📄 Structured Questions", count: pairedPapers.length },
   ];
 
   const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
