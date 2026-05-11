@@ -81,6 +81,15 @@ export function TopicTabs({
     setShowResults(false);
   }
 
+  function isTableQuestion(text: string): boolean {
+    return text.includes("|") && text.includes("---") && !/^[A-D][.)]/m.test(text);
+  }
+
+  function parseOptions(text: string): string[] {
+    const lines = text.split("\n");
+    return lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
+  }
+
   function renderMcqQuestion(q: Question, i: number) {
     const text = q.question_text;
     const userAnswer = userAnswers[q.id];
@@ -92,6 +101,62 @@ export function TopicTabs({
     const diffLabel =
       q.difficulty === "easy" ? "Easy" : q.difficulty === "medium" ? "Medium" : "Hard";
 
+    if (isTableQuestion(text)) {
+      const cleanText = text.split('\n').map(line => {
+        if (line.includes('|')) return line.trim();
+        return line;
+      }).join('\n');
+      
+      const tableOptions: Record<string, string> = {};
+      for (const line of text.split('\n')) {
+        const m = line.match(/^\|?\s*([A-D])\s*\|\s*(.+?)\s*\|/);
+        if (m) tableOptions[m[1]] = m[2].trim();
+      }
+
+      return (
+        <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
+          <div className="px-5 pt-5 pb-3">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
+              <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
+              <span className="text-xs text-gray-400">{q.marks} marks</span>
+            </div>
+            <div className="text-gray-800 prose prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
+            </div>
+          </div>
+          <div className="px-5 pb-5 flex flex-wrap gap-2">
+            {["A", "B", "C", "D"].map((label) => {
+              const selected = userAnswer === label;
+              let cls = "border-gray-200 hover:bg-gray-50";
+              if (showResults) {
+                if (label === q.answer_text) cls = "bg-green-50 border-green-400";
+                else if (selected) cls = "bg-red-50 border-red-400";
+                else cls = "border-gray-200 opacity-60";
+              } else if (selected) cls = "bg-primary-50 border-primary-400";
+              return (
+                <button key={label} onClick={() => selectAnswer(q.id, label)} disabled={showResults}
+                  className={`flex-1 p-3 rounded-lg border text-center font-bold transition ${cls}`}>
+                  {label}
+                  {showResults && label === q.answer_text && " ✓"}
+                  {showResults && selected && !isCorrect && " ✗"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    const options = parseOptions(text);
+    // Regex: find first "\nA)" / "\nB." to locate where options begin
+    const optMatch = text.match(/\n[A-D][.)]/);
+    const stemEnd = optMatch ? optMatch.index! + 1 : text.length;
+    const stem = text.slice(0, stemEnd).trim();
+    const optionLabels = options.length >= 4 
+      ? options.map((opt) => opt.charAt(0))
+      : ["A", "B", "C", "D"];
+
     return (
       <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
         <div className="px-5 pt-5 pb-3">
@@ -101,13 +166,15 @@ export function TopicTabs({
             <span className="text-xs text-gray-400">{q.marks} marks</span>
           </div>
           <div className="text-gray-800 prose prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
           </div>
         </div>
-        <div className="px-5 pb-5 flex flex-wrap gap-2">
-          {["A", "B", "C", "D"].map((label) => {
+        <div className="px-5 pb-5 space-y-2">
+          {optionLabels.map((label) => {
+            const opt = options.find(o => o.startsWith(label));
+            const optText = opt ? opt.replace(/^[A-D][.)]\s*/, "").trim() : "";
             const selected = userAnswer === label;
-            let cls = "border-gray-200 hover:bg-gray-50";
+            let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
               if (label === q.answer_text) cls = "bg-green-50 border-green-400";
               else if (selected) cls = "bg-red-50 border-red-400";
@@ -115,10 +182,16 @@ export function TopicTabs({
             } else if (selected) cls = "bg-primary-50 border-primary-400";
             return (
               <button key={label} onClick={() => selectAnswer(q.id, label)} disabled={showResults}
-                className={`flex-1 p-3 rounded-lg border text-center font-bold transition ${cls}`}>
-                {label}
-                {showResults && label === q.answer_text && " ✓"}
-                {showResults && selected && !isCorrect && " ✗"}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${cls}`}>
+                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                  showResults && label === q.answer_text ? "bg-green-500 text-white"
+                  : showResults && selected ? "bg-red-500 text-white"
+                  : selected ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-600"
+                }`}>{label}</span>
+                {optText ? <span className="text-sm">{optText}</span> : null}
+                {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ Correct</span>}
+                {showResults && selected && !isCorrect && <span className="ml-auto text-red-600 text-sm">✗</span>}
               </button>
             );
           })}
