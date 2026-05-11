@@ -99,13 +99,23 @@ export default async function SubtopicPage({
         .from("notes").select("*").eq(filter.col, filter.val).order("sort_order").limit(20);
       notes = dbNotes || [];
 
-      const { data: dbMcqs } = await supabase
-        .from("questions").select("*").eq(filter.col, filter.val).eq("question_type", "mcq").order("sort_order").limit(30);
-      mcqs = dbMcqs || [];
-
-      const { data: dbStructured } = await supabase
-        .from("questions").select("*").eq(filter.col, filter.val).in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
-      structuredQuestions = dbStructured || [];
+      // Get ALL questions — SME data uses "structured" type for MCQs
+      const { data: allQs } = await supabase
+        .from("questions").select("*").eq(filter.col, filter.val).order("sort_order").limit(100);
+      
+      if (allQs) {
+        // Split by content: has A/B/C/D options → MCQ tab, otherwise → Question Paper
+        for (const q of allQs) {
+          const txt = q.question_text || "";
+          const hasOptions = /[A-D][.)]/.test(txt);
+          if (hasOptions) {
+            // MCQ-style — use answer_text for correct answer (correct_answer may be null)
+            mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
+          } else {
+            structuredQuestions.push(q);
+          }
+        }
+      }
     }
   } catch {
     // DB unavailable
