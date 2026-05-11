@@ -86,8 +86,26 @@ export function TopicTabs({
   }
 
   function parseOptions(text: string): string[] {
+    // Method 1: line-by-line (each option on its own line)
     const lines = text.split("\n");
-    return lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
+    const lineOpts = lines
+      .map((l) => l.trim())
+      .filter((l) => /^[A-D][.)\s:]/.test(l));
+    if (lineOpts.length >= 4) return lineOpts;
+
+    // Method 2: options crowded on same line — split by "  A)" / "  B." patterns
+    const parts = text.split(/\s{2,}(?=[A-D][.)\s:])/);
+    const sameLineOpts = parts
+      .map((p) => p.trim())
+      .filter((p) => /^[A-D][.)\s:]/.test(p));
+    if (sameLineOpts.length >= 4) return sameLineOpts;
+
+    return lineOpts;
+  }
+
+  /** Strip the "A) " / "B. " prefix from an option line, returning just the text */
+  function optionText(opt: string): string {
+    return opt.replace(/^[A-D][.)\s:]\s*/, "").trim();
   }
 
   function renderMcqQuestion(q: Question, i: number) {
@@ -149,7 +167,9 @@ export function TopicTabs({
     }
 
     const options = parseOptions(text);
-    const stemEnd = options.length > 0 ? text.indexOf(options[0]) : text.length;
+    // Find where options start via regex — more robust than indexOf with trimmed text
+    const optStart = text.match(/\n\s*[A-D][.)\s:]/);
+    const stemEnd = optStart ? optStart.index! + 1 : text.length;
     const stem = text.slice(0, stemEnd).trim();
     const optionLabels = options.length >= 4 
       ? options.map((opt) => opt.charAt(0))
@@ -170,7 +190,7 @@ export function TopicTabs({
         <div className="px-5 pb-5 space-y-2">
           {optionLabels.map((label) => {
             const opt = options.find(o => o.startsWith(label));
-            const optText = opt ? opt.slice(3).trim() : "";
+            const optText = opt ? optionText(opt) : "";
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
