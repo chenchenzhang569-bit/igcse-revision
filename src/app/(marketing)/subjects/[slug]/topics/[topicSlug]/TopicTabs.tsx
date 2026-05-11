@@ -198,6 +198,21 @@ export function TopicTabs({
     );
   }
 
+  function downloadContent(note: Note) {
+    if (note.file_url) {
+      window.open(note.file_url, "_blank");
+      return;
+    }
+    const text = note.content || "";
+    const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = note.file_name || `${note.title}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div>
       {/* Tabs */}
@@ -242,12 +257,10 @@ export function TopicTabs({
                   </div>
                 )}
                 {note.file_name && (
-                  <a href={note.file_url || "#"} target={note.file_url ? "_blank" : undefined} rel={note.file_url ? "noopener noreferrer" : undefined}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      note.file_url ? "bg-primary-600 text-white hover:bg-primary-700" : "bg-gray-100 text-gray-500 cursor-default"
-                    }`}>
+                  <button onClick={() => downloadContent(note)}
+                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
                     📥 {note.source ? `[${note.source}] ` : ""}{note.file_name}
-                  </a>
+                  </button>
                 )}
               </div>
             ))}
