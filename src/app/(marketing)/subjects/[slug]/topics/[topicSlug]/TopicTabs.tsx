@@ -149,7 +149,9 @@ export function TopicTabs({
     }
 
     const options = parseOptions(text);
-    const stemEnd = options.length > 0 ? text.indexOf(options[0]) : text.length;
+    // Regex: find first "\nA)" / "\nB." to locate where options begin
+    const optMatch = text.match(/\n[A-D][.)]/);
+    const stemEnd = optMatch ? optMatch.index! + 1 : text.length;
     const stem = text.slice(0, stemEnd).trim();
     const optionLabels = options.length >= 4 
       ? options.map((opt) => opt.charAt(0))
@@ -170,7 +172,7 @@ export function TopicTabs({
         <div className="px-5 pb-5 space-y-2">
           {optionLabels.map((label) => {
             const opt = options.find(o => o.startsWith(label));
-            const optText = opt ? opt.slice(3).trim() : "";
+            const optText = opt ? opt.replace(/^[A-D][.)]\s*/, "").trim() : "";
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
