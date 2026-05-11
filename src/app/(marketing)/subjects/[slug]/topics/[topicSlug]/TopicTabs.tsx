@@ -196,7 +196,7 @@ export function TopicTabs({
                   : selected ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-600"
                 }`}>{label}</span>
-                {optText ? <span className="text-sm">{optText}</span> : null}
+                {optText ? <span className="text-sm">{optText}</span> : <span className="text-gray-400 text-sm italic">Select {label}</span>}
                 {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ Correct</span>}
                 {showResults && selected && !isCorrect && <span className="ml-auto text-red-600 text-sm">✗</span>}
               </button>
