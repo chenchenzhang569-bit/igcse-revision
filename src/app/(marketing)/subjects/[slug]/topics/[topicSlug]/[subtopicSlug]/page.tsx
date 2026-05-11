@@ -104,11 +104,12 @@ export default async function SubtopicPage({
         .from("questions").select("*").eq(filter.col, filter.val).order("sort_order").limit(100);
       
       if (allQs) {
-        // Split by content: has A/B/C/D options → MCQ tab, otherwise → Question Paper
+        // Split by content: has A/B/C/D options or is a table question → MCQ tab
         for (const q of allQs) {
           const txt = q.question_text || "";
-          const hasOptions = /[A-D][.)]/.test(txt);
-          if (hasOptions) {
+          const hasAbcd = /[A-D][.)]/.test(txt);
+          const hasTable = txt.includes("|") && txt.includes("---");
+          if (hasAbcd || hasTable) {
             // MCQ-style — use answer_text for correct answer (correct_answer may be null)
             mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
           } else {
