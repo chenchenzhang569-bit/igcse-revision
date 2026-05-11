@@ -46,13 +46,6 @@ const physicsData: Record<string, Record<string, FallbackSubtopicData>> = {
           source: "PMT",
           file_name: "1.1 Physical Quantities & Measurement.pdf",
         },
-        {
-          title: "Length, Time & Volume — Exam Questions",
-          content: `## Key Measurement Skills\n\n### Reading a Vernier Caliper\n\n1. Read the main scale reading just before the zero mark on the vernier scale\n2. Find which vernier scale division coincides with a main scale division\n3. Total reading = main scale reading + (vernier coincidence × 0.01) cm\n\n### Reading a Micrometer\n\n1. Read the main scale (sleeve) reading to the nearest 0.5 mm\n2. Read the thimble scale where it aligns with the datum line\n3. Total reading = main scale + (thimble reading × 0.01) mm\n\n### Measuring Volume\n\n- **Regular solids**: measure dimensions, calculate using geometry (e.g. V = l × w × h)\n- **Irregular solids**: use displacement method (measuring cylinder or Eureka can)\n- **Liquids**: use measuring cylinder, pipette, or burette\n\n### Parallax Error\n\nAlways read at eye level, perpendicular to the scale, to avoid parallax error.\nFor measuring cylinders, read the bottom of the meniscus.`,
-          is_free_preview: false,
-          source: "SME",
-          file_name: "1.1 Measurement Techniques — Questions.pdf",
-        },
       ],
       mcqs: [
         {
