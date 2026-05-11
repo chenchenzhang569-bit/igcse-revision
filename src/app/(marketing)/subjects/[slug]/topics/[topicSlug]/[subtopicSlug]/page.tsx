@@ -107,9 +107,12 @@ export default async function SubtopicPage({
         // Split by content: has A/B/C/D options or is a table question → MCQ tab
         for (const q of allQs) {
           const txt = q.question_text || "";
-          const hasAbcd = /[A-D][.)]/.test(txt);
+          // Detect MCQ: A/B/C/D followed by . ) : or space, or (A)/(B)/[A]/[B] format
+          const hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
           const hasTable = txt.includes("|") && txt.includes("---");
-          if (hasAbcd || hasTable) {
+          // Also: if answer_text is a single letter A-D, it's definitely MCQ
+          const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
+          if (hasAbcd || hasTable || ansIsLetter) {
             // MCQ-style — use answer_text for correct answer (correct_answer may be null)
             mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
           } else {
