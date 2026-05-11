@@ -19,6 +19,11 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-chemistry-4ch1": "chemistry", "chemistry-4ch1": "chemistry",
   "edexcel-biology-4bi1": "biology", "biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics", "mathematics-4ma1": "mathematics",
+  // Short aliases (board-only, no code)
+  "caie-physics": "physics", "caie-chemistry": "chemistry",
+  "caie-biology": "biology", "caie-mathematics": "mathematics",
+  "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
+  "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {

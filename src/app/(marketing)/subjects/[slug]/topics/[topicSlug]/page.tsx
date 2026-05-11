@@ -15,6 +15,19 @@ const SLUG_TO_KEY: Record<string, string> = {
   "chemistry-0620": "chemistry",
   "biology-0610": "biology",
   "mathematics-0580": "mathematics",
+  "physics-4ph1": "physics",
+  "chemistry-4ch1": "chemistry",
+  "biology-4bi1": "biology",
+  "mathematics-4ma1": "mathematics",
+  // Short aliases (board-only, no code) — from Subjects list page
+  "caie-physics": "physics",
+  "caie-chemistry": "chemistry",
+  "caie-biology": "biology",
+  "caie-mathematics": "mathematics",
+  "edexcel-physics": "physics",
+  "edexcel-chemistry": "chemistry",
+  "edexcel-biology": "biology",
+  "edexcel-mathematics": "mathematics",
 };
 
 // Display names for topic slugs
