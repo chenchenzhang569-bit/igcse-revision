@@ -51,7 +51,7 @@ export default async function SubtopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   const subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   const topicDisplay = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-  const pmtCode = subtopic?.pmtCode || ""; // e.g. "1.1"
+  const pmtCode = subtopic?.pmtCode || "";
 
   if (!subtopic) {
     return (
@@ -70,9 +70,9 @@ export default async function SubtopicPage({
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
 
-  // Try Supabase — match by PMT code number first, then by topic
-  const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
   try {
+    // Find topic in DB
+    const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
     let topicRow = null;
     let { data } = await supabase.from("topics").select("id").eq("slug", topicSlug).single();
     topicRow = data;
@@ -81,86 +81,52 @@ export default async function SubtopicPage({
       topicRow = data2;
     }
 
-    if (topicRow) {
-      // Strategy 1: Match by PMT code (e.g., "1.1") in title
-      // PMT titles look like: "CAIE Physics 1.1 - Measurement" or "1.1 Physical Quantities"
-      const pmtPattern = pmtCode.replace(".", "\\."); // escape for regex-like
+    // Find subtopic by pmt_code + topic_id
+    let subtopicId: string | null = null;
+    if (topicRow && pmtCode) {
+      const { data: subs } = await supabase
+        .from("subtopics").select("id").eq("topic_id", topicRow.id).eq("pmt_code", pmtCode).limit(1);
+      if (subs && subs.length > 0) subtopicId = subs[0].id;
+    }
 
-      // Notes — try PMT code match first
-      let { data: dbNotes } = await supabase
-        .from("notes").select("*").eq("topic_id", topicRow.id)
-        .ilike("title", `%${pmtCode}%`).order("sort_order").limit(20);
-      
-      if (!dbNotes || dbNotes.length === 0) {
-        // Fall back to topic-level (all notes for this topic)
-        const { data: allNotes } = await supabase
-          .from("notes").select("*").eq("topic_id", topicRow.id).order("sort_order").limit(20);
-        dbNotes = allNotes;
-      }
+    // Query with subtopic_id if found, otherwise topic_id
+    const filter = subtopicId 
+      ? { col: "subtopic_id", val: subtopicId }
+      : topicRow ? { col: "topic_id", val: topicRow.id } : null;
+
+    if (filter) {
+      const { data: dbNotes } = await supabase
+        .from("notes").select("*").eq(filter.col, filter.val).order("sort_order").limit(20);
       notes = dbNotes || [];
 
-      // MCQ — try PMT code match first
-      let { data: dbMcqs } = await supabase
-        .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq")
-        .ilike("question_text", `%${pmtCode}%`).order("sort_order").limit(30);
-      
-      if (!dbMcqs || dbMcqs.length === 0) {
-        const { data: allMcqs } = await supabase
-          .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq")
-          .order("sort_order").limit(30);
-        dbMcqs = allMcqs;
-      }
+      const { data: dbMcqs } = await supabase
+        .from("questions").select("*").eq(filter.col, filter.val).eq("question_type", "mcq").order("sort_order").limit(30);
       mcqs = dbMcqs || [];
 
-      // Structured — try PMT code match first
-      let { data: dbStructured } = await supabase
-        .from("questions").select("*").eq("topic_id", topicRow.id).in("question_type", ["structured", "essay"])
-        .ilike("question_text", `%${pmtCode}%`).order("sort_order").limit(20);
-      
-      if (!dbStructured || dbStructured.length === 0) {
-        const { data: allStructured } = await supabase
-          .from("questions").select("*").eq("topic_id", topicRow.id)
-          .in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
-        dbStructured = allStructured;
-      }
+      const { data: dbStructured } = await supabase
+        .from("questions").select("*").eq(filter.col, filter.val).in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
       structuredQuestions = dbStructured || [];
     }
   } catch {
     // DB unavailable
   }
 
-  // Fallback: built-in content by SUBTOPIC slug (only if DB returned nothing)
+  // Fallback: built-in content
   const fallback = FALLBACK_DATA[subjectKey]?.[topicSlug]?.[subtopicSlug];
   if (fallback && notes.length === 0 && mcqs.length === 0 && structuredQuestions.length === 0) {
-    notes = fallback.notes.map((n, i) => ({
-      id: `fb-note-${i}`,
-      title: n.title,
-      content: n.content,
-      is_free_preview: n.is_free_preview,
-      file_url: n.file_url || null,
-      file_name: n.file_name || null,
-      source: n.source || null,
+    notes = fallback.notes.map((n: any, i: number) => ({
+      id: `fb-note-${i}`, title: n.title, content: n.content,
+      is_free_preview: n.is_free_preview, file_url: n.file_url || null,
+      file_name: n.file_name || null, source: n.source || null,
     }));
-
-    mcqs = fallback.mcqs.map((q, i) => ({
-      id: `fb-mcq-${i}`,
-      question_text: q.question_text,
-      answer_text: q.answer_text,
-      options: q.options,
-      correct_answer: q.answer_text,
-      explanation: q.explanation,
-      difficulty: q.difficulty,
-      marks: 1,
-      sort_order: i + 1,
+    mcqs = fallback.mcqs.map((q: any, i: number) => ({
+      id: `fb-mcq-${i}`, question_text: q.question_text, answer_text: q.answer_text,
+      options: q.options, correct_answer: q.answer_text, explanation: q.explanation,
+      difficulty: q.difficulty, marks: 1, sort_order: i + 1,
     }));
-
-    structuredQuestions = fallback.structured.map((q, i) => ({
-      id: `fb-struct-${i}`,
-      question_text: q.question_text,
-      answer_text: q.answer_text,
-      difficulty: q.difficulty,
-      marks: q.marks,
-      sort_order: i + 1,
+    structuredQuestions = fallback.structured.map((q: any, i: number) => ({
+      id: `fb-struct-${i}`, question_text: q.question_text, answer_text: q.answer_text,
+      difficulty: q.difficulty, marks: q.marks, sort_order: i + 1,
     }));
   }
 
@@ -171,22 +137,15 @@ export default async function SubtopicPage({
         <span>/</span>
         <Link href={`/subjects/${slug}`} className="hover:text-primary-600">Subject</Link>
         <span>/</span>
-        <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="hover:text-primary-600">
-          {topicDisplay}
-        </Link>
+        <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="hover:text-primary-600">{topicDisplay}</Link>
       </div>
-
       <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-
       <TopicTabs
-        notes={notes}
-        mcqs={mcqs}
-        mcqPairs={mcqPairs as any}
-        pairedPapers={structPairs as any}
-        structuredQuestions={structuredQuestions}
+        notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
+        pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
       />
     </div>
   );
