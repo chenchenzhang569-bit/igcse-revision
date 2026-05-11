@@ -102,16 +102,25 @@ export function TopicTabs({
       q.difficulty === "easy" ? "Easy" : q.difficulty === "medium" ? "Medium" : "Hard";
 
     if (isTableQuestion(text)) {
-      const cleanText = text.split('\n').map(line => {
-        if (line.includes('|')) return line.trim();
-        return line;
-      }).join('\n');
-      
-      const tableOptions: Record<string, string> = {};
-      for (const line of text.split('\n')) {
-        const m = line.match(/^\|?\s*([A-D])\s*\|\s*(.+?)\s*\|/);
-        if (m) tableOptions[m[1]] = m[2].trim();
+      // Fix malformed markdown table: add missing leading/trailing pipes, fix separator
+      const lines = text.split('\n');
+      const fixed: string[] = [];
+      for (const line of lines) {
+        if (line.includes('---')) continue;
+        if (line.includes('|')) {
+          const parts = line.split('|').map(s => s.trim());
+          if (/^[A-D]$/.test(parts[0])) {
+            fixed.push('| ' + parts.join(' | ') + ' |');
+          } else {
+            const cols = parts.filter(p => p.length > 0);
+            fixed.push('|  | ' + cols.join(' | ') + ' |');
+            fixed.push('|---|' + cols.map(() => '---').join('|') + '|');
+          }
+        } else {
+          fixed.push(line);
+        }
       }
+      const cleanText = fixed.join('\n');
 
       return (
         <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
@@ -149,9 +158,7 @@ export function TopicTabs({
     }
 
     const options = parseOptions(text);
-    // Regex: find first "\nA)" / "\nB." to locate where options begin
-    const optMatch = text.match(/\n[A-D][.)]/);
-    const stemEnd = optMatch ? optMatch.index! + 1 : text.length;
+    const stemEnd = options.length > 0 ? text.indexOf(options[0]) : text.length;
     const stem = text.slice(0, stemEnd).trim();
     const optionLabels = options.length >= 4 
       ? options.map((opt) => opt.charAt(0))
@@ -172,7 +179,7 @@ export function TopicTabs({
         <div className="px-5 pb-5 space-y-2">
           {optionLabels.map((label) => {
             const opt = options.find(o => o.startsWith(label));
-            const optText = opt ? opt.replace(/^[A-D][.)]\s*/, "").trim() : "";
+            const optText = opt ? opt.slice(3).trim() : "";
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
