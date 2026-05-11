@@ -81,8 +81,21 @@ export default async function SubjectPage({
 }) {
   const { slug } = await params;
   const { tab } = await searchParams;
-  const data = DATA[slug];
-
+  
+  // Try exact match first, then try with board prefix from searchParams
+  let lookupSlug = slug;
+  let data = DATA[lookupSlug];
+  
+  if (!data) {
+    // Might be old format like /subjects/physics-0625?board=CAIE
+    const sp = await searchParams;
+    const board = (sp as any).board;
+    if (board) {
+      lookupSlug = `${board.toLowerCase()}-${slug}`;
+      data = DATA[lookupSlug];
+    }
+  }
+  
   if (!data) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">

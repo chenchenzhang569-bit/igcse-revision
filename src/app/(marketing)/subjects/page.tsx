@@ -81,7 +81,7 @@ export default async function SubjectsPage({
           {displaySubjects.map((s: any) => (
             <Link
               key={s.slug}
-              href={`/subjects/${s.slug.split("-").slice(1).join("-")}?board=${s.board}`}
+              href={`/subjects/${s.slug}?board=${s.board}`}
               className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all"
             >
               <div className="flex items-start gap-4">
