@@ -26,6 +26,13 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
 };
 
+const TOPIC_SLUG_TO_DB: Record<string, string> = {
+  "motion-forces-energy": "general-physics",
+  "waves": "properties-of-waves",
+  "electricity-magnetism": "electricity-and-magnetism",
+  "nuclear-physics": "atomic-physics",
+};
+
 const TOPIC_DISPLAY: Record<string, string> = {
   "motion-forces-energy": "Motion, Forces & Energy",
   "thermal-physics": "Thermal Physics",
@@ -44,6 +51,7 @@ export default async function SubtopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   const subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   const topicDisplay = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const pmtCode = subtopic?.pmtCode || ""; // e.g. "1.1"
 
   if (!subtopic) {
     return (
@@ -62,9 +70,8 @@ export default async function SubtopicPage({
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
 
-  // Try Supabase first
-  // Try Supabase — fall back to old DB slug if new slug doesn't match
-  const dbSlug = (TOPIC_SLUG_TO_DB as any)[topicSlug] || topicSlug;
+  // Try Supabase — match by PMT code number first, then by topic
+  const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
   try {
     let topicRow = null;
     let { data } = await supabase.from("topics").select("id").eq("slug", topicSlug).single();
@@ -75,23 +82,54 @@ export default async function SubtopicPage({
     }
 
     if (topicRow) {
-      const { data: dbNotes } = await supabase
-        .from("notes").select("*").eq("topic_id", topicRow.id).order("sort_order").limit(20);
+      // Strategy 1: Match by PMT code (e.g., "1.1") in title
+      // PMT titles look like: "CAIE Physics 1.1 - Measurement" or "1.1 Physical Quantities"
+      const pmtPattern = pmtCode.replace(".", "\\."); // escape for regex-like
+
+      // Notes — try PMT code match first
+      let { data: dbNotes } = await supabase
+        .from("notes").select("*").eq("topic_id", topicRow.id)
+        .ilike("title", `%${pmtCode}%`).order("sort_order").limit(20);
+      
+      if (!dbNotes || dbNotes.length === 0) {
+        // Fall back to topic-level (all notes for this topic)
+        const { data: allNotes } = await supabase
+          .from("notes").select("*").eq("topic_id", topicRow.id).order("sort_order").limit(20);
+        dbNotes = allNotes;
+      }
       notes = dbNotes || [];
 
-      const { data: dbMcqs } = await supabase
-        .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq").order("sort_order").limit(30);
+      // MCQ — try PMT code match first
+      let { data: dbMcqs } = await supabase
+        .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq")
+        .ilike("question_text", `%${pmtCode}%`).order("sort_order").limit(30);
+      
+      if (!dbMcqs || dbMcqs.length === 0) {
+        const { data: allMcqs } = await supabase
+          .from("questions").select("*").eq("topic_id", topicRow.id).eq("question_type", "mcq")
+          .order("sort_order").limit(30);
+        dbMcqs = allMcqs;
+      }
       mcqs = dbMcqs || [];
 
-      const { data: dbStructured } = await supabase
-        .from("questions").select("*").eq("topic_id", topicRow.id).in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
+      // Structured — try PMT code match first
+      let { data: dbStructured } = await supabase
+        .from("questions").select("*").eq("topic_id", topicRow.id).in("question_type", ["structured", "essay"])
+        .ilike("question_text", `%${pmtCode}%`).order("sort_order").limit(20);
+      
+      if (!dbStructured || dbStructured.length === 0) {
+        const { data: allStructured } = await supabase
+          .from("questions").select("*").eq("topic_id", topicRow.id)
+          .in("question_type", ["structured", "essay"]).order("sort_order").limit(20);
+        dbStructured = allStructured;
+      }
       structuredQuestions = dbStructured || [];
     }
   } catch {
     // DB unavailable
   }
 
-  // Fallback: built-in content, matched by SUBTOPIC slug
+  // Fallback: built-in content by SUBTOPIC slug (only if DB returned nothing)
   const fallback = FALLBACK_DATA[subjectKey]?.[topicSlug]?.[subtopicSlug];
   if (fallback && notes.length === 0 && mcqs.length === 0 && structuredQuestions.length === 0) {
     notes = fallback.notes.map((n, i) => ({
