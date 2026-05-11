@@ -29,9 +29,11 @@ const SLUG_TO_KEY: Record<string, string> = {
 const TOPIC_SLUG_TO_DB: Record<string, string> = {
   // Physics CAIE
   "motion-forces-energy": "general-physics",
-  "waves": "properties-of-waves",
-  "electricity-magnetism": "electricity-and-magnetism",
-  "nuclear-physics": "atomic-physics",
+  "thermal-physics": "physics-0625-thermal-physics",
+  "waves": "physics-0625-properties-of-waves",
+  "electricity-magnetism": "physics-0625-electricity-and-magnetism",
+  "nuclear-physics": "physics-0625-atomic-physics",
+  "space-physics": "physics-0625-space-physics",
   // Chemistry CAIE
   "states-of-matter": "caie-chemistry-0620-1-states-of-matter",
   "atoms-elements-compounds": "caie-chemistry-0620-2-atoms-elements-and-compounds",
