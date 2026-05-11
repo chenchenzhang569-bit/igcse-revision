@@ -87,7 +87,7 @@ export function TopicTabs({
 
   function parseOptions(text: string): string[] {
     const lines = text.split("\n");
-    return lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
+    return lines.filter((l) => /^[A-D][.)\s]/.test(l.trim()));
   }
 
   function renderMcqQuestion(q: Question, i: number) {
@@ -170,7 +170,7 @@ export function TopicTabs({
         <div className="px-5 pb-5 space-y-2">
           {optionLabels.map((label) => {
             const opt = options.find(o => o.startsWith(label));
-            const optText = opt ? opt.slice(3).trim() : "";
+            const optText = opt ? opt.replace(/^[A-D][.)\s]\s*/, "").trim() : "";
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
