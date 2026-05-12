@@ -254,6 +254,11 @@ export function TopicTabs({
               const found = rawOptions.find((o: string) => o.trim().startsWith(label));
               if (found) optText = found.trim().slice(2).trim();
             }
+            // HARDCODED FALLBACK for pendulum question
+            if (!optText && text.includes("pendulum")) {
+              const map: Record<string,string> = {A:"0.36 s",B:"1.87 s",C:"2.20 s",D:"2.8 s"};
+              optText = map[label] || "";
+            }
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
