@@ -109,15 +109,21 @@ export default async function TopicPage({
 
   if (isPractical) {
     try {
-      const { data: topicRow } = await supabase.from("topics").select("id").eq("slug", topicSlug).single();
-      if (topicRow) {
-        const { data: dbNotes } = await supabase
-          .from("notes")
-          .select("*")
-          .eq("topic_id", topicRow.id)
-          .order("sort_order")
-          .limit(50);
-        notes = dbNotes || [];
+      const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
+      const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+      const baseHeaders = { apikey: KEY, Authorization: `Bearer ${KEY}` };
+
+      // Find topic ID
+      const tRes = await fetch(`${API}/topics?slug=eq.${encodeURIComponent(topicSlug)}&select=id`, { headers: baseHeaders });
+      const topics = await tRes.json();
+      const topicId = topics?.[0]?.id;
+
+      if (topicId) {
+        const nRes = await fetch(
+          `${API}/notes?select=*&topic_id=eq.${topicId}&order=sort_order&limit=50`,
+          { headers: baseHeaders }
+        );
+        notes = await nRes.json();
       }
     } catch {}
   }
