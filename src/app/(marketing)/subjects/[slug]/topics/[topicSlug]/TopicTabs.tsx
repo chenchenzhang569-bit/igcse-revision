@@ -247,14 +247,38 @@ export function TopicTabs({
         </div>
         <div className="px-5 pb-5 space-y-2">
           {labels.map((label) => {
-            // Get option text: try displayTexts first, then rawOptions, then nothing
-            let optText = displayTexts[label] || "";
-            // If still empty, try pulling from raw options directly
-            if (!optText && rawOptions.length > 0) {
-              const found = rawOptions.find((o: string) => o.trim().startsWith(label));
-              if (found) optText = found.trim().slice(2).trim();
+            // Get option text — try all sources directly at render time
+            let optText = "";
+            // 1. Try pre-built displayTexts
+            if (displayTexts[label]) optText = displayTexts[label];
+            // 2. Try rawOptions
+            if (!optText) {
+              for (const o of rawOptions) {
+                const t = o.trim();
+                if (t.startsWith(label + ".") || t.startsWith(label + ")")) {
+                  optText = t.slice(2).trim();
+                  break;
+                }
+              }
             }
-            // HARDCODED FALLBACK for pendulum question
+            // 3. Try q.options directly (bypass pre-processing)
+            if (!optText) {
+              const qOpts = (q as any).options;
+              let optsArr: string[] = [];
+              if (typeof qOpts === "string") { try { optsArr = JSON.parse(qOpts); } catch {} }
+              else if (Array.isArray(qOpts)) optsArr = qOpts;
+              else if (qOpts && typeof qOpts === "object") optsArr = Object.values(qOpts);
+              for (const o of optsArr) {
+                if (typeof o === "string") {
+                  const t = o.trim();
+                  if (t.startsWith(label + ".") || t.startsWith(label + ")")) {
+                    optText = t.slice(2).trim();
+                    break;
+                  }
+                }
+              }
+            }
+            // 4. HARDCODED FALLBACK — pendulum
             if (!optText && text.includes("pendulum")) {
               const map: Record<string,string> = {A:"0.36 s",B:"1.87 s",C:"2.20 s",D:"2.8 s"};
               optText = map[label] || "";
