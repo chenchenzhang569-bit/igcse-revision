@@ -278,6 +278,17 @@ export function TopicTabs({
                 }
               }
             }
+            // 3.5 Positional fallback — if options have no A/B/C/D labels, assign by index
+            if (!optText && rawOptions.length === 4) {
+              const idx = labels.indexOf(label);
+              if (idx >= 0 && idx < rawOptions.length) {
+                const t = rawOptions[idx].trim();
+                // Only use if it doesn't start with a different letter label
+                if (!/^[A-D][.)]/.test(t) || t.startsWith(label + ".") || t.startsWith(label + ")")) {
+                  optText = t.replace(/^[A-D][.)]\s*/, "").trim();
+                }
+              }
+            }
             // 4. HARDCODED FALLBACK — pendulum
             if (!optText && text.includes("pendulum")) {
               const map: Record<string,string> = {A:"0.36 s",B:"1.87 s",C:"2.20 s",D:"2.8 s"};
