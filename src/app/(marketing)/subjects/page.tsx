@@ -30,11 +30,12 @@ export default async function SubjectsPage({
 
   const { data: dbSubjects } = await query;
 
-  const allSubjects = (dbSubjects && dbSubjects.length > 0 ? dbSubjects : []).map((s: any) => ({
+  // Extract board from slug and filter by active board
+  const allSubjects = (dbSubjects || []).map((s: any) => ({
     ...s,
-    board: "CAIE",
+    board: s.slug?.startsWith("edexcel") ? "Edexcel" : "CAIE",
     price: s.price_cny ? `¥${(s.price_cny / 100).toFixed(0)}` : `¥299`,
-  }));
+  })).filter((s: any) => s.board === activeBoard);
 
   // If DB is empty, use static data filtered by board
   const staticSubjects = Object.entries(STATIC_SUBJECTS)
