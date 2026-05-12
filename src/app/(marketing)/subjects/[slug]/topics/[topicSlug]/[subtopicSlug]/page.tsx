@@ -126,7 +126,7 @@ export default async function SubtopicPage({
     let subtopicId: string | null = null;
     if (topicRow && pmtCode) {
       const { data: subs } = await supabase
-        .from("subtopics").select("id").eq("topic_id", topicRow.id).eq("pmt_code", pmtCode).order("created_at", { ascending: false }).limit(1);
+        .from("subtopics").select("id").eq("topic_id", topicRow.id).eq("pmt_code", pmtCode).limit(1);
       if (subs && subs.length > 0) subtopicId = subs[0].id;
     }
 
