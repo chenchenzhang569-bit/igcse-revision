@@ -115,7 +115,6 @@ export default async function TopicPage({
           .from("notes")
           .select("*")
           .eq("topic_id", topicRow.id)
-          .is("subtopic_id", null)
           .order("sort_order")
           .limit(50);
         notes = dbNotes || [];
