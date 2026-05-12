@@ -1,15 +1,10 @@
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
 import { FALLBACK_DATA } from "@/lib/fallback-content";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 import { TopicTabs } from "../TopicTabs";
 
 export const dynamic = "force-dynamic";
-
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-);
 
 const SLUG_TO_KEY: Record<string, string> = {
   "caie-physics-0625": "physics", "physics-0625": "physics",
@@ -113,6 +108,7 @@ export default async function SubtopicPage({
   let debugInfo = "";
 
   try {
+    const supabase = createClient();
     // Find topic in DB
     const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
     let topicRow = null;
@@ -174,14 +170,14 @@ export default async function SubtopicPage({
       }
 
       // Get past papers — moved OUTSIDE if(allQs) so it always runs
-      const { data: papers } = await supabase
+      const { data: papers, error: papersErr } = await supabase
         .from("past_papers")
         .select("*")
         .eq(filter.col, filter.val)
         .order("title")
         .limit(20);
       
-      debugInfo = `[sub=${subtopicId?.slice(0,8)||'?'} papers=${papers?.length||0}]`;
+      debugInfo = `[sub=${subtopicId?.slice(0,8)||'?'} papers=${papers?.length||0} err=${papersErr?.message||'none'}]`;
       
       if (papers) {
         const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
