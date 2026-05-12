@@ -218,6 +218,9 @@ export function TopicTabs({
       }
     }
     
+    // DEBUG
+    const debugInfo = `[rawOpts=${rawOptions.length} labels=${Object.keys(displayTexts).join(",")} fromText=${fromText.length} hasOptsCol=${!!(q as any).options}]`;
+    
     // 4. Build stem (text before first option)
     const firstOptIdx = rawOptions.length > 0 ? Math.max(text.indexOf(rawOptions[0]), 0) : text.length;
     const stem = text.slice(0, firstOptIdx).trim();
@@ -229,6 +232,7 @@ export function TopicTabs({
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
             <span className="text-xs text-gray-400">{q.marks} marks</span>
+            <span className="text-[10px] text-red-400 font-mono ml-1">{debugInfo}</span>
           </div>
           <div className="text-gray-800 prose prose-sm max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
