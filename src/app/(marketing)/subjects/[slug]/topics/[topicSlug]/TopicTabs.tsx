@@ -218,8 +218,6 @@ export function TopicTabs({
       }
     }
     
-    // DEBUG
-    const debugInfo = `[rawOpts=${rawOptions.length} labels=${Object.keys(displayTexts).join(",")} fromText=${fromText.length} hasOptsCol=${!!(q as any).options}]`;
     
     // 4. Build stem (text before first option)
     const firstOptIdx = rawOptions.length > 0 ? Math.max(text.indexOf(rawOptions[0]), 0) : text.length;
@@ -232,7 +230,6 @@ export function TopicTabs({
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
             <span className="text-xs text-gray-400">{q.marks} marks</span>
-            <span className="text-[10px] text-red-400 font-mono ml-1">{debugInfo}</span>
           </div>
           <div className="text-gray-800 prose prose-sm max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
@@ -250,7 +247,13 @@ export function TopicTabs({
         </div>
         <div className="px-5 pb-5 space-y-2">
           {labels.map((label) => {
-            const optText = displayTexts[label] || "";
+            // Get option text: try displayTexts first, then rawOptions, then nothing
+            let optText = displayTexts[label] || "";
+            // If still empty, try pulling from raw options directly
+            if (!optText && rawOptions.length > 0) {
+              const found = rawOptions.find((o: string) => o.trim().startsWith(label));
+              if (found) optText = found.trim().slice(2).trim();
+            }
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {

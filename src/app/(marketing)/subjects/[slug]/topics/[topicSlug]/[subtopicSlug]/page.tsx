@@ -204,7 +204,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <div className="text-xs text-gray-300 mt-1">v5 — debug</div>
+      <div className="text-xs text-gray-300 mt-1">v6 — ultra defensive</div>
       <TopicTabs
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
