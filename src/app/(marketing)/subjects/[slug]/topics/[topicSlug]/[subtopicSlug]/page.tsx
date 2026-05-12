@@ -133,8 +133,14 @@ export default async function SubtopicPage({
       : topicRow ? { col: "topic_id", val: topicRow.id } : null;
 
     if (filter) {
-      const { data: dbNotes } = await supabase
-        .from("notes").select("*").eq(filter.col, filter.val).order("sort_order").limit(20);
+      // Fetch notes: match by subtopic_id OR (topic_id match + subtopic_id null = topic-level notes)
+      let notesQuery = supabase.from("notes").select("*").order("sort_order").limit(20);
+      if (subtopicId && topicRow) {
+        notesQuery = notesQuery.or(`subtopic_id.eq.${subtopicId},and(topic_id.eq.${topicRow.id},subtopic_id.is.null)`);
+      } else {
+        notesQuery = notesQuery.eq(filter.col, filter.val);
+      }
+      const { data: dbNotes } = await notesQuery;
       notes = dbNotes || [];
 
       // Get ALL questions — SME data uses "structured" type for MCQs
