@@ -220,8 +220,19 @@ export function TopicTabs({
     
     
     // 4. Build stem (text before first option)
-    const firstOptIdx = rawOptions.length > 0 ? Math.max(text.indexOf(rawOptions[0]), 0) : text.length;
-    const stem = text.slice(0, firstOptIdx).trim();
+    // If options came from options column (not embedded in question_text), use full text
+    let stem: string;
+    const optsFromText = lines.filter((l: string) => /^[A-D][.)]/.test(l.trim()));
+    if (optsFromText.length >= 2) {
+      // Options are embedded in question_text — trim at first option line
+      const firstOptIdx = Math.max(text.indexOf(optsFromText[0]), 0);
+      stem = text.slice(0, firstOptIdx).trim();
+    } else if (rawOptions.length >= 2) {
+      // Options from JSONB column — use full question_text as stem
+      stem = text.trim();
+    } else {
+      stem = text.trim();
+    }
 
     return (
       <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
