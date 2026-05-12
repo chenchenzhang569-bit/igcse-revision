@@ -183,12 +183,43 @@ export function TopicTabs({
       );
     }
 
-    const options = parseOptions(q);
-    const stemEnd = options.length > 0 ? Math.max(text.indexOf(options[0]), 0) : text.length;
-    const stem = text.slice(0, stemEnd).trim();
-    const optionLabels = options.length >= 4 
-      ? options.map((opt) => opt.charAt(0))
-      : ["A", "B", "C", "D"];
+    // --- Get options: question_text first, then options column ---
+    let rawOptions: string[] = [];
+    
+    // 1. Try question_text
+    const lines = text.split("\n");
+    const fromText = lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
+    if (fromText.length >= 2) {
+      rawOptions = fromText;
+    }
+    
+    // 2. Fallback to options JSONB column
+    if (rawOptions.length < 2 && (q as any).options) {
+      const optsRaw = (q as any).options;
+      let opts: string[] = [];
+      if (typeof optsRaw === "string") {
+        try { opts = JSON.parse(optsRaw); } catch {}
+      } else if (Array.isArray(optsRaw)) {
+        opts = optsRaw;
+      }
+      rawOptions = opts.filter((o: string) => o && o.replace(/^[A-D][.)]\s*/, "").trim().length > 0);
+    }
+    
+    // 3. Extract display text for A/B/C/D — always produce 4 entries
+    const labels = ["A", "B", "C", "D"];
+    const displayTexts: Record<string, string> = {};
+    for (const opt of rawOptions) {
+      const trimmed = opt.trim();
+      const label = trimmed.charAt(0);
+      if (labels.includes(label)) {
+        const text = trimmed.slice(2).trim(); // remove "A." / "A)" / "A: " prefix
+        if (text && !displayTexts[label]) displayTexts[label] = text;
+      }
+    }
+    
+    // 4. Build stem (text before first option)
+    const firstOptIdx = rawOptions.length > 0 ? Math.max(text.indexOf(rawOptions[0]), 0) : text.length;
+    const stem = text.slice(0, firstOptIdx).trim();
 
     return (
       <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
@@ -203,9 +234,8 @@ export function TopicTabs({
           </div>
         </div>
         <div className="px-5 pb-5 space-y-2">
-          {optionLabels.map((label) => {
-            const opt = options.find(o => o.startsWith(label));
-            const optText = opt ? opt.slice(3).trim() : "";
+          {labels.map((label) => {
+            const optText = displayTexts[label] || "";
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
