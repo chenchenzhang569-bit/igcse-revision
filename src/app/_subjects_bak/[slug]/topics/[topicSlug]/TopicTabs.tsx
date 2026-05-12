@@ -56,11 +56,15 @@ export function TopicTabs({
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
 
-  const tabs: { key: Tab; label: string; count: number }[] = [
+  const allTabs: { key: Tab; label: string; count: number }[] = [
     { key: "notes", label: "📝 Notes", count: notes.length },
     { key: "mcq", label: "📋 Multiple Choice", count: mcqs.length + mcqPairs.length },
     { key: "structured", label: "📄 Question Paper", count: pairedPapers.length + structuredQuestions.length },
   ];
+  // Only show tabs that have content
+  const tabs = allTabs.filter(t => t.count > 0);
+  const validKeys = new Set(tabs.map(t => t.key));
+  const activeTab: Tab = validKeys.has(tab) ? tab : (tabs[0]?.key || "notes");
 
   const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
   const sortedMcqs = [...mcqs].sort(
@@ -355,7 +359,7 @@ export function TopicTabs({
         {tabs.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`px-6 py-3 font-medium text-sm transition border-b-2 ${
-              tab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
+              activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}>
             {t.label} ({t.count})
           </button>
@@ -363,7 +367,7 @@ export function TopicTabs({
       </div>
 
       {/* NOTES */}
-      {tab === "notes" && (
+      {activeTab === "notes" && (
         notes.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <p className="text-lg font-medium">No notes yet</p>
@@ -404,7 +408,7 @@ export function TopicTabs({
       )}
 
       {/* MCQ */}
-      {tab === "mcq" && (
+      {activeTab === "mcq" && (
         mcqs.length === 0 && mcqPairs.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <p className="text-lg font-medium">No multiple choice questions yet</p>
@@ -467,7 +471,7 @@ export function TopicTabs({
       )}
 
       {/* STRUCTURED / PAPER QUESTIONS */}
-      {tab === "structured" && (
+      {activeTab === "structured" && (
         pairedPapers.length === 0 && structuredQuestions.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <p className="text-lg font-medium">No structured questions yet</p>
