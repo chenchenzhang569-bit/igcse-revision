@@ -18,6 +18,7 @@ type Question = {
   difficulty: string;
   marks: number;
   sort_order: number;
+  options?: string[] | string; // JSONB from Supabase — may be parsed or raw string
 };
 
 type Note = {
@@ -85,9 +86,34 @@ export function TopicTabs({
     return text.includes("|") && text.includes("---") && !/^[A-D][.)]/m.test(text);
   }
 
-  function parseOptions(text: string): string[] {
-    const lines = text.split("\n");
-    return lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
+  function parseOptions(q: Question): string[] {
+    // First try: extract options from question_text (A./B./C./D. lines)
+    const lines = q.question_text.split("\n");
+    const fromText = lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
+    if (fromText.length >= 2) return fromText;
+
+    // Second try: use options JSONB column
+    if (q.options) {
+      let opts: string[];
+      if (typeof q.options === "string") {
+        try { opts = JSON.parse(q.options); } catch { return []; }
+      } else {
+        opts = q.options;
+      }
+      // Filter out empty shells like "A. ", ensure meaningful content
+      const clean = opts.filter((o) => o && o.replace(/^[A-D][.)]\s*/, "").trim().length > 0);
+      if (clean.length >= 2) {
+        // Ensure each starts with A./B./C./D. prefix
+        const labels = ["A", "B", "C", "D"];
+        return clean.map((o, i) => {
+          const trimmed = o.trim();
+          if (/^[A-D][.)]/.test(trimmed)) return trimmed;
+          return `${labels[i] || "?"}. ${trimmed}`;
+        });
+      }
+    }
+
+    return [];
   }
 
   function renderMcqQuestion(q: Question, i: number) {
@@ -157,8 +183,8 @@ export function TopicTabs({
       );
     }
 
-    const options = parseOptions(text);
-    const stemEnd = options.length > 0 ? text.indexOf(options[0]) : text.length;
+    const options = parseOptions(q);
+    const stemEnd = options.length > 0 ? Math.max(text.indexOf(options[0]), 0) : text.length;
     const stem = text.slice(0, stemEnd).trim();
     const optionLabels = options.length >= 4 
       ? options.map((opt) => opt.charAt(0))

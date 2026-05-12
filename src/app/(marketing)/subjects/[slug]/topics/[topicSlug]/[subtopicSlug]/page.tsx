@@ -146,8 +146,17 @@ export default async function SubtopicPage({
         for (const q of allQs) {
           const txt = q.question_text || "";
           // Detect MCQ: A/B/C/D followed by . ) : or space, or (A)/(B)/[A]/[B] format
-          const hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          let hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
           const hasTable = txt.includes("|") && txt.includes("---");
+          // Also check options JSONB column
+          if (!hasAbcd && q.options) {
+            try {
+              const opts = typeof q.options === "string" ? JSON.parse(q.options) : q.options;
+              if (Array.isArray(opts) && opts.length >= 2) {
+                hasAbcd = opts.some((o: string) => o && o.replace(/^[A-D][.)]\s*/, "").trim().length > 0);
+              }
+            } catch {}
+          }
           // Also: if answer_text is a single letter A-D, it's definitely MCQ
           const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
           if (hasAbcd || hasTable || ansIsLetter) {
