@@ -110,6 +110,7 @@ export default async function SubtopicPage({
   let structuredQuestions: any[] = [];
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
+  let debugInfo = "";
 
   try {
     // Find topic in DB
@@ -136,7 +137,7 @@ export default async function SubtopicPage({
       : topicRow ? { col: "topic_id", val: topicRow.id } : null;
 
     if (filter) {
-      // Fetch notes: match by subtopic_id OR (topic_id match + subtopic_id null = topic-level notes)
+      // Fetch notes
       let notesQuery = supabase.from("notes").select("*").order("sort_order").limit(20);
       if (subtopicId && topicRow) {
         notesQuery = notesQuery.or(`subtopic_id.eq.${subtopicId},and(topic_id.eq.${topicRow.id},subtopic_id.is.null)`);
@@ -146,18 +147,15 @@ export default async function SubtopicPage({
       const { data: dbNotes } = await notesQuery;
       notes = dbNotes || [];
 
-      // Get ALL questions — SME data uses "structured" type for MCQs
+      // Get ALL questions
       const { data: allQs } = await supabase
         .from("questions").select("*").eq(filter.col, filter.val).order("sort_order").limit(100);
       
       if (allQs) {
-        // Split by content: has A/B/C/D options or is a table question → MCQ tab
         for (const q of allQs) {
           const txt = q.question_text || "";
-          // Detect MCQ: A/B/C/D followed by . ) : or space, or (A)/(B)/[A]/[B] format
           let hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
           const hasTable = txt.includes("|") && txt.includes("---");
-          // Also check options JSONB column
           if (!hasAbcd && q.options) {
             try {
               const opts = typeof q.options === "string" ? JSON.parse(q.options) : q.options;
@@ -166,42 +164,41 @@ export default async function SubtopicPage({
               }
             } catch {}
           }
-          // Also: if answer_text is a single letter A-D, it's definitely MCQ
           const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
           if (hasAbcd || hasTable || ansIsLetter) {
-            // MCQ-style — use answer_text for correct answer (correct_answer may be null)
             mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
           } else {
             structuredQuestions.push(q);
           }
         }
+      }
 
-        // Get past papers (MCQ QP+MS pairs) for this subtopic
-        const { data: papers } = await supabase
-          .from("past_papers")
-          .select("*")
-          .eq(filter.col, filter.val)
-          .order("title")
-          .limit(20);
+      // Get past papers — moved OUTSIDE if(allQs) so it always runs
+      const { data: papers } = await supabase
+        .from("past_papers")
+        .select("*")
+        .eq(filter.col, filter.val)
+        .order("title")
+        .limit(20);
+      
+      debugInfo = `[sub=${subtopicId?.slice(0,8)||'?'} papers=${papers?.length||0}]`;
+      
+      if (papers) {
+        const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
+        const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
+        debugInfo = `[sub=${subtopicId?.slice(0,8)||'?'} papers=${papers.length} mcq=${mcqQps.length}/${mcqMss.length}]`;
         
-        if (papers) {
-          const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
-          const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
-          
-          // Pair QP with MS by matching title prefix
-          const used = new Set<string>();
-          for (const qp of mcqQps) {
-            const base = qp.title.replace(/\s*QP$/, "").trim();
-            const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
-            const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
-            if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; used.add(ms.id); }
-            mcqPairs.push(pair);
-          }
-          // Unpaired MS
-          for (const ms of mcqMss) {
-            if (!used.has(ms.id)) {
-              mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
-            }
+        const used = new Set<string>();
+        for (const qp of mcqQps) {
+          const base = qp.title.replace(/\s*QP$/, "").trim();
+          const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
+          const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
+          if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; used.add(ms.id); }
+          mcqPairs.push(pair);
+        }
+        for (const ms of mcqMss) {
+          if (!used.has(ms.id)) {
+            mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
           }
         }
       }
@@ -242,7 +239,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <div className="text-xs text-gray-300 mt-1">v8 — 4-way fallback</div>
+      <div className="text-xs text-gray-300 mt-1">v9 — {debugInfo}</div>
       <TopicTabs
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
