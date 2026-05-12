@@ -175,6 +175,35 @@ export default async function SubtopicPage({
             structuredQuestions.push(q);
           }
         }
+
+        // Get past papers (MCQ QP+MS pairs) for this subtopic
+        const { data: papers } = await supabase
+          .from("past_papers")
+          .select("*")
+          .eq(filter.col, filter.val)
+          .order("title")
+          .limit(20);
+        
+        if (papers) {
+          const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
+          const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
+          
+          // Pair QP with MS by matching title prefix
+          const used = new Set<string>();
+          for (const qp of mcqQps) {
+            const base = qp.title.replace(/\s*QP$/, "").trim();
+            const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
+            const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
+            if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; used.add(ms.id); }
+            mcqPairs.push(pair);
+          }
+          // Unpaired MS
+          for (const ms of mcqMss) {
+            if (!used.has(ms.id)) {
+              mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
+            }
+          }
+        }
       }
     }
   } catch {
