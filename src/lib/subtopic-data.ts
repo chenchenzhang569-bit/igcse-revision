@@ -54,6 +54,9 @@ const PHYSICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "earth-solar", name: "Earth & Solar System", displayName: "Earth and the Solar System", pmtCode: "6.1" },
     { slug: "stars-universe", name: "Stars & Universe", displayName: "Stars and the Universe", pmtCode: "6.2" },
   ],
+  "practical-skills-physics": [
+    { slug: "practical-skills", name: "Practical Skills", displayName: "Practical Skills", pmtCode: "PS" },
+  ],
 };
 
 // ====== CAIE Chemistry 0620 ======
@@ -116,6 +119,9 @@ const CHEMISTRY_SUBTOPICS: Record<string, SubtopicDef[]> = {
   "experimental-techniques": [
     { slug: "measurement", name: "Measurement", displayName: "Measurement", pmtCode: "12.1" },
     { slug: "separation", name: "Separation & Purification", displayName: "Separation & Purification", pmtCode: "12.2" },
+  ],
+  "practical-skills-chemistry": [
+    { slug: "practical-skills", name: "Practical Skills", displayName: "Practical Skills", pmtCode: "PS" },
   ],
 };
 
@@ -214,6 +220,9 @@ const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
   "biotechnology": [
     { slug: "biotechnology", name: "Biotechnology", displayName: "Biotechnology", pmtCode: "21.1" },
     { slug: "genetic-engineering", name: "Genetic Engineering", displayName: "Genetic Engineering", pmtCode: "21.2" },
+  ],
+  "practical-skills-biology": [
+    { slug: "practical-skills", name: "Practical Skills", displayName: "Practical Skills", pmtCode: "PS" },
   ],
 };
 

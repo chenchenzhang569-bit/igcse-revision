@@ -78,6 +78,9 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "electricity-magnetism": "Electricity & Magnetism",
   "nuclear-physics": "Nuclear Physics",
   "space-physics": "Space Physics",
+  "practical-skills-physics": "Practical Skills",
+  "practical-skills-chemistry": "Practical Skills",
+  "practical-skills-biology": "Practical Skills",
 };
 
 export default async function SubtopicPage({
