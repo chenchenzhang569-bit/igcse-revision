@@ -18,7 +18,8 @@ type Question = {
   difficulty: string;
   marks: number;
   sort_order: number;
-  options?: string[] | string; // JSONB from Supabase — may be parsed or raw string
+  options?: string[] | string;
+  image_url?: string | null;
 };
 
 type Note = {
@@ -232,6 +233,16 @@ export function TopicTabs({
           <div className="text-gray-800 prose prose-sm max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
           </div>
+          {(q as any).image_url && (
+            <div className="mt-4 flex justify-center">
+              <img 
+                src={(q as any).image_url} 
+                alt="Question diagram" 
+                className="max-w-full h-auto rounded-lg border border-gray-100"
+                style={{ maxHeight: "400px" }}
+              />
+            </div>
+          )}
         </div>
         <div className="px-5 pb-5 space-y-2">
           {labels.map((label) => {
