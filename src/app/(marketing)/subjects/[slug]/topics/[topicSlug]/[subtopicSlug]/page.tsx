@@ -197,6 +197,23 @@ export default async function SubtopicPage({
             mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
           }
         }
+
+        // Also process QP+MS (structured question papers)
+        const normQps = papers.filter((p: any) => p.paper_type === "QP");
+        const normMss = papers.filter((p: any) => p.paper_type === "MS");
+        const usedStruct = new Set<string>();
+        for (const qp of normQps) {
+          const base = qp.title.replace(/\s*QP$/, "").trim();
+          const ms = normMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !usedStruct.has(m.id));
+          const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
+          if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; usedStruct.add(ms.id); }
+          structPairs.push(pair);
+        }
+        for (const ms of normMss) {
+          if (!usedStruct.has(ms.id)) {
+            structPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
+          }
+        }
       }
     }
   } catch {
@@ -235,7 +252,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <div className="text-xs text-gray-300 mt-1">v9</div>
+      <div className="text-xs text-gray-300 mt-1">v10</div>
       <TopicTabs
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
