@@ -237,9 +237,9 @@ export function TopicTabs({
     // If options came from options column (not embedded in question_text), use full text
     let stem: string;
     
-    // Extract data URI image from markdown (ReactMarkdown v9 blocks data: URIs)
+    // Extract ALL markdown images — render natively to bypass ReactMarkdown security filters
     let embeddedImageUrl: string | null = null;
-    const imgMatch = text.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
+    const imgMatch = text.match(/!\[.*?\]\(([^)]+)\)/);
     if (imgMatch) {
       embeddedImageUrl = imgMatch[1];
       // Remove the markdown image syntax from text for clean rendering
