@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" style="background:#fff;font-family:Arial,sans-serif">
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Four Blocks W, X, Y, Z</text>
+  
+  <!-- Block W: 2x3x4, mass 48g, density 2.0 -->
+  <rect x="30" y="60" width="80" height="50" fill="#4A90D9" stroke="#333" stroke-width="2"/>
+  <text x="70" y="80" text-anchor="middle" font-size="10" fill="white">W</text>
+  <text x="70" y="125" text-anchor="middle" font-size="8" fill="#333">2×3×4 cm</text>
+  <text x="70" y="138" text-anchor="middle" font-size="8" fill="#333">48g, ρ=2.0</text>
+  
+  <!-- Block X: 3x3x3, mass 54g, density 2.0 -->
+  <rect x="140" y="60" width="80" height="80" fill="#E85D3A" stroke="#333" stroke-width="2"/>
+  <text x="180" y="95" text-anchor="middle" font-size="10" fill="white">X</text>
+  <text x="180" y="155" text-anchor="middle" font-size="8" fill="#333">3×3×3 cm</text>
+  <text x="180" y="168" text-anchor="middle" font-size="8" fill="#333">54g, ρ=2.0</text>
+  
+  <!-- Block Y: 2x2x5, mass 30g, density 1.5 -->
+  <rect x="250" y="50" width="50" height="100" fill="#F5A623" stroke="#333" stroke-width="2"/>
+  <text x="275" y="95" text-anchor="middle" font-size="10" fill="white">Y</text>
+  <text x="275" y="165" text-anchor="middle" font-size="8" fill="#333">2×2×5 cm</text>
+  <text x="275" y="178" text-anchor="middle" font-size="8" fill="#333">30g, ρ=1.5</text>
+  
+  <!-- Block Z: 4x2x3, mass 48g, density 2.0 -->
+  <rect x="330" y="70" width="100" height="45" fill="#7ED321" stroke="#333" stroke-width="2"/>
+  <text x="380" y="89" text-anchor="middle" font-size="10" fill="white">Z</text>
+  <text x="380" y="130" text-anchor="middle" font-size="8" fill="#333">4×2×3 cm</text>
+  <text x="380" y="143" text-anchor="middle" font-size="8" fill="#333">48g, ρ=2.0</text>
+  
+  <!-- Same density indicator -->
+  <text x="170" y="210" text-anchor="middle" font-size="9" fill="#E85D3A">W, X, Z: ρ = 2.0 g/cm³</text>
+  <text x="275" y="225" text-anchor="middle" font-size="9" fill="#F5A623">Y: ρ = 1.5 g/cm³</text>
+  
+  <!-- Density formula -->
+  <text x="250" y="260" text-anchor="middle" font-size="10" fill="#666">Density = mass ÷ volume</text>
+</svg>

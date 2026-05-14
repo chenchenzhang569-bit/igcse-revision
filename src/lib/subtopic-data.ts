@@ -133,7 +133,7 @@ const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
   ],
   "organisation-organism": [
     { slug: "cell-structure", name: "Cell Structure", displayName: "Cell Structure", pmtCode: "2.1" },
-    { slug: "size-of-specimens", name: "Size of Specimens", displayName: "Size of Specimens", pmtCode: "2.2" },
+    { slug: "levels-of-organisation", name: "Levels of Organisation", displayName: "Levels of Organisation", pmtCode: "2.2" },
   ],
   "movement-cells": [
     { slug: "diffusion", name: "Diffusion", displayName: "Diffusion", pmtCode: "3.1" },
@@ -218,9 +218,8 @@ const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "conservation", name: "Conservation", displayName: "Conservation", pmtCode: "20.2" },
   ],
   "biotechnology": [
-    { slug: "biotechnology-genetic-modification", name: "Biotechnology & Genetic Modification", displayName: "Biotechnology & Genetic Modification", pmtCode: "21.1" },
-    { slug: "biotechnology", name: "Biotechnology", displayName: "Biotechnology", pmtCode: "21.2" },
-    { slug: "genetic-modification", name: "Genetic Modification", displayName: "Genetic Modification", pmtCode: "21.3" },
+    { slug: "biotechnology", name: "Biotechnology", displayName: "Biotechnology", pmtCode: "21.1" },
+    { slug: "genetic-engineering", name: "Genetic Engineering", displayName: "Genetic Engineering", pmtCode: "21.2" },
   ],
   "practical-skills-biology": [
     { slug: "practical-skills", name: "Practical Skills", displayName: "Practical Skills", pmtCode: "PS" },

@@ -4,6 +4,16 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+const markdownComponents = {
+  img: (props: any) => (
+    <img {...props} style={{ maxWidth: "100%", height: "auto" }} />
+  ),
+};
+
+function allowDataUrls(url: string) {
+  return url;
+}
+
 type PastPaper = {
   id: string;
   title: string;
@@ -122,7 +132,7 @@ export function TopicTabs({
   }
 
   function renderMcqQuestion(q: Question, i: number) {
-    const text = q.question_text;
+    let text = q.question_text;
     const userAnswer = userAnswers[q.id];
     const isCorrect = userAnswer === q.answer_text;
     const diffColor =
@@ -162,7 +172,7 @@ export function TopicTabs({
               <span className="text-xs text-gray-400">{q.marks} marks</span>
             </div>
             <div className="text-gray-800 prose prose-sm max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{cleanText}</ReactMarkdown>
             </div>
           </div>
           <div className="px-5 pb-5 flex flex-wrap gap-2">
@@ -226,6 +236,16 @@ export function TopicTabs({
     // 4. Build stem (text before first option)
     // If options came from options column (not embedded in question_text), use full text
     let stem: string;
+    
+    // Extract data URI image from markdown (ReactMarkdown v9 blocks data: URIs)
+    let embeddedImageUrl: string | null = null;
+    const imgMatch = text.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
+    if (imgMatch) {
+      embeddedImageUrl = imgMatch[1];
+      // Remove the markdown image syntax from text for clean rendering
+      text = text.replace(imgMatch[0], "").trim();
+    }
+    
     const optsFromText = lines.filter((l: string) => /^[A-D][.)]/.test(l.trim()));
     if (optsFromText.length >= 2) {
       // Options are embedded in question_text — trim at first option line
@@ -247,12 +267,12 @@ export function TopicTabs({
             <span className="text-xs text-gray-400">{q.marks} marks</span>
           </div>
           <div className="text-gray-800 prose prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{stem}</ReactMarkdown>
           </div>
-          {(q as any).image_url && (
+          {((q as any).image_url || embeddedImageUrl) && (
             <div className="mt-4 flex justify-center">
               <img 
-                src={(q as any).image_url} 
+                src={(q as any).image_url || embeddedImageUrl} 
                 alt="Question diagram" 
                 className="max-w-full h-auto rounded-lg border border-gray-100"
                 style={{ maxHeight: "400px" }}
@@ -392,7 +412,7 @@ export function TopicTabs({
                 </div>
                 {note.content && (
                   <div className="prose prose-sm max-w-none text-gray-700 mb-4">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{note.content}</ReactMarkdown>
                   </div>
                 )}
                 {note.file_name && (
@@ -489,7 +509,7 @@ export function TopicTabs({
                       <span className="text-xs text-gray-400">{q.marks} marks</span>
                     </div>
                     <div className="text-gray-800 prose prose-sm max-w-none mb-4">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.question_text}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{q.question_text}</ReactMarkdown>
                     </div>
                     {q.answer_text && (
                       <details className="group">
@@ -497,7 +517,7 @@ export function TopicTabs({
                           Show Answer
                         </summary>
                         <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{q.answer_text}</ReactMarkdown>
                         </div>
                       </details>
                     )}

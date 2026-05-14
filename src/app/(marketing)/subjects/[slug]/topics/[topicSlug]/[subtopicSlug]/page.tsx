@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
 import { FALLBACK_DATA } from "@/lib/fallback-content";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { TopicTabs } from "../TopicTabs";
 
 export const dynamic = "force-dynamic";
+
+const supabase = createClient(
+  "https://aondldqwwvttwpervrfq.supabase.co",
+  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
+);
 
 const SLUG_TO_KEY: Record<string, string> = {
   "caie-physics-0625": "physics", "physics-0625": "physics",
@@ -62,8 +67,8 @@ const TOPIC_SLUG_TO_DB: Record<string, string> = {
   "inheritance": "caie-biology-0610-17-inheritance",
   "variation-selection": "caie-biology-0610-18-variation-and-selection",
   "organisms-environment": "caie-biology-0610-19-organisms-and-their-environment",
-  "biotechnology": "caie-biology-0610-21-human-influences-on-ecosystems",
-  "human-influences-ecosystems": "caie-biology-0610-20-biotechnology-and-genetic-engineering",
+  "biotechnology": "caie-biology-0610-20-biotechnology-and-genetic-engineering",
+  "human-influences-ecosystems": "caie-biology-0610-21-human-influences-on-ecosystems",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {
@@ -105,10 +110,8 @@ export default async function SubtopicPage({
   let structuredQuestions: any[] = [];
   let mcqPairs: any[] = [];
   let structPairs: any[] = [];
-  let debugInfo = "";
 
   try {
-    const supabase = createClient();
     // Find topic in DB
     const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
     let topicRow = null;
@@ -133,7 +136,7 @@ export default async function SubtopicPage({
       : topicRow ? { col: "topic_id", val: topicRow.id } : null;
 
     if (filter) {
-      // Fetch notes
+      // Fetch notes: match by subtopic_id OR (topic_id match + subtopic_id null = topic-level notes)
       let notesQuery = supabase.from("notes").select("*").order("sort_order").limit(20);
       if (subtopicId && topicRow) {
         notesQuery = notesQuery.or(`subtopic_id.eq.${subtopicId},and(topic_id.eq.${topicRow.id},subtopic_id.is.null)`);
@@ -143,15 +146,18 @@ export default async function SubtopicPage({
       const { data: dbNotes } = await notesQuery;
       notes = dbNotes || [];
 
-      // Get ALL questions
+      // Get ALL questions — SME data uses "structured" type for MCQs
       const { data: allQs } = await supabase
         .from("questions").select("*").eq(filter.col, filter.val).order("sort_order").limit(100);
       
       if (allQs) {
+        // Split by content: has A/B/C/D options or is a table question → MCQ tab
         for (const q of allQs) {
           const txt = q.question_text || "";
+          // Detect MCQ: A/B/C/D followed by . ) : or space, or (A)/(B)/[A]/[B] format
           let hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
           const hasTable = txt.includes("|") && txt.includes("---");
+          // Also check options JSONB column
           if (!hasAbcd && q.options) {
             try {
               const opts = typeof q.options === "string" ? JSON.parse(q.options) : q.options;
@@ -160,58 +166,42 @@ export default async function SubtopicPage({
               }
             } catch {}
           }
+          // Also: if answer_text is a single letter A-D, it's definitely MCQ
           const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
           if (hasAbcd || hasTable || ansIsLetter) {
+            // MCQ-style — use answer_text for correct answer (correct_answer may be null)
             mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
           } else {
             structuredQuestions.push(q);
           }
         }
-      }
 
-      // Get past papers — moved OUTSIDE if(allQs) so it always runs
-      const { data: papers, error: papersErr } = await supabase
-        .from("past_papers")
-        .select("*")
-        .eq(filter.col, filter.val)
-        .order("title")
-        .limit(20);
-      
-      debugInfo = `[sub=${subtopicId?.slice(0,8)||'?'} papers=${papers?.length||0} err=${papersErr?.message||'none'}]`;
-      
-      if (papers) {
-        const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
-        const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
-        debugInfo = `[sub=${subtopicId?.slice(0,8)||'?'} papers=${papers.length} mcq=${mcqQps.length}/${mcqMss.length}]`;
+        // Get past papers (MCQ QP+MS pairs) for this subtopic
+        const { data: papers } = await supabase
+          .from("past_papers")
+          .select("*")
+          .eq(filter.col, filter.val)
+          .order("title")
+          .limit(20);
         
-        const used = new Set<string>();
-        for (const qp of mcqQps) {
-          const base = qp.title.replace(/\s*QP$/, "").trim();
-          const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
-          const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
-          if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; used.add(ms.id); }
-          mcqPairs.push(pair);
-        }
-        for (const ms of mcqMss) {
-          if (!used.has(ms.id)) {
-            mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
+        if (papers) {
+          const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
+          const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
+          
+          // Pair QP with MS by matching title prefix
+          const used = new Set<string>();
+          for (const qp of mcqQps) {
+            const base = qp.title.replace(/\s*QP$/, "").trim();
+            const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
+            const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
+            if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; used.add(ms.id); }
+            mcqPairs.push(pair);
           }
-        }
-
-        // Also process QP+MS (structured question papers)
-        const normQps = papers.filter((p: any) => p.paper_type === "QP");
-        const normMss = papers.filter((p: any) => p.paper_type === "MS");
-        const usedStruct = new Set<string>();
-        for (const qp of normQps) {
-          const base = qp.title.replace(/\s*QP$/, "").trim();
-          const ms = normMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !usedStruct.has(m.id));
-          const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
-          if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; usedStruct.add(ms.id); }
-          structPairs.push(pair);
-        }
-        for (const ms of normMss) {
-          if (!usedStruct.has(ms.id)) {
-            structPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
+          // Unpaired MS
+          for (const ms of mcqMss) {
+            if (!used.has(ms.id)) {
+              mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
+            }
           }
         }
       }
@@ -252,7 +242,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <div className="text-xs text-gray-300 mt-1">v10</div>
+      <div className="text-xs text-gray-300 mt-1">v8 — 4-way fallback</div>
       <TopicTabs
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}

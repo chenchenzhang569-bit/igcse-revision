@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" style="background:#fff;font-family:Arial,sans-serif">
+  <text x="250" y="30" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Measuring Cylinder — Liquid Density</text>
+  
+  <!-- Left cylinder (with liquid) -->
+  <rect x="80" y="60" width="60" height="250" rx="5" fill="none" stroke="#333" stroke-width="2"/>
+  <rect x="82" y="150" width="56" height="158" fill="#4A90D9" opacity="0.5"/>
+  <text x="110" y="155" text-anchor="middle" font-size="9" fill="#333">50 cm³</text>
+  <text x="110" y="325" text-anchor="middle" font-size="10" fill="#333">Mass: 180 g</text>
+  <text x="110" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">With Liquid</text>
+  
+  <!-- Right cylinder (empty) -->
+  <rect x="340" y="60" width="60" height="250" rx="5" fill="none" stroke="#333" stroke-width="2"/>
+  <text x="370" y="100" text-anchor="middle" font-size="8" fill="#999">(empty)</text>
+  <text x="370" y="325" text-anchor="middle" font-size="10" fill="#333">Mass: 30 g</text>
+  <text x="370" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Empty</text>
+  
+  <!-- Arrow between -->
+  <line x1="200" y1="180" x2="280" y2="180" stroke="#333" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="240" y="175" text-anchor="middle" font-size="8" fill="#666">compare</text>
+  
+  <!-- Calculation -->
+  <text x="200" y="360" text-anchor="middle" font-size="11" fill="#333">Mass of liquid = 180 − 30 = <tspan font-weight="bold" fill="#E85D3A">150 g</tspan></text>
+  <text x="200" y="380" text-anchor="middle" font-size="11" fill="#333">Density = 150 g ÷ 50 cm³ = <tspan font-weight="bold" fill="#E85D3A">3.00 g/cm³</tspan></text>
+</svg>
