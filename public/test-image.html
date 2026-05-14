@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Image Test</title>
+<style>body{font-family:sans-serif;max-width:800px;margin:20px auto;padding:20px}
+img{border:2px solid red;max-width:100%}
+.pass{color:green}.fail{color:red}</style></head>
+<body>
+<h1>Image Render Test</h1>
+<h2>1. GitHub Raw URL (svg)</h2>
+<img src="https://raw.githubusercontent.com/chenchenzhang569-bit/igcse-revision/main/public/images/questions/q_cone.svg" 
+     onload="document.getElementById('s1').textContent='✅ Loaded';document.getElementById('s1').className='pass'"
+     onerror="document.getElementById('s1').textContent='❌ Failed';document.getElementById('s1').className='fail'">
+<p id="s1">Loading...</p>
+
+<h2>2. Same image via data URI</h2>
+<img id="img2" onload="document.getElementById('s2').textContent='✅ Loaded';document.getElementById('s2').className='pass'"
+     onerror="document.getElementById('s2').textContent='❌ Failed';document.getElementById('s2').className='fail'">
+<p id="s2">Loading...</p>
+<script>
+fetch('https://raw.githubusercontent.com/chenchenzhang569-bit/igcse-revision/main/public/images/questions/q_cone.svg')
+  .then(r => r.text())
+  .then(svg => {
+    document.getElementById('img2').src = 'data:image/svg+xml;base64,' + btoa(svg);
+  })
+  .catch(e => { document.getElementById('s2').textContent = '❌ Fetch failed: '+e; });
+</script>
+
+<h2>3. React simulation</h2>
+<div id="react-sim"></div>
+<script>
+var stem = "A geologist wants to determine the density of the object shown below.\n\nWhat needs to be known in order to calculate its density?";
+var imgUrl = "https://raw.githubusercontent.com/chenchenzhang569-bit/igcse-revision/main/public/images/questions/q_cone.svg";
+document.getElementById('react-sim').innerHTML = 
+  '<p>' + stem.replace(/\n/g, '<br>') + '</p>' +
+  '<img src="' + imgUrl + '" onload="this.style.border=\'2px solid green\'" onerror="this.style.border=\'2px solid red\'">';
+</script>
+</body></html>
