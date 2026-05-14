@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" style="background:#fff;font-family:Arial,sans-serif">
+  <text x="250" y="25" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">Magnetic Field Around a Bar Magnet</text>
+  
+  <!-- Bar magnet -->
+  <rect x="160" y="100" width="180" height="60" rx="5" fill="#E85D3A" stroke="#333" stroke-width="2"/>
+  <rect x="160" y="100" width="80" height="60" rx="5" fill="#4A90D9" stroke="#333" stroke-width="2"/>
+  <text x="200" y="120" text-anchor="middle" font-size="11" fill="white" font-weight="bold">N</text>
+  <text x="300" y="120" text-anchor="middle" font-size="11" fill="white" font-weight="bold">S</text>
+  
+  <!-- Field lines from N to S -->
+  <path d="M200,100 C180,50 140,60 160,100" fill="none" stroke="#666" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <path d="M200,100 C220,50 260,50 300,100" fill="none" stroke="#666" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <path d="M200,100 C160,70 300,70 340,100" fill="none" stroke="#666" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <path d="M200,160 C180,200 140,190 160,160" fill="none" stroke="#666" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <path d="M200,160 C220,200 260,200 300,160" fill="none" stroke="#666" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <path d="M200,160 C160,180 300,180 340,160" fill="none" stroke="#666" stroke-width="1.2" stroke-dasharray="4,2"/>
+  
+  <!-- Arrows on field lines -->
+  <polygon points="180,80 186,86 178,90" fill="#666"/>
+  <polygon points="260,75 266,80 258,84" fill="#666"/>
+  <polygon points="160,120 166,126 158,130" fill="#666"/>
+  <polygon points="260,175 266,180 258,184" fill="#666"/>
+  
+  <!-- Position A: close to N pole (strongest) -->
+  <circle cx="170" cy="95" r="12" fill="#4CAF50" opacity="0.8" stroke="#2E7D32" stroke-width="2"/>
+  <text x="170" y="99" text-anchor="middle" font-size="11" fill="white" font-weight="bold">A</text>
+  <line x1="170" y1="107" x2="170" y2="120" stroke="#2E7D32" stroke-width="0.8" stroke-dasharray="3,3"/>
+  
+  <!-- Position B: medium distance -->
+  <circle cx="100" cy="140" r="12" fill="#FFC107" opacity="0.8" stroke="#F57F17" stroke-width="2"/>
+  <text x="100" y="144" text-anchor="middle" font-size="11" fill="#333" font-weight="bold">B</text>
+  
+  <!-- Position C: near S pole -->
+  <circle cx="330" cy="110" r="12" fill="#FFC107" opacity="0.8" stroke="#F57F17" stroke-width="2"/>
+  <text x="330" y="114" text-anchor="middle" font-size="11" fill="#333" font-weight="bold">C</text>
+  
+  <!-- Position D: far away -->
+  <circle cx="250" cy="250" r="12" fill="#F44336" opacity="0.8" stroke="#B71C1C" stroke-width="2"/>
+  <text x="250" y="254" text-anchor="middle" font-size="11" fill="white" font-weight="bold">D</text>
+  
+  <!-- Legend -->
+  <rect x="30" y="275" width="440" height="35" rx="8" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1"/>
+  <text x="250" y="296" text-anchor="middle" font-size="10" fill="#2E7D32">Strongest at A — closest to poles, field lines most concentrated</text>
+</svg>

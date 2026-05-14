@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" style="background:#fff;font-family:Arial,sans-serif">
+  <text x="250" y="25" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">Geologist's Cone — Measuring Density</text>
+  
+  <!-- Cone drawing -->
+  <ellipse cx="180" cy="200" rx="60" ry="15" fill="#F5A623" stroke="#C17D11" stroke-width="2"/>
+  <path d="M120,200 L180,60 L240,200" fill="#F5A623" stroke="#C17D11" stroke-width="2"/>
+  
+  <!-- Height line -->
+  <line x1="180" y1="60" x2="180" y2="200" stroke="#E85D3A" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="195" y="135" font-size="9" fill="#E85D3A">h</text>
+  
+  <!-- Radius line -->
+  <line x1="180" y1="200" x2="240" y2="200" stroke="#4A90D9" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="210" y="195" font-size="9" fill="#4A90D9">r</text>
+  
+  <!-- Mass label -->
+  <text x="180" y="240" text-anchor="middle" font-size="10" fill="#333">mass = m</text>
+  
+  <!-- Formula box -->
+  <rect x="300" y="80" width="170" height="120" rx="8" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+  <text x="385" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#2E7D32">Density = ?</text>
+  <text x="385" y="130" text-anchor="middle" font-size="10" fill="#333">Need: volume + mass</text>
+  <text x="385" y="155" text-anchor="middle" font-size="10" fill="#4A90D9">Volume of cone:</text>
+  <text x="385" y="175" text-anchor="middle" font-size="11" fill="#4A90D9" font-weight="bold">V = ⅓πr²h</text>
+  
+  <!-- Answer highlight -->
+  <text x="385" y="200" text-anchor="middle" font-size="9" fill="#E85D3A">✗ A: radius + weight → no volume</text>
+  <text x="385" y="215" text-anchor="middle" font-size="9" fill="#E85D3A">✗ B: surface area → ≠ volume</text>
+  <text x="385" y="230" text-anchor="middle" font-size="9" fill="#2E7D32">✓ C: volume + mass ▸ density</text>
+  <text x="385" y="245" text-anchor="middle" font-size="9" fill="#E85D3A">✗ D: missing volume</text>
+  
+  <text x="250" y="280" text-anchor="middle" font-size="10" fill="#666">ρ = m / V = m / (⅓πr²h)</text>
+</svg>
