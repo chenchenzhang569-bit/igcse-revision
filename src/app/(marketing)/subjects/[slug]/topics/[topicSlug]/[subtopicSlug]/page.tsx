@@ -148,8 +148,13 @@ export default async function SubtopicPage({
       notes = dbNotes || [];
 
       // Get ALL questions — SME data uses "structured" type for MCQs
-      const { data: allQs } = await supabase
-        .from("questions").select("*").eq(filter.col, filter.val).order("sort_order").limit(100);
+      const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
+      const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+      const qRes = await fetch(
+        `${API}/questions?select=*&${filter.col}=eq.${filter.val}&order=sort_order&limit=100`,
+        { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+      );
+      const allQs = await qRes.json();
       
       if (allQs) {
         // Split by content: has A/B/C/D options or is a table question → MCQ tab
