@@ -137,13 +137,8 @@ export default async function SubtopicPage({
       : topicRow ? { col: "topic_id", val: topicRow.id } : null;
 
     if (filter) {
-      // Fetch notes: match by subtopic_id OR (topic_id match + subtopic_id null = topic-level notes)
-      let notesQuery = supabase.from("notes").select("*").order("sort_order").limit(20);
-      if (subtopicId && topicRow) {
-        notesQuery = notesQuery.or(`subtopic_id.eq.${subtopicId},and(topic_id.eq.${topicRow.id},subtopic_id.is.null)`);
-      } else {
-        notesQuery = notesQuery.eq(filter.col, filter.val);
-      }
+      // Fetch notes by subtopic_id only (topic-level notes are no longer used)
+      const notesQuery = supabase.from("notes").select("*").order("sort_order").limit(20).eq(filter.col, filter.val);
       const { data: dbNotes } = await notesQuery;
       notes = dbNotes || [];
 
@@ -271,4 +266,4 @@ export default async function SubtopicPage({
     </div>
   );
 }
-// force-redeploy-v6-1778741031
+// force-redeploy-v9-simplify-notes-query
