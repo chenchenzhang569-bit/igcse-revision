@@ -191,22 +191,22 @@ export default async function SubtopicPage({
           .limit(20);
         
         if (papers) {
-          const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
-          const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
+          const qpPapers = papers.filter((p: any) => p.paper_type === "MCQ QP");
+          const msPapers = papers.filter((p: any) => p.paper_type === "MCQ MS");
           
-          // Pair QP with MS by matching title prefix
+          // Pair QP with MS by matching title prefix, put in Question Paper tab
           const used = new Set<string>();
-          for (const qp of mcqQps) {
+          for (const qp of qpPapers) {
             const base = qp.title.replace(/\s*QP$/, "").trim();
-            const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
+            const ms = msPapers.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !used.has(m.id));
             const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
             if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; used.add(ms.id); }
-            mcqPairs.push(pair);
+            structPairs.push(pair);
           }
           // Unpaired MS
-          for (const ms of mcqMss) {
+          for (const ms of msPapers) {
             if (!used.has(ms.id)) {
-              mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
+              structPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } });
             }
           }
         }

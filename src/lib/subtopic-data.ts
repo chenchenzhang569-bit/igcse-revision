@@ -31,7 +31,7 @@ const PHYSICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
   "thermal-physics": [
     { slug: "kinetic-model", name: "Kinetic Particle Model", displayName: "Kinetic Particle Model of Matter", pmtCode: "2.1" },
     { slug: "thermal-properties", name: "Thermal Properties & Temperature", displayName: "Thermal Properties & Temperature", pmtCode: "2.2" },
-    { slug: "thermal-processes", name: "Thermal Processes", displayName: "Thermal Processes", pmtCode: "2.3" },
+    { slug: "thermal-processes", name: "Transfer of thermal energy", displayName: "Transfer of thermal energy", pmtCode: "2.3" },
   ],
   "waves": [
     { slug: "wave-properties", name: "General Wave Properties", displayName: "General Properties of Waves", pmtCode: "3.1" },
@@ -40,7 +40,7 @@ const PHYSICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "sound", name: "Sound", displayName: "Sound", pmtCode: "3.4" },
   ],
   "electricity-magnetism": [
-    { slug: "magnetism", name: "Simple Magnetism", displayName: "Simple Phenomena of Magnetism", pmtCode: "4.1" },
+    { slug: "magnetism", name: "Simple phenomena of magnetism", displayName: "Simple phenomena of magnetism", pmtCode: "4.1" },
     { slug: "electrical-quantities", name: "Electrical Quantities", displayName: "Electrical Quantities", pmtCode: "4.2" },
     { slug: "electric-circuits", name: "Electric Circuits", displayName: "Electric Circuits", pmtCode: "4.3" },
     { slug: "electrical-safety", name: "Electrical Safety", displayName: "Electrical Safety", pmtCode: "4.4" },
