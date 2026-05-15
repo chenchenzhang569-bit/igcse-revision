@@ -156,13 +156,11 @@ const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "digestive-system", name: "Digestive System", displayName: "Digestive System", pmtCode: "7.2" },
     { slug: "physical-digestion", name: "Physical Digestion", displayName: "Physical Digestion", pmtCode: "7.3" },
     { slug: "chemical-digestion", name: "Chemical Digestion", displayName: "Chemical Digestion", pmtCode: "7.4" },
-    { slug: "absorption", name: "Absorption", displayName: "Absorption", pmtCode: "7.5" },
   ],
   "transport-plants": [
     { slug: "xylem-phloem", name: "Xylem and Phloem", displayName: "Xylem and Phloem", pmtCode: "8.1" },
-    { slug: "water-uptake", name: "Water Uptake", displayName: "Water Uptake", pmtCode: "8.2" },
-    { slug: "transpiration", name: "Transpiration", displayName: "Transpiration", pmtCode: "8.3" },
-    { slug: "translocation", name: "Translocation", displayName: "Translocation", pmtCode: "8.4" },
+    { slug: "transpiration", name: "Transpiration", displayName: "Transpiration", pmtCode: "8.2" },
+    { slug: "translocation", name: "Translocation", displayName: "Translocation", pmtCode: "8.3" },
   ],
   "transport-animals": [
     { slug: "circulatory-systems", name: "Circulatory Systems", displayName: "Circulatory Systems", pmtCode: "9.1" },
@@ -178,8 +176,7 @@ const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
   ],
   "respiration": [
     { slug: "respiration", name: "Respiration", displayName: "Respiration", pmtCode: "12.1" },
-    { slug: "aerobic-respiration", name: "Aerobic Respiration", displayName: "Aerobic Respiration", pmtCode: "12.2" },
-    { slug: "anaerobic-respiration", name: "Anaerobic Respiration", displayName: "Anaerobic Respiration", pmtCode: "12.3" },
+    { slug: "anaerobic-respiration", name: "Anaerobic Respiration", displayName: "Anaerobic Respiration", pmtCode: "12.2" },
   ],
   "excretion-humans": [
     { slug: "excretion-humans", name: "Excretion in Humans", displayName: "Excretion in Humans", pmtCode: "13.1" },
@@ -220,15 +217,13 @@ const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "populations", name: "Populations", displayName: "Populations", pmtCode: "19.4" },
   ],
   "human-influences-ecosystems": [
-    { slug: "food-supply", name: "Food Supply", displayName: "Food Supply", pmtCode: "20.1" },
-    { slug: "habitat-destruction", name: "Habitat Destruction", displayName: "Habitat Destruction", pmtCode: "20.2" },
-    { slug: "pollution", name: "Pollution", displayName: "Pollution", pmtCode: "20.3" },
-    { slug: "conservation", name: "Conservation", displayName: "Conservation", pmtCode: "20.4" },
+    { slug: "food-supply", name: "Food Supply", displayName: "Food Supply", pmtCode: "21.1" },
+    { slug: "habitat-destruction", name: "Habitat Destruction", displayName: "Habitat Destruction", pmtCode: "21.2" },
+    { slug: "pollution", name: "Pollution", displayName: "Pollution", pmtCode: "21.3" },
   ],
   "biotechnology": [
-    { slug: "biotechnology-genetic-modification", name: "Biotechnology and Genetic Modification", displayName: "Biotechnology and Genetic Modification", pmtCode: "21.1" },
-    { slug: "biotechnology", name: "Biotechnology", displayName: "Biotechnology", pmtCode: "21.2" },
-    { slug: "genetic-modification", name: "Genetic Modification", displayName: "Genetic Modification", pmtCode: "21.3" },
+    { slug: "biotechnology-genetic-modification", name: "Biotechnology and Genetic Modification", displayName: "Biotechnology and Genetic Modification", pmtCode: "20.1" },
+    { slug: "biotechnology", name: "Biotechnology", displayName: "Biotechnology", pmtCode: "20.2" },
   ],
   "practical-skills-biology": [
     { slug: "practical-skills", name: "Practical Skills", displayName: "Practical Skills", pmtCode: "PS" },
