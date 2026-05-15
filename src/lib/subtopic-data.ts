@@ -129,7 +129,8 @@ const CHEMISTRY_SUBTOPICS: Record<string, SubtopicDef[]> = {
 const BIOLOGY_SUBTOPICS: Record<string, SubtopicDef[]> = {
   "characteristics-living-organisms": [
     { slug: "characteristics", name: "Characteristics of Living Organisms", displayName: "Characteristics of Living Organisms", pmtCode: "1.1" },
-    { slug: "classification", name: "Classification", displayName: "Classification", pmtCode: "1.2" },
+    { slug: "classification-systems", name: "Concept and Uses of Classification Systems", displayName: "Concept and Uses of Classification Systems", pmtCode: "1.2" },
+    { slug: "features-of-organisms", name: "Features of Organisms", displayName: "Features of Organisms", pmtCode: "1.3" },
   ],
   "organisation-organism": [
     { slug: "cell-structure", name: "Cell Structure", displayName: "Cell Structure", pmtCode: "2.1" },
