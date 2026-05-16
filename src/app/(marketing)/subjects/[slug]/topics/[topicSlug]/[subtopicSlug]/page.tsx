@@ -125,13 +125,16 @@ export default async function SubtopicPage({
       topicRow = data2;
     }
 
+    const API_ROOT = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
+    const API_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+
     // Find subtopic — use REST API for reliability (Supabase SDK chaining can fail silently)
     let subtopicId: string | null = null;
     if (topicRow && pmtCode) {
       try {
         const subRes = await fetch(
-          `${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${pmtCode}&limit=1`,
-          { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+          `${API_ROOT}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${pmtCode}&limit=1`,
+          { headers: { apikey: API_KEY, Authorization: `Bearer ${API_KEY}` }, cache: "no-store" }
         );
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
@@ -150,11 +153,9 @@ export default async function SubtopicPage({
       notes = dbNotes || [];
 
       // Get ALL questions — SME data uses "structured" type for MCQs
-      const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
-      const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
       const qRes = await fetch(
-        `${API}/questions?select=*&${filter.col}=eq.${filter.val}&order=sort_order&limit=100`,
-        { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+        `${API_ROOT}/questions?select=*&${filter.col}=eq.${filter.val}&order=sort_order&limit=100`,
+        { headers: { apikey: API_KEY, Authorization: `Bearer ${API_KEY}` }, cache: "no-store" }
       );
       const allQs = await qRes.json();
       
