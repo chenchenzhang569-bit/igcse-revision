@@ -68,7 +68,7 @@ export function TopicTabs({
 }) {
   const [tab, setTab] = useState<Tab>("notes");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [showResults, setShowResults] = useState(false);
+  const [submittedLevels, setSubmittedLevels] = useState<Set<string>>(new Set());
 
   // Format: PMT_[category]_[code]
   function fmtPmt(category: string): string {
@@ -90,20 +90,37 @@ export function TopicTabs({
     (a, b) => (diffOrder[a.difficulty] ?? 9) - (diffOrder[b.difficulty] ?? 9)
   );
 
-  const score = sortedMcqs.filter((q) => userAnswers[q.id] === q.answer_text).length;
+  // Group by difficulty
+  const groupedMcqs: Record<string, Question[]> = { easy: [], medium: [], hard: [] };
+  for (const q of sortedMcqs) {
+    const level = q.difficulty || "easy";
+    if (groupedMcqs[level]) groupedMcqs[level].push(q);
+    else groupedMcqs.easy.push(q);
+  }
+  const groupOrder = ["easy", "medium", "hard"];
 
-  function selectAnswer(qId: string, answer: string) {
-    if (showResults) return;
+  function selectAnswer(qId: string, answer: string, difficulty: string) {
+    if (submittedLevels.has(difficulty)) return;
     setUserAnswers((prev) => ({ ...prev, [qId]: answer }));
   }
 
-  function handleSubmit() {
-    setShowResults(true);
+  function handleSubmitLevel(level: string) {
+    setSubmittedLevels((prev) => new Set(prev).add(level));
   }
 
-  function handleReset() {
-    setUserAnswers({});
-    setShowResults(false);
+  function handleResetLevel(level: string) {
+    setSubmittedLevels((prev) => {
+      const next = new Set(prev);
+      next.delete(level);
+      return next;
+    });
+    // Clear answers for this level only
+    const levelQIds = new Set((groupedMcqs[level] || []).map(q => q.id));
+    setUserAnswers((prev) => {
+      const next = { ...prev };
+      for (const id of levelQIds) delete next[id];
+      return next;
+    });
   }
 
   function isTableQuestion(text: string): boolean {
@@ -140,7 +157,7 @@ export function TopicTabs({
     return [];
   }
 
-  function renderMcqQuestion(q: Question, i: number) {
+  function renderMcqQuestion(q: Question, i: number, showResults: boolean, difficulty: string) {
     let text = q.question_text;
     const userAnswer = userAnswers[q.id];
     const isCorrect = userAnswer === q.answer_text;
@@ -194,7 +211,7 @@ export function TopicTabs({
                 else cls = "border-gray-200 opacity-60";
               } else if (selected) cls = "bg-primary-50 border-primary-400";
               return (
-                <button key={label} onClick={() => selectAnswer(q.id, label)} disabled={showResults}
+                <button key={label} onClick={() => selectAnswer(q.id, label, difficulty)} disabled={showResults}
                   className={`flex-1 p-3 rounded-lg border text-center font-bold transition ${cls}`}>
                   {label}
                   {showResults && label === q.answer_text && " ✓"}
@@ -347,7 +364,7 @@ export function TopicTabs({
             } else if (selected) cls = "bg-primary-50 border-primary-400";
             const hasText = !!optText;
             return (
-              <button key={label} onClick={() => selectAnswer(q.id, label)} disabled={showResults}
+              <button key={label} onClick={() => selectAnswer(q.id, label, difficulty)} disabled={showResults}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border transition ${cls} ${hasText ? "text-left" : "justify-center"}`}>
                 <span className={`${hasText ? "w-8 h-8" : "w-12 h-12 text-lg"} rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                   showResults && label === q.answer_text ? "bg-green-500 text-white"
@@ -471,26 +488,45 @@ export function TopicTabs({
 
             {sortedMcqs.length > 0 && (
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">💻 Practice Online ({sortedMcqs.length} questions)</h3>
-                  <div className="flex gap-2">
-                    {!showResults ? (
-                      <button onClick={handleSubmit}
-                        disabled={Object.keys(userAnswers).length < sortedMcqs.length}
-                        className="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        Submit Answers
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-gray-700">Score: {score}/{sortedMcqs.length} ({Math.round((score / sortedMcqs.length) * 100)}%)</span>
-                        <button onClick={handleReset} className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">Retry</button>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">💻 Practice Online ({sortedMcqs.length} questions)</h3>
+                {groupOrder.map((level) => {
+                  const group = groupedMcqs[level] || [];
+                  if (group.length === 0) return null;
+                  const submitted = submittedLevels.has(level);
+                  const levelScore = group.filter((q) => userAnswers[q.id] === q.answer_text).length;
+                  const allAnswered = group.every((q) => userAnswers[q.id]);
+                  const levelLabel = level === "easy" ? "🟢 Easy" : level === "medium" ? "🟡 Medium" : "🔴 Hard";
+                  const levelBg = level === "easy" ? "bg-green-50 border-green-200" : level === "medium" ? "bg-yellow-50 border-yellow-200" : "bg-red-50 border-red-200";
+                  return (
+                    <div key={level} className={`mb-8 border rounded-xl ${levelBg}`}>
+                      <div className="flex items-center justify-between px-5 py-3 border-b border-inherit">
+                        <span className="font-semibold text-sm">{levelLabel} ({group.length} questions)</span>
+                        {submitted && (
+                          <span className="text-sm font-bold">
+                            Score: {levelScore}/{group.length} ({Math.round((levelScore / group.length) * 100)}%)
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  {sortedMcqs.map((q, i) => renderMcqQuestion(q, i))}
-                </div>
+                      <div className="p-3 space-y-3">
+                        {group.map((q, i) => renderMcqQuestion(q, i, submitted, level))}
+                      </div>
+                      <div className="px-5 py-3 border-t border-inherit flex justify-center">
+                        {!submitted ? (
+                          <button onClick={() => handleSubmitLevel(level)}
+                            disabled={!allAnswered}
+                            className="text-sm bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            ✅ Submit {levelLabel}
+                          </button>
+                        ) : (
+                          <button onClick={() => handleResetLevel(level)}
+                            className="text-sm bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition">
+                            🔄 Retry {levelLabel}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
