@@ -1,4 +1,4 @@
-// force-redeploy-v11-URGENT-fix-subtopic-filtering
+// force-redeploy-v12-FIX-SUBTOPIC-BUG
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
@@ -266,7 +266,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <div className="text-xs text-gray-300 mt-1">v10-{notes.length}n-{subtopic.pmtCode}</div>
+      <div className="text-xs text-gray-300 mt-1">v12-fix-{notes.length}n-{subtopic.pmtCode}</div>
       <TopicTabs
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
