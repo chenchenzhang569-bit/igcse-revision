@@ -70,10 +70,9 @@ export function TopicTabs({
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
 
-  // Format: PMT_[category]_[code]_[name].pdf
+  // Format: PMT_[category]_[code]
   function fmtPmt(category: string): string {
-    const nameSlug = displayName.replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "");
-    return `PMT_${category}_${pmtCode}_${nameSlug}.pdf`;
+    return `PMT_${category}_${pmtCode}`;
   }
 
   const allTabs: { key: Tab; label: string; count: number }[] = [
