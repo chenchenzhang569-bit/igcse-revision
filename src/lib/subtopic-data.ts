@@ -96,7 +96,6 @@ const CHEMISTRY_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "acids-bases", name: "Acids & Bases", displayName: "The Characteristic Properties of Acids & Bases", pmtCode: "7.1" },
     { slug: "oxides", name: "Oxides", displayName: "Oxides", pmtCode: "7.2" },
     { slug: "salts", name: "Preparation of Salts", displayName: "Preparation of Salts", pmtCode: "7.3" },
-    { slug: "identification-ions-gases", name: "Identification of Ions & Gases", displayName: "Identification of Ions & Gases", pmtCode: "7.4" },
   ],
   "periodic-table": [
     { slug: "arrangement-of-elements", name: "Arrangement of Elements", displayName: "Arrangement of Elements", pmtCode: "8.1" },
