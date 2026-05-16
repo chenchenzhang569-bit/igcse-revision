@@ -123,12 +123,17 @@ export default async function SubtopicPage({
       topicRow = data2;
     }
 
-    // Find subtopic by pmt_code + topic_id
+    // Find subtopic — use REST API for reliability (Supabase SDK chaining can fail silently)
     let subtopicId: string | null = null;
     if (topicRow && pmtCode) {
-      const { data: subs } = await supabase
-        .from("subtopics").select("id").eq("topic_id", topicRow.id).eq("pmt_code", pmtCode).limit(1);
-      if (subs && subs.length > 0) subtopicId = subs[0].id;
+      try {
+        const subRes = await fetch(
+          `${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${pmtCode}&limit=1`,
+          { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+        );
+        const subData = await subRes.json();
+        if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
+      } catch { /* fallback to topic-level */ }
     }
 
     // Query with subtopic_id if found, otherwise topic_id
