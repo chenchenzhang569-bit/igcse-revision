@@ -68,8 +68,8 @@ const TOPIC_SLUG_TO_DB: Record<string, string> = {
   "inheritance": "caie-biology-0610-17-inheritance",
   "variation-selection": "caie-biology-0610-18-variation-and-selection",
   "organisms-environment": "caie-biology-0610-19-organisms-and-their-environment",
-  "biotechnology": "caie-biology-0610-20-biotechnology-and-genetic-engineering",
-  "human-influences-ecosystems": "caie-biology-0610-21-human-influences-on-ecosystems",
+  "biotechnology": "caie-biology-0610-21-biotechnology-and-genetic-engineering",
+  "human-influences-ecosystems": "caie-biology-0610-20-human-influences-on-ecosystems",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {
