@@ -1,4 +1,4 @@
-// force-redeploy-v12-FIX-SUBTOPIC-BUG
+// force-redeploy-v13-fmt-names
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
@@ -270,6 +270,7 @@ export default async function SubtopicPage({
       <TopicTabs
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
+        pmtCode={subtopic.pmtCode} displayName={subtopic.displayName}
       />
     </div>
   );

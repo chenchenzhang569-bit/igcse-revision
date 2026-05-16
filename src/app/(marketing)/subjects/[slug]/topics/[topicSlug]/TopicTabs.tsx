@@ -55,16 +55,26 @@ export function TopicTabs({
   mcqPairs = [],
   pairedPapers,
   structuredQuestions = [],
+  pmtCode = "",
+  displayName = "",
 }: {
   notes: Note[];
   mcqs: Question[];
   mcqPairs?: PaperPair[];
   pairedPapers: PaperPair[];
   structuredQuestions?: Question[];
+  pmtCode?: string;
+  displayName?: string;
 }) {
   const [tab, setTab] = useState<Tab>("notes");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
+
+  // Format: PMT_[category]_[code]_[name].pdf
+  function fmtPmt(category: string): string {
+    const nameSlug = displayName.replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "");
+    return `PMT_${category}_${pmtCode}_${nameSlug}.pdf`;
+  }
 
   const allTabs: { key: Tab; label: string; count: number }[] = [
     { key: "notes", label: "📝 Notes", count: notes.length },
@@ -418,7 +428,7 @@ export function TopicTabs({
                 {note.file_name && (
                   <button onClick={() => downloadContent(note)}
                     className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
-                    📥 {note.source ? `[${note.source}] ` : ""}{note.file_name}
+                    📥 {note.title.includes("Summary") ? fmtPmt("Summary") : fmtPmt("Definition")}
                   </button>
                 )}
               </div>
@@ -444,9 +454,7 @@ export function TopicTabs({
                     <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">MCQ {i + 1}</span>
-                        <span className="text-sm text-gray-700">
-                          {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "").replace(/ - MCQ.*$/, "")}
-                        </span>
+                        <span className="text-sm text-gray-700">{fmtPmt("MCQ")}</span>
                       </div>
                       <div className="flex gap-2">
                         <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
@@ -535,9 +543,7 @@ export function TopicTabs({
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium mr-2">Q{i + 1}</span>
-                          <span className="text-sm text-gray-700">
-                            {pair.qp.title.replace(/^(CAIE|Edexcel)\s+\w+\s+-\s+\S+\s+-\s+/, "")}
-                          </span>
+                          <span className="text-sm text-gray-700">{fmtPmt("QP")}</span>
                         </div>
                         <div className="flex gap-2">
                           <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
