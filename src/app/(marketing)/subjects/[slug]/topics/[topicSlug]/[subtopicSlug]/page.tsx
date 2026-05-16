@@ -1,4 +1,5 @@
-// force-redeploy-v8-fix-t21-subtopic-filter
+// force-redeploy-v11-URGENT-fix-subtopic-filtering
+// DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
 import { FALLBACK_DATA } from "@/lib/fallback-content";
@@ -6,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { TopicTabs } from "../TopicTabs";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const supabase = createClient(
   "https://aondldqwwvttwpervrfq.supabase.co",
