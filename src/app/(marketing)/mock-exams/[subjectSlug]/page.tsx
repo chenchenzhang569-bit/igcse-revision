@@ -126,44 +126,48 @@ export default async function MockExamsPage({
               )}
               <div className="space-y-6">
                 {groupSets.map((set: any) => {
-          const setPapers = papersBySet[set.id] || [];
-          return (
-            <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-800">Set {set.set_number}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TIER_COLORS[set.tier] || "bg-gray-100 text-gray-600"}`}>
-                    {set.tier}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-400">
-                  {setPapers.reduce((sum: number, p: any) => sum + (countMap[p.id] || 0), 0)} questions
-                </span>
-              </div>
-              <div className="divide-y">
-                {setPapers.map((paper: any) => {
-                  const qCount = countMap[paper.id] || 0;
+                  const setPapers = papersBySet[set.id] || [];
                   return (
-                    <Link
-                      key={paper.id}
-                      href={`/mock-exams/${subjectSlug}/${paper.slug}`}
-                      className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{PAPER_ICONS[paper.paper_type] || "📄"}</span>
-                        <div>
-                          <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
-                            {paper.paper_number} — {paper.paper_type}
+                    <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-800">Set {set.set_number}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TIER_COLORS[set.tier] || "bg-gray-100 text-gray-600"}`}>
+                            {set.tier}
                           </span>
-                          <div className="text-xs text-gray-400 mt-0.5">
-                            {paper.minutes} min · {paper.total_marks} marks · {qCount} questions
-                          </div>
                         </div>
+                        <span className="text-sm text-gray-400">
+                          {setPapers.reduce((sum: number, p: any) => sum + (countMap[p.id] || 0), 0)} questions
+                        </span>
                       </div>
-                      <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
-                        Start →
-                      </span>
-                    </Link>
+                      <div className="divide-y">
+                        {setPapers.map((paper: any) => {
+                          const qCount = countMap[paper.id] || 0;
+                          return (
+                            <Link
+                              key={paper.id}
+                              href={`/mock-exams/${subjectSlug}/${paper.slug}`}
+                              className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-xl">{PAPER_ICONS[paper.paper_type] || "📄"}</span>
+                                <div>
+                                  <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
+                                    {paper.paper_number} — {paper.paper_type}
+                                  </span>
+                                  <div className="text-xs text-gray-400 mt-0.5">
+                                    {paper.minutes} min · {paper.total_marks} marks · {qCount} questions
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
+                                Start →
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
