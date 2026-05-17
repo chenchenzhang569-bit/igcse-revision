@@ -218,7 +218,7 @@ function StemParts({ stem }: { stem: string }) {
             return <div key={i} className="my-3 max-w-full rounded-lg border overflow-hidden"
               dangerouslySetInnerHTML={{ __html: svgContent }} />;
         }
-        return <img key={i} src={src} alt="diagram" className="my-3 max-w-full rounded-lg border" />;
+        return <img key={i} src={src} alt="diagram" referrerPolicy="no-referrer" crossOrigin="anonymous" className="my-3 max-w-full rounded-lg border" />;
       })}
     </>
   );
