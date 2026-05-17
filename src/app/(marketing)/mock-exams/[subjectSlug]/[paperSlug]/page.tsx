@@ -1,10 +1,11 @@
 "use client";
 
-// force-redeploy-v8-md-table
+// force-redeploy-v9-structured-grading
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import StructuredQuestion from "@/components/StructuredQuestion";
 
 const supabase = createClient(
   "https://aondldqwwvttwpervrfq.supabase.co",
@@ -380,7 +381,7 @@ export default function MockExamPaperPage() {
         </div>
       )}
 
-      {/* Structured Questions */}
+      {/* Structured Questions — use new grading component */}
       {structQuestions.length > 0 && (
         <div className="mt-8">
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
@@ -388,27 +389,11 @@ export default function MockExamPaperPage() {
           </h3>
           <div className="space-y-5">
             {structQuestions.map((q, i) => (
-              <div key={q.id} className="bg-white border rounded-xl p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
-                    Q{mcqQuestions.length + i + 1}
-                  </span>
-                  <span className="text-xs text-gray-400">{q.marks} marks</span>
-                </div>
-                <div className="text-gray-800 text-sm whitespace-pre-wrap mb-4">
-                  {parseStem(q.stem).map((part, pi) => renderPart(part, pi))}
-                </div>
-                {q.explanation && (
-                  <details className="group">
-                    <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
-                      Show Answer
-                    </summary>
-                    <div className="mt-3 p-4 bg-gray-50 rounded-lg border text-sm text-gray-700 whitespace-pre-wrap">
-                      {q.explanation}
-                    </div>
-                  </details>
-                )}
-              </div>
+              <StructuredQuestion
+                key={q.id}
+                question={q}
+                index={mcqQuestions.length + i}
+              />
             ))}
           </div>
         </div>
