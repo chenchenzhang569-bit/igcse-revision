@@ -1,6 +1,7 @@
 "use client";
 
-// force-redeploy-v11-table-parser-rewrite
+// force-redeploy-v12-urgent-fix
+// ⚠️ If you see this comment, the deployment IS updating
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
