@@ -58,6 +58,15 @@ type StemPart = string | { type: "img"; src: string } | { type: "table"; html: s
 
 function findTables(stem: string): { start: number; end: number; html: string }[] {
   const tables: { start: number; end: number; html: string }[] = [];
+  
+  // Match HTML <table>...</table> blocks
+  const htmlTableRegex = /<table\b[^>]*>[\s\S]*?<\/table>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = htmlTableRegex.exec(stem)) !== null) {
+    tables.push({ start: m.index, end: m.index + m[0].length, html: m[0] });
+  }
+  
+  // Match markdown pipe tables
   const lines = stem.split('\n');
   let i = 0;
   while (i < lines.length) {
@@ -83,6 +92,9 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       i = endIdx;
     } else { i++; }
   }
+  
+  // Sort by start position
+  tables.sort((a, b) => a.start - b.start);
   return tables;
 }
 

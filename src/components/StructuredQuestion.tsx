@@ -126,17 +126,24 @@ function mdTableToHtml(md: string): string | null {
 
 function findTables(stem: string): { start: number; end: number; html: string }[] {
   const tables: { start: number; end: number; html: string }[] = [];
+  
+  // Match HTML <table>...</table> blocks
+  const htmlTableRegex = /<table\b[^>]*>[\s\S]*?<\/table>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = htmlTableRegex.exec(stem)) !== null) {
+    tables.push({ start: m.index, end: m.index + m[0].length, html: m[0] });
+  }
+  
+  // Match markdown pipe tables
   const lines = stem.split("\n");
   let i = 0;
   while (i < lines.length) {
     const trimmed = lines[i].trim();
-    // A table starts with | ... | and the next line is |---...|
     if (trimmed.startsWith("|") && trimmed.endsWith("|") &&
         i + 1 < lines.length && /^\|[\s\-:|\|]+\|$/.test(lines[i + 1].trim())) {
-      // Found table header + separator. Collect all consecutive pipe rows.
       const tableLines: string[] = [lines[i]];
       let endIdx = i + 1;
-      tableLines.push(lines[i + 1]); // separator
+      tableLines.push(lines[i + 1]);
       let j = i + 2;
       while (j < lines.length) {
         const t = lines[j].trim();
@@ -151,7 +158,6 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       const md = tableLines.join("\n");
       const html = mdTableToHtml(md);
       if (html) {
-        // Find start position in original stem
         const start = stem.indexOf(lines[i].trim());
         const end = start + stem.slice(start).split("\n").slice(0, tableLines.length).join("\n").length;
         tables.push({ start, end, html });
@@ -161,6 +167,9 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       i++;
     }
   }
+  
+  // Sort by start position
+  tables.sort((a, b) => a.start - b.start);
   return tables;
 }
 
