@@ -104,8 +104,28 @@ export default async function MockExamsPage({
       </h1>
       <p className="text-gray-500 mt-1">CAIE IGCSE — 8 complete mock exam sets</p>
 
-      <div className="mt-8 space-y-6">
-        {sets.map((set: any) => {
+      <div className="mt-8 space-y-8">
+        {(() => {
+          const syllabusNames: Record<string, string> = {
+            "0580": "CIE Math 0580",
+            "0607": "International Math 0607",
+          };
+          const grouped: Record<string, any[]> = {};
+          for (const s of sets) {
+            const prefix = s.slug.split("-")[0];
+            const key = syllabusNames[prefix] ? prefix : "_default";
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(s);
+          }
+          return Object.entries(grouped).map(([key, groupSets]) => (
+            <div key={key}>
+              {key !== "_default" && (
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 ml-1">
+                  {syllabusNames[key] || key}
+                </h3>
+              )}
+              <div className="space-y-6">
+                {groupSets.map((set: any) => {
           const setPapers = papersBySet[set.id] || [];
           return (
             <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
@@ -148,8 +168,8 @@ export default async function MockExamsPage({
                 })}
               </div>
             </div>
-          );
-        })}
+          ));
+        })()}
       </div>
     </div>
   );

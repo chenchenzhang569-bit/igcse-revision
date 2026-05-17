@@ -131,9 +131,34 @@ export function MockExamsTab({
         </div>
       )}
 
-      {sets.length > 0 && (
-        <div className="space-y-5">
-          {sets.map((set) => (
+      {sets.length > 0 && (() => {
+          // Group sets by syllabus (for maths: 0580 vs 0607)
+          const syllabusNames: Record<string, string> = {
+            "0580": "CIE Math 0580",
+            "0607": "International Math 0607",
+          };
+          const grouped: Record<string, SetData[]> = {};
+          for (const s of sets) {
+            const prefix = s.slug.split("-")[0];
+            const key = syllabusNames[prefix] ? prefix : "_default";
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(s);
+          }
+          const groupOrder = Object.keys(grouped).filter(k => k !== "_default");
+          const defaultGroup = grouped["_default"] || [];
+          const allGroups = [...groupOrder.map(k => ({ key: k, sets: grouped[k] })), ...(defaultGroup.length > 0 ? [{ key: "_default", sets: defaultGroup }] : [])];
+          
+          return (
+            <div className="space-y-8">
+              {allGroups.map(group => (
+                <div key={group.key}>
+                  {group.key !== "_default" && (
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 ml-1">
+                      {syllabusNames[group.key] || group.key}
+                    </h3>
+                  )}
+                  <div className="space-y-5">
+                    {group.sets.map((set) => (
             <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center gap-3">
@@ -175,9 +200,13 @@ export function MockExamsTab({
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
     </section>
   );
 }
