@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-);
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 interface Question {
   id: string;
@@ -46,6 +44,7 @@ function normalizeAnswer(text: string): string {
 }
 
 export function TopicQuestionsTab({ topicId }: { topicId: string }) {
+  const supabase = useMemo(() => createClient(SUPABASE_URL, SUPABASE_KEY), []);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDifficulty, setActiveDifficulty] = useState<string>("easy");
@@ -60,8 +59,9 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   // submitted groups
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
 
-  // Load saved answers from localStorage
+  // Load saved answers from localStorage (browser only)
   useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -73,10 +73,11 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
         if (parsed.activeDifficulty) setActiveDifficulty(parsed.activeDifficulty);
       }
     } catch {}
-  }, []);
+  }, [storageKey]);
 
-  // Save to localStorage on changes
+  // Save to localStorage on changes (browser only)
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (Object.keys(answers).length === 0) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify({
