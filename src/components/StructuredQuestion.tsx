@@ -254,6 +254,124 @@ function SymbolToolbar({ onInsert }: { onInsert: (symbol: string) => void }) {
   );
 }
 
+// ─── Drawing Pad ────────────────────────────────────────────────────────────
+function DrawingPad({ onInsert, onClose }: { onInsert: (dataUri: string) => void; onClose: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState("#1e293b");
+  const [lineWidth, setLineWidth] = useState(2);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
+
+  // Start drawing
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const x = ((clientX - rect.left) / rect.width) * canvas.width;
+    const y = ((clientY - rect.top) / rect.height) * canvas.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    lastPos.current = { x, y };
+    setIsDrawing(true);
+  };
+
+  // Draw
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const x = ((clientX - rect.left) / rect.width) * canvas.width;
+    const y = ((clientY - rect.top) / rect.height) * canvas.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const endDraw = () => {
+    setIsDrawing(false);
+    lastPos.current = null;
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const handleInsert = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUri = canvas.toDataURL("image/png");
+    onInsert(dataUri);
+    onClose();
+  };
+
+  const COLORS = ["#1e293b", "#dc2626", "#2563eb", "#16a34a", "#9333ea"];
+  const WIDTHS = [1, 2, 4, 6];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50">
+          <div className="flex items-center gap-2">
+            {COLORS.map((c) => (
+              <button key={c} onClick={() => setColor(c)}
+                className={`w-6 h-6 rounded-full border-2 transition ${color === c ? "border-gray-800 scale-110" : "border-gray-300"}`}
+                style={{ background: c }} />
+            ))}
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+            {WIDTHS.map((w) => (
+              <button key={w} onClick={() => setLineWidth(w)}
+                className={`w-7 h-7 flex items-center justify-center rounded text-xs font-bold transition ${lineWidth === w ? "bg-gray-200" : "hover:bg-gray-100"}`}>
+                <div className="rounded-full bg-gray-700" style={{ width: w * 2 + 4, height: w * 2 + 4 }} />
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={clear} className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Clear</button>
+            <button onClick={handleInsert} className="text-xs px-3 py-1.5 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition font-medium">Insert</button>
+            <button onClick={onClose} className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700">✕</button>
+          </div>
+        </div>
+        {/* Canvas */}
+        <canvas
+          ref={canvasRef}
+          width={600}
+          height={360}
+          className="w-full touch-none bg-white cursor-crosshair"
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={endDraw}
+          onMouseLeave={endDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={endDraw}
+        />
+        <div className="px-3 py-2 text-[10px] text-gray-400 text-center border-t">
+          Draw diagrams, graphs, or equations · Insert as image in your answer
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Answer Input ───────────────────────────────────────────────────────────
 function AnswerInput({
   value, onChange, placeholder, marks,
@@ -261,6 +379,7 @@ function AnswerInput({
   value: string; onChange: (v: string) => void; placeholder: string; marks: number;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showDrawing, setShowDrawing] = useState(false);
 
   const insertSymbol = useCallback((symbol: string) => {
     const el = textareaRef.current;
@@ -274,14 +393,35 @@ function AnswerInput({
     });
   }, [value, onChange]);
 
+  const insertDrawing = useCallback((dataUri: string) => {
+    const el = textareaRef.current;
+    const imgMd = `![drawing](${dataUri})`;
+    if (!el) return onChange(value + imgMd);
+    const start = el.selectionStart, end = el.selectionEnd;
+    const newVal = value.slice(0, start) + imgMd + value.slice(end);
+    onChange(newVal);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + imgMd.length, start + imgMd.length);
+    });
+  }, [value, onChange]);
+
   return (
     <div className="relative">
       <textarea ref={textareaRef} value={value} onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder} rows={Math.max(2, marks + 1)}
-        className="w-full p-3 pr-10 text-sm border border-gray-300 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition" />
-      <div className="absolute right-2 top-2">
+        className="w-full p-3 pr-20 text-sm border border-gray-300 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition" />
+      <div className="absolute right-2 top-2 flex items-center gap-0.5">
+        <button type="button" onClick={() => setShowDrawing(true)}
+          className="flex items-center gap-0.5 px-1.5 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
+          title="Draw diagram">
+          🖊️
+        </button>
         <SymbolToolbar onInsert={insertSymbol} />
       </div>
+      {showDrawing && (
+        <DrawingPad onInsert={insertDrawing} onClose={() => setShowDrawing(false)} />
+      )}
     </div>
   );
 }
