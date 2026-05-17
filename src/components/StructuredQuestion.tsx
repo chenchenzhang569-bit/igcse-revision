@@ -188,8 +188,13 @@ function StemParts({ stem }: { stem: string }) {
   return (
     <>
       {parts.map((part, i) => {
-        if (typeof part === "string")
+        if (typeof part === "string") {
+          // Check for raw HTML (e.g. pre-rendered tables)
+          if (part.includes("<table")) {
+            return <div key={i} dangerouslySetInnerHTML={{ __html: part }} />;
+          }
           return <span key={i} className="whitespace-pre-wrap">{part}</span>;
+        }
         if (part.type === "table")
           return <div key={i} dangerouslySetInnerHTML={{ __html: part.html }} />;
         // Image
