@@ -285,7 +285,7 @@ export default function MockExamPaperPage() {
                           >
                             {label}
                           </span>
-                          <span className="text-sm">{opt.replace(/^[A-D][.)]?\s*/, "")}</span>
+                          <span className="text-sm">{(() => { const stripped = opt.replace(/^[A-D][.)]?\s*/, ""); return stripped || opt; })()}</span>
                           {submitted && label === q.correct_answer && (
                             <span className="ml-auto text-green-600 text-xs">✓ Correct</span>
                           )}
