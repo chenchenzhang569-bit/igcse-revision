@@ -37,9 +37,9 @@ interface SubPart {
 function parseSubParts(stem: string): { preamble: string; subs: SubPart[] } {
   if (!stem) return { preamble: "", subs: [] };
 
-  // Find all markers with indentation info
+  // Find all markers with indentation info (spaces only, NOT newlines)
   const allMarkers: { idx: number; label: string; raw: string; indent: number }[] = [];
-  const re = /(?:^|\n)(\s*)(\([a-z]+\)|[ivx]+\))\s*/gim;
+  const re = /(?:^|\n)([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
@@ -93,7 +93,7 @@ function parseSubParts(stem: string): { preamble: string; subs: SubPart[] } {
 function mdTableToHtml(md: string): string | null {
   const lines = md.trim().split("\n");
   if (lines.length < 2) return null;
-  if (!lines[0].startsWith("|") || !lines[1].match(/^\|[\s\-:]+\|$/)) return null;
+  if (!lines[0].startsWith("|") || !lines[1].match(/^\|[\s\-:|\|]+\|$/)) return null;
   let headers = lines[0].split("|").slice(1, -1).map((h) => h.trim());
   const align: string[] = [];
   lines[1].split("|").slice(1, -1).forEach((a) => {
@@ -132,7 +132,7 @@ function findTables(stem: string): { start: number; end: number; html: string }[
     const trimmed = lines[i].trim();
     // A table starts with | ... | and the next line is |---...|
     if (trimmed.startsWith("|") && trimmed.endsWith("|") &&
-        i + 1 < lines.length && /^\|[\s\-:|]+\|$/.test(lines[i + 1].trim())) {
+        i + 1 < lines.length && /^\|[\s\-:|\|]+\|$/.test(lines[i + 1].trim())) {
       // Found table header + separator. Collect all consecutive pipe rows.
       const tableLines: string[] = [lines[i]];
       let endIdx = i + 1;
