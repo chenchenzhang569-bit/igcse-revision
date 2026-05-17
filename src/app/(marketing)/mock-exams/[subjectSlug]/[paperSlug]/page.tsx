@@ -246,9 +246,26 @@ export default function MockExamPaperPage() {
                     {parseStem(q.stem).map((part, pi) =>
                       typeof part === "string" ? (
                         <span key={pi}>{part}</span>
-                      ) : (
-                        <img key={pi} src={part.src} alt="table" className="my-3 max-w-full rounded-lg border" />
-                      )
+                      ) : (() => {
+                        // Render SVG inline so text labels render correctly in all browsers (esp. WeChat)
+                        const src = part.src;
+                        if (src.startsWith("data:image/svg+xml")) {
+                          let svgContent = "";
+                          if (src.includes(";base64,")) {
+                            try { svgContent = atob(src.split(";base64,")[1]); } catch {}
+                          } else {
+                            const commaIdx = src.indexOf(",");
+                            if (commaIdx > -1) svgContent = decodeURIComponent(src.slice(commaIdx + 1));
+                          }
+                          if (svgContent) {
+                            return (
+                              <div key={pi} className="my-3 max-w-full rounded-lg border overflow-hidden"
+                                dangerouslySetInnerHTML={{ __html: svgContent }} />
+                            );
+                          }
+                        }
+                        return <img key={pi} src={src} alt="diagram" className="my-3 max-w-full rounded-lg border" />;
+                      })()
                     )}
                   </div>
                 </div>
@@ -329,9 +346,25 @@ export default function MockExamPaperPage() {
                   {parseStem(q.stem).map((part, pi) =>
                     typeof part === "string" ? (
                       <span key={pi}>{part}</span>
-                    ) : (
-                      <img key={pi} src={part.src} alt="table" className="my-3 max-w-full rounded-lg border" />
-                    )
+                    ) : (() => {
+                      const src = part.src;
+                      if (src.startsWith("data:image/svg+xml")) {
+                        let svgContent = "";
+                        if (src.includes(";base64,")) {
+                          try { svgContent = atob(src.split(";base64,")[1]); } catch {}
+                        } else {
+                          const commaIdx = src.indexOf(",");
+                          if (commaIdx > -1) svgContent = decodeURIComponent(src.slice(commaIdx + 1));
+                        }
+                        if (svgContent) {
+                          return (
+                            <div key={pi} className="my-3 max-w-full rounded-lg border overflow-hidden"
+                              dangerouslySetInnerHTML={{ __html: svgContent }} />
+                          );
+                        }
+                      }
+                      return <img key={pi} src={src} alt="diagram" className="my-3 max-w-full rounded-lg border" />;
+                    })()
                   )}
                 </div>
                 {q.explanation && (
