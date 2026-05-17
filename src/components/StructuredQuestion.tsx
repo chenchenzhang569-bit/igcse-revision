@@ -37,20 +37,20 @@ interface SubPart {
 function parseSubParts(stem: string): { preamble: string; subs: SubPart[] } {
   if (!stem) return { preamble: "", subs: [] };
 
-  // Match (i), (ii), (iii), (a), (b) etc. at start of lines
-  const subMarkerRe = /(?:^|\n)\s*(\([ivxa-d]+\)|[ivx]+\))\s*/gim;
-  const markers: { idx: number; label: string; raw: string }[] = [];
+  // Find all markers with indentation info
+  const allMarkers: { idx: number; label: string; raw: string; indent: number }[] = [];
+  const re = /(?:^|\n)(\s*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
-  while ((m = subMarkerRe.exec(stem)) !== null) {
-    // m[0] includes leading newline; m[1] is just "(i)"
-    markers.push({
+  while ((m = re.exec(stem)) !== null) {
+    allMarkers.push({
       idx: m.index + (m[0].startsWith("\n") ? 1 : 0),
-      label: m[1].replace(/[()]/g, "").trim(),
+      label: m[2].replace(/[()]/g, "").trim(),
       raw: m[0],
+      indent: m[1].length,
     });
   }
 
-  if (markers.length === 0) {
+  if (allMarkers.length === 0) {
     // No sub-parts — one input
     const marksMatch = stem.match(/\[(\d+)\]\s*$/m);
     return {
@@ -59,24 +59,31 @@ function parseSubParts(stem: string): { preamble: string; subs: SubPart[] } {
     };
   }
 
-  // Slice stem into preamble + sub-parts
-  const firstIdx = markers[0].idx;
+  // Only keep top-level markers (minimal indentation)
+  const minIndent = Math.min(...allMarkers.map((x) => x.indent));
+  const topMarkers = allMarkers.filter((x) => x.indent === minIndent);
+
+  // Slice stem into preamble + top-level sub-parts
+  const firstIdx = topMarkers[0].idx;
   let preamble = stem.slice(0, firstIdx).trim();
-  // Remove trailing "Fig. 1" etc if it's on its own before sub-parts
   preamble = preamble.replace(/\n\s*Fig\.\s*\d+\s*$/, "").trim();
 
   const subs: SubPart[] = [];
-  for (let i = 0; i < markers.length; i++) {
-    const start = markers[i].idx + markers[i].raw.length;
-    const end = i + 1 < markers.length ? markers[i + 1].idx : stem.length;
+  for (let i = 0; i < topMarkers.length; i++) {
+    const start = topMarkers[i].idx + topMarkers[i].raw.length;
+    const end = i + 1 < topMarkers.length ? topMarkers[i + 1].idx : stem.length;
     let subText = stem.slice(start, end).trim();
-    
-    // Extract [N] marks from end
-    const marksMatch = subText.match(/\[(\d+)\]\s*$/m);
-    const marks = marksMatch ? parseInt(marksMatch[1]) : 1;
-    subText = subText.replace(/\s*\[\d+\]\s*$/m, "").trim();
 
-    subs.push({ label: markers[i].label, text: subText, marks });
+    // Sum all [N] marks in this sub-part (handles nested marks)
+    let totalMarks = 0;
+    const marksRe = /\[(\d+)\]/g;
+    let mm: RegExpExecArray | null;
+    while ((mm = marksRe.exec(subText)) !== null) {
+      totalMarks += parseInt(mm[1]);
+    }
+    if (totalMarks === 0) totalMarks = 1;
+
+    subs.push({ label: topMarkers[i].label, text: subText, marks: totalMarks });
   }
 
   return { preamble, subs };
