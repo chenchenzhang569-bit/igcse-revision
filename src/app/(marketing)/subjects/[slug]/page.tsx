@@ -1,10 +1,11 @@
-// force-redeploy-v1-mock-exams-tab
+// force-redeploy-v2-math-topics-sme
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PastPapersTab } from "./PastPapersTab";
 import { MockExamsTab } from "./MockExamsTab";
 
 interface Topic { name: string; displayName: string; slug: string; sort: number }
+interface TopicSection { section: string; topics: Topic[] }
 
 const PHYSICS: Topic[] = [
   { name: "Motion, forces and energy", displayName: "Motion, Forces & Energy", slug: "motion-forces-energy", sort: 1 },
@@ -66,6 +67,31 @@ const MATHEMATICS: Topic[] = [
   { name: "Statistics", displayName: "Statistics", slug: "statistics", sort: 9 },
 ];
 
+// SME math section mapping (slug → section name)
+const SME_SECTION_MAP: Record<string, string> = {
+  "types-of-numbers":"Number","compound-measures":"Number","fractions-decimals-percentages":"Number",
+  "introduction-to-fractions":"Number","money-calculations":"Number","operations-with-fractions":"Number",
+  "operations-with-numbers-decimals":"Number","percentages":"Number","powers-roots-standard-form":"Number",
+  "prime-factors-hcf-lcm":"Number","ratio-proportion":"Number","reading-ordering-numbers":"Number",
+  "rounding-estimation-bounds":"Number","simple-compound-interest":"Number","time-currency-conversions":"Number",
+  "using-a-calculator":"Number",
+  "algebraic-roots-indices":"Algebra & Sequences","expanding-factorising-brackets":"Algebra & Sequences",
+  "inequalities":"Algebra & Sequences","introduction-to-algebra":"Algebra & Sequences",
+  "linear-equations":"Algebra & Sequences","rearranging-formulas":"Algebra & Sequences",
+  "sequences":"Algebra & Sequences","simultaneous-equations":"Algebra & Sequences",
+  "further-graphs":"Coordinate Geometry & Graphs","linear-graphs":"Coordinate Geometry & Graphs",
+  "real-life-graphs":"Coordinate Geometry & Graphs",
+  "angles-in-polygons-parallel-lines":"Geometry","basic-angle-properties":"Geometry",
+  "bearings-constructions-scale-drawings":"Geometry","circle-theorems":"Geometry",
+  "symmetry-shapes":"Geometry",
+  "area-perimeter":"Lengths, Areas & Volumes","circles-arcs-sectors":"Lengths, Areas & Volumes",
+  "congruence-similarity":"Lengths, Areas & Volumes","volume-surface-area":"Lengths, Areas & Volumes",
+  "pythagoras":"Pythagoras & Trigonometry","trigonometry":"Pythagoras & Trigonometry",
+  "transformations":"Transformations",
+  "basic-probability":"Probability","set-notation-probability-diagrams":"Probability",
+  "averages-range":"Statistics","scatter-graphs-correlation":"Statistics","statistical-diagrams":"Statistics",
+};
+
 const DATA: Record<string, { board: string; code: string; name: string; icon: string; key: string; topics: Topic[] }> = {
   "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "caie-chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -115,7 +141,7 @@ export default async function SubjectPage({
     );
   }
 
-  const { board, code, name, icon, key, topics } = data;
+  const { board, code, name, icon, key } = data;
 
   // 服务端查 subject_id（Physics/Chemistry/Math is_published=true，anon key 可读）
   let subjectId: string | null = null;
@@ -130,6 +156,49 @@ export default async function SubjectPage({
   } catch (e) {
     console.error("Subject lookup failed:", e);
     subjectId = null;
+  }
+
+  // For maths, fetch topics from DB (SME structure); for others, use hardcoded
+  let topics: Topic[] = data.topics;
+  let topicSections: TopicSection[] = [];
+  if (key === "maths" && subjectId) {
+    try {
+      const supabase = createClient();
+      const { data: dbTopics } = await supabase
+        .from("topics")
+        .select("name, slug, sort_order")
+        .eq("subject_id", subjectId)
+        .order("sort_order");
+      if (dbTopics && dbTopics.length > 0) {
+        // Group by extracting SME topic slug (last segment of DB slug like "caie-mathematics-0580-types-of-numbers")
+        const grouped = new Map<string, Topic[]>();
+        const added = new Set<string>();
+        for (const t of dbTopics) {
+          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
+          const sectionName = SME_SECTION_MAP[smeSlug] || "Other";
+          if (!grouped.has(sectionName)) grouped.set(sectionName, []);
+          if (!added.has(smeSlug)) {
+            added.add(smeSlug);
+            grouped.get(sectionName)!.push({
+              name: sectionName,
+              displayName: t.name,
+              slug: smeSlug,
+              sort: t.sort_order,
+            });
+          }
+        }
+        topicSections = Array.from(grouped.entries()).map(([section, topics]) => ({
+          section,
+          topics,
+        }));
+        // Also provide flat topics for non-section rendering if needed
+        topics = topicSections.flatMap(s => s.topics);
+      }
+    } catch (e) {
+      console.error("Topic DB fetch failed:", e);
+      // Fall back to hardcoded
+      topics = data.topics;
+    }
   }
 
   return (
@@ -155,20 +224,45 @@ export default async function SubjectPage({
       {(!tab || tab === "topics") && (
         <section className="mt-6">
           <h2 className="text-xl font-bold text-primary-900 mb-4">Topics</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {topics.map((topic) => (
-              <Link key={topic.slug} href={`/subjects/${slug}/topics/${topic.slug}`}
-                className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group">
-                <div className="flex items-start gap-3">
-                  <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{topic.sort}</span>
-                  <div>
-                    <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">{topic.displayName}</h3>
-                    <p className="text-sm text-gray-400 mt-0.5">{topic.name}</p>
+          {topicSections.length > 0 ? (
+            // Math: grouped by SME section
+            <div className="space-y-8">
+              {topicSections.map((sec) => (
+                <div key={sec.section}>
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3 border-b pb-1">
+                    {sec.section}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {sec.topics.map((topic) => (
+                      <Link key={topic.slug} href={`/subjects/${slug}/topics/${topic.slug}`}
+                        className="bg-white border border-gray-200 rounded-lg px-4 py-3 hover:shadow-sm hover:border-accent-300 transition-all group flex items-center gap-3">
+                        <span className="text-accent-500 font-bold text-sm shrink-0 w-6">{topic.sort}</span>
+                        <h3 className="font-medium text-sm text-primary-900 group-hover:text-accent-500 transition leading-snug">
+                          {topic.displayName}
+                        </h3>
+                      </Link>
+                    ))}
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            // Other subjects: flat grid
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {topics.map((topic) => (
+                <Link key={topic.slug} href={`/subjects/${slug}/topics/${topic.slug}`}
+                  className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group">
+                  <div className="flex items-start gap-3">
+                    <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{topic.sort}</span>
+                    <div>
+                      <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">{topic.displayName}</h3>
+                      <p className="text-sm text-gray-400 mt-0.5">{topic.name}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -179,7 +273,7 @@ export default async function SubjectPage({
 
       {/* Mock Exams tab */}
       {tab === "mock-exams" && (
-        <MockExamsTab subjectKey={key} subjectSlug={slug} />
+        <MockExamsTab subjectKey={key} subjectSlug={slug} board={board} />
       )}
     </div>
   );

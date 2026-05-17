@@ -100,8 +100,21 @@ export default async function TopicPage({
 }) {
   const { slug, topicSlug } = await params;
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
-  const displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-  const subtopics = getSubtopics(subjectKey, topicSlug);
+  let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const isMaths = subjectKey === "maths" || subjectKey === "mathematics";
+  const subtopics = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
+
+  // Fetch display name from DB for unknown slugs (SME math topics)
+  if (!TOPIC_DISPLAY[topicSlug]) {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://aondldqwwvttwpervrfq.supabase.co"}/rest/v1/topics?slug=ilike.*${encodeURIComponent(topicSlug)}&select=name&limit=1`,
+        { headers: { apikey: "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL", Authorization: "Bearer sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL" } }
+      );
+      const data = await res.json();
+      if (data?.[0]?.name) displayName = data[0].name;
+    } catch {}
+  }
 
   // For Practical Skills topics, fetch and show notes directly (no subtopic listing)
   const isPractical = topicSlug.startsWith("practical-skills");

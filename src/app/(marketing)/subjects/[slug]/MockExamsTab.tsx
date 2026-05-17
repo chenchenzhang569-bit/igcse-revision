@@ -41,9 +41,11 @@ type PaperData = {
 export function MockExamsTab({
   subjectKey,
   subjectSlug,
+  board,
 }: {
   subjectKey: string;
   subjectSlug: string;
+  board: string;
 }) {
   const [sets, setSets] = useState<SetData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +54,12 @@ export function MockExamsTab({
   useEffect(() => {
     (async () => {
       try {
-        // Fetch sets
+        // Fetch sets (filter by both subject AND exam board)
         const { data: setRows, error: setErr } = await supabase
           .from("mock_exam_sets")
           .select("id, set_number, tier, slug")
           .eq("subject", subjectKey)
+          .eq("board", board)
           .order("set_number");
 
         if (setErr) { setError(setErr.message); setLoading(false); return; }
