@@ -1,6 +1,8 @@
+// force-redeploy-v1-mock-exams-tab
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PastPapersTab } from "./PastPapersTab";
+import { MockExamsTab } from "./MockExamsTab";
 
 interface Topic { name: string; displayName: string; slug: string; sort: number }
 
@@ -177,11 +179,7 @@ export default async function SubjectPage({
 
       {/* Mock Exams tab */}
       {tab === "mock-exams" && (
-        <section className="mt-6">
-          <div className="bg-gray-50 border rounded-xl p-8 text-center text-gray-500">
-            <p className="font-medium">Mock exams coming soon</p>
-          </div>
-        </section>
+        <MockExamsTab subjectKey={key} subjectSlug={slug} />
       )}
     </div>
   );
