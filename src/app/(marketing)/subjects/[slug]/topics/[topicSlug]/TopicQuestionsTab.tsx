@@ -58,6 +58,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   const [correctMap, setCorrectMap] = useState<Record<string, boolean>>({});
   // submitted groups
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
+  const [currentIdx, setCurrentIdx] = useState(0);
 
   // Load saved answers from localStorage (browser only)
   useEffect(() => {
@@ -135,7 +136,6 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   })();
 
   const currentQs = byDifficulty[activeDifficulty] || [];
-  const [currentIdx, setCurrentIdx] = useState(0);
   const q = currentQs[currentIdx];
 
   // Compute scores
