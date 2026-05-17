@@ -10,11 +10,12 @@ const supabase = createClient(
   "https://aondldqwwvttwpervrfq.supabase.co",
   "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
 );
-
+// force-redeploy-v3-https-images
 // Split stem text into text segments and image URIs
 function parseStem(stem: string): (string | { type: "img"; src: string })[] {
   const parts: (string | { type: "img"; src: string })[] = [];
-  const regex = /!\[.*?\]\((data:image\/[^)]+)\)/g;
+  // Match both data: URIs and regular https:// URLs inside ![alt](url)
+  const regex = /!\[.*?\]\(((?:data:image\/|https?:\/\/)[^)]+)\)/g;
   let lastIdx = 0;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(stem)) !== null) {
