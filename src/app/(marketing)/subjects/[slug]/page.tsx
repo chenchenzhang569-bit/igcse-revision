@@ -69,28 +69,40 @@ const MATHEMATICS: Topic[] = [
 
 // SME math section mapping (slug → section name)
 const SME_SECTION_MAP: Record<string, string> = {
-  "types-of-numbers":"Number","compound-measures":"Number","fractions-decimals-percentages":"Number",
+  "types-of-numbers":"Number","compound-measures":"Number","fractions-decimals-and-percentages":"Number",
   "introduction-to-fractions":"Number","money-calculations":"Number","operations-with-fractions":"Number",
-  "operations-with-numbers-decimals":"Number","percentages":"Number","powers-roots-standard-form":"Number",
-  "prime-factors-hcf-lcm":"Number","ratio-proportion":"Number","reading-ordering-numbers":"Number",
-  "rounding-estimation-bounds":"Number","simple-compound-interest":"Number","time-currency-conversions":"Number",
+  "operations-with-numbers-and-decimals":"Number","percentages":"Number","powers-roots-and-standard-form":"Number",
+  "prime-factors-hcf-and-lcm":"Number","ratio-and-proportion":"Number","reading-and-ordering-numbers":"Number",
+  "rounding-estimation-and-bounds":"Number","simple-and-compound-interest":"Number","time-currency-and-conversions":"Number",
   "using-a-calculator":"Number",
-  "algebraic-roots-indices":"Algebra & Sequences","expanding-factorising-brackets":"Algebra & Sequences",
+  "algebraic-roots-and-indices":"Algebra & Sequences","expanding-and-factorising-brackets":"Algebra & Sequences",
   "inequalities":"Algebra & Sequences","introduction-to-algebra":"Algebra & Sequences",
   "linear-equations":"Algebra & Sequences","rearranging-formulas":"Algebra & Sequences",
   "sequences":"Algebra & Sequences","simultaneous-equations":"Algebra & Sequences",
   "further-graphs":"Coordinate Geometry & Graphs","linear-graphs":"Coordinate Geometry & Graphs",
   "real-life-graphs":"Coordinate Geometry & Graphs",
-  "angles-in-polygons-parallel-lines":"Geometry","basic-angle-properties":"Geometry",
-  "bearings-constructions-scale-drawings":"Geometry","circle-theorems":"Geometry",
-  "symmetry-shapes":"Geometry",
-  "area-perimeter":"Lengths, Areas & Volumes","circles-arcs-sectors":"Lengths, Areas & Volumes",
-  "congruence-similarity":"Lengths, Areas & Volumes","volume-surface-area":"Lengths, Areas & Volumes",
+  "angles-in-polygons-and-parallel-lines":"Geometry","basic-angle-properties":"Geometry",
+  "bearings-constructions-and-scale-drawings":"Geometry","circle-theorems":"Geometry",
+  "symmetry-and-shapes":"Geometry",
+  "area-and-perimeter":"Lengths, Areas & Volumes","circles-arcs-and-sectors":"Lengths, Areas & Volumes",
+  "congruence-and-similarity":"Lengths, Areas & Volumes","volume-and-surface-area":"Lengths, Areas & Volumes",
   "pythagoras":"Pythagoras & Trigonometry","trigonometry":"Pythagoras & Trigonometry",
   "transformations":"Transformations",
-  "basic-probability":"Probability","set-notation-probability-diagrams":"Probability",
-  "averages-range":"Statistics","scatter-graphs-correlation":"Statistics","statistical-diagrams":"Statistics",
+  "basic-probability":"Probability","set-notation-and-probability-diagrams":"Probability",
+  "averages-and-range":"Statistics","scatter-graphs-and-correlation":"Statistics","statistical-diagrams":"Statistics",
 };
+
+const SME_SECTION_ORDER = [
+  "Number",
+  "Algebra & Sequences",
+  "Coordinate Geometry & Graphs",
+  "Geometry",
+  "Lengths, Areas & Volumes",
+  "Pythagoras & Trigonometry",
+  "Transformations",
+  "Probability",
+  "Statistics",
+];
 
 const DATA: Record<string, { board: string; code: string; name: string; icon: string; key: string; topics: Topic[] }> = {
   "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
@@ -225,26 +237,27 @@ export default async function SubjectPage({
         <section className="mt-6">
           <h2 className="text-xl font-bold text-primary-900 mb-4">Topics</h2>
           {topicSections.length > 0 ? (
-            // Math: grouped by SME section
-            <div className="space-y-8">
-              {topicSections.map((sec) => (
-                <div key={sec.section}>
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3 border-b pb-1">
-                    {sec.section}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {sec.topics.map((topic) => (
-                      <Link key={topic.slug} href={`/subjects/${slug}/topics/${topic.slug}`}
-                        className="bg-white border border-gray-200 rounded-lg px-4 py-3 hover:shadow-sm hover:border-accent-300 transition-all group flex items-center gap-3">
-                        <span className="text-accent-500 font-bold text-sm shrink-0 w-6">{topic.sort}</span>
-                        <h3 className="font-medium text-sm text-primary-900 group-hover:text-accent-500 transition leading-snug">
-                          {topic.displayName}
-                        </h3>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            // Math: 9 section cards → click to section page
+            <div className="space-y-3">
+              {(SME_SECTION_ORDER.map(secName => {
+                const sec = topicSections.find(s => s.section === secName);
+                if (!sec) return null;
+                const sectionSlug = secName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+                return (
+                  <Link key={secName}
+                    href={`/subjects/${slug}/sections/${sectionSlug}`}
+                    className="bg-white border rounded-xl p-5 hover:shadow-md hover:border-primary-300 transition-all group flex items-center justify-between"
+                  >
+                    <div>
+                      <h3 className="font-semibold text-primary-900 group-hover:text-primary-600 transition text-lg">
+                        {secName}
+                      </h3>
+                      <p className="text-sm text-gray-400 mt-0.5">{sec.topics.length} topics</p>
+                    </div>
+                    <span className="text-gray-300 group-hover:text-primary-500 text-xl transition">→</span>
+                  </Link>
+                );
+              }))}
             </div>
           ) : (
             // Other subjects: flat grid
