@@ -1,6 +1,6 @@
 "use client";
 
-// force-redeploy-v4-inline-svg
+// force-redeploy-v5-label-bar
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -266,6 +266,16 @@ export default function MockExamPaperPage() {
                         }
                         return <img key={pi} src={src} alt="diagram" className="my-3 max-w-full rounded-lg border" />;
                       })()
+                    )}
+                    {/* Diagram label bar: A/B/C/D labels when options are single letters */}
+                    {q.options && q.options.length >= 2 && q.options.every((o: string) => o.length === 1) && parseStem(q.stem).some(p => typeof p !== "string") && (
+                      <div className="flex justify-around mt-2 gap-1">
+                        {q.options.map((opt: string, oi: number) => (
+                          <span key={oi} className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded">
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
