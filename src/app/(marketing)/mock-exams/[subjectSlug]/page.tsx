@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
+// force-redeploy-v2-maths
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
