@@ -1,6 +1,6 @@
 "use client";
 
-// force-redeploy-v9-structured-grading
+// force-redeploy-v10-table-empty-header
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -16,9 +16,9 @@ const supabase = createClient(
 function mdTableToHtml(md: string): string | null {
   const lines = md.trim().split('\n');
   if (lines.length < 2) return null;
-  if (!lines[0].startsWith('|') || !lines[1].match(/^\|[\s\-:|]+\|$/)) return null;
+  if (!lines[0].startsWith('|') || !lines[1].match(/^\|[\s\-:|\|]+\|$/)) return null;
   
-  const headers = lines[0].split('|').slice(1, -1).map(h => h.trim());
+  let headers = lines[0].split('|').slice(1, -1).map(h => h.trim());
   const align: string[] = [];
   lines[1].split('|').slice(1, -1).forEach(a => {
     const t = a.trim();
@@ -27,15 +27,22 @@ function mdTableToHtml(md: string): string | null {
     else align.push('left');
   });
   
+  // When all headers are empty, use first data row as headers
+  let bodyStart = 2;
+  if (headers.every(h => h === '') && lines.length > 2) {
+    headers = lines[2].split('|').slice(1, -1).map(h => h.trim());
+    bodyStart = 3;
+  }
+  
   let html = '<table class="my-3 w-full text-xs border-collapse" style="table-layout:auto"><thead><tr class="bg-gray-100" style="background:#f3f4f6">';
   headers.forEach((h, i) => {
     html += `<th style="border:1px solid #d1d5db;padding:4px 8px;text-align:${align[i] || 'left'}">${h}</th>`;
   });
   html += '</tr></thead><tbody>';
   
-  for (let i = 2; i < lines.length; i++) {
+  for (let i = bodyStart; i < lines.length; i++) {
     const cells = lines[i].split('|').slice(1, -1);
-    const isOdd = (i - 2) % 2 === 1;
+    const isOdd = (i - bodyStart) % 2 === 1;
     const bg = isOdd ? '#f9fafb' : '#ffffff';
     html += `<tr style="background:${bg}">`;
     cells.forEach((c) => {
