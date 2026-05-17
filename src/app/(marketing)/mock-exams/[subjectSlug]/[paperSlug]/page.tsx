@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// force-redeploy-v2-svg-render
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -9,6 +10,25 @@ const supabase = createClient(
   "https://aondldqwwvttwpervrfq.supabase.co",
   "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
 );
+
+// Split stem text into text segments and image URIs
+function parseStem(stem: string): (string | { type: "img"; src: string })[] {
+  const parts: (string | { type: "img"; src: string })[] = [];
+  const regex = /!\[.*?\]\((data:image\/[^)]+)\)/g;
+  let lastIdx = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(stem)) !== null) {
+    if (match.index > lastIdx) {
+      parts.push(stem.slice(lastIdx, match.index));
+    }
+    parts.push({ type: "img", src: match[1] });
+    lastIdx = match.index + match[0].length;
+  }
+  if (lastIdx < stem.length) {
+    parts.push(stem.slice(lastIdx));
+  }
+  return parts;
+}
 
 const SUBJECT_MAP: Record<string, string> = {
   "caie-physics-0625": "Physics",
@@ -222,7 +242,13 @@ export default function MockExamPaperPage() {
                     <span className="text-xs text-gray-400">{q.marks} mark{q.marks > 1 ? "s" : ""}</span>
                   </div>
                   <div className="text-gray-800 text-sm whitespace-pre-wrap">
-                    {q.stem}
+                    {parseStem(q.stem).map((part, pi) =>
+                      typeof part === "string" ? (
+                        <span key={pi}>{part}</span>
+                      ) : (
+                        <img key={pi} src={part.src} alt="table" className="my-3 max-w-full rounded-lg border" />
+                      )
+                    )}
                   </div>
                 </div>
 
@@ -298,7 +324,15 @@ export default function MockExamPaperPage() {
                   </span>
                   <span className="text-xs text-gray-400">{q.marks} marks</span>
                 </div>
-                <div className="text-gray-800 text-sm whitespace-pre-wrap mb-4">{q.stem}</div>
+                <div className="text-gray-800 text-sm whitespace-pre-wrap mb-4">
+                  {parseStem(q.stem).map((part, pi) =>
+                    typeof part === "string" ? (
+                      <span key={pi}>{part}</span>
+                    ) : (
+                      <img key={pi} src={part.src} alt="table" className="my-3 max-w-full rounded-lg border" />
+                    )
+                  )}
+                </div>
                 {q.explanation && (
                   <details className="group">
                     <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
