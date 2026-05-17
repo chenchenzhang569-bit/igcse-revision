@@ -117,15 +117,50 @@ function mdTableToHtml(md: string): string | null {
   return html;
 }
 
+function findTables(stem: string): { start: number; end: number; html: string }[] {
+  const tables: { start: number; end: number; html: string }[] = [];
+  const lines = stem.split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+    // A table starts with | ... | and the next line is |---...|
+    if (trimmed.startsWith("|") && trimmed.endsWith("|") &&
+        i + 1 < lines.length && /^\|[\s\-:|]+\|$/.test(lines[i + 1].trim())) {
+      // Found table header + separator. Collect all consecutive pipe rows.
+      const tableLines: string[] = [lines[i]];
+      let endIdx = i + 1;
+      tableLines.push(lines[i + 1]); // separator
+      let j = i + 2;
+      while (j < lines.length) {
+        const t = lines[j].trim();
+        if (t.startsWith("|") && t.endsWith("|")) {
+          tableLines.push(lines[j]);
+          endIdx = j + 1;
+          j++;
+        } else {
+          break;
+        }
+      }
+      const md = tableLines.join("\n");
+      const html = mdTableToHtml(md);
+      if (html) {
+        // Find start position in original stem
+        const start = stem.indexOf(lines[i].trim());
+        const end = start + stem.slice(start).split("\n").slice(0, tableLines.length).join("\n").length;
+        tables.push({ start, end, html });
+      }
+      i = endIdx;
+    } else {
+      i++;
+    }
+  }
+  return tables;
+}
+
 function parseStemIntoParts(stem: string): StemPart[] {
   const parts: StemPart[] = [];
-  const tableRegex = /(?:\|.+\|\n)+\|[\s\-:|\|]+\|\n(?:\|.+\|\n?)+/g;
-  const tables: { start: number; end: number; html: string }[] = [];
-  let tm: RegExpExecArray | null;
-  while ((tm = tableRegex.exec(stem)) !== null) {
-    const html = mdTableToHtml(tm[0]);
-    if (html) tables.push({ start: tm.index, end: tm.index + tm[0].length, html });
-  }
+  const tables = findTables(stem);
+
   function parseImages(text: string) {
     const imgRegex = /!\[.*?\]\(((?:data:image\/|https?:\/\/)[^)]+)\)/g;
     let li = 0;
@@ -137,6 +172,7 @@ function parseStemIntoParts(stem: string): StemPart[] {
     }
     if (li < text.length) parts.push(text.slice(li));
   }
+
   let cursor = 0;
   for (const t of tables) {
     parseImages(stem.slice(cursor, t.start));

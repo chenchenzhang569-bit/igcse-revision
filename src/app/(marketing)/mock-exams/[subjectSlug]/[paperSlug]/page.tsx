@@ -1,6 +1,6 @@
 "use client";
 
-// force-redeploy-v10-table-empty-header
+// force-redeploy-v11-table-parser-rewrite
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -56,17 +56,41 @@ function mdTableToHtml(md: string): string | null {
 
 type StemPart = string | { type: "img"; src: string } | { type: "table"; html: string };
 
+function findTables(stem: string): { start: number; end: number; html: string }[] {
+  const tables: { start: number; end: number; html: string }[] = [];
+  const lines = stem.split('\n');
+  let i = 0;
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+    if (trimmed.startsWith('|') && trimmed.endsWith('|') &&
+        i + 1 < lines.length && /^\|[\s\-:|]+\|$/.test(lines[i + 1].trim())) {
+      const tableLines = [lines[i]];
+      let endIdx = i + 1;
+      tableLines.push(lines[i + 1]);
+      let j = i + 2;
+      while (j < lines.length) {
+        const t = lines[j].trim();
+        if (t.startsWith('|') && t.endsWith('|')) { tableLines.push(lines[j]); endIdx = j + 1; j++; }
+        else break;
+      }
+      const md = tableLines.join('\n');
+      const html = mdTableToHtml(md);
+      if (html) {
+        const start = stem.indexOf(lines[i].trim());
+        const end = start + stem.slice(start).split('\n').slice(0, tableLines.length).join('\n').length;
+        tables.push({ start, end, html });
+      }
+      i = endIdx;
+    } else { i++; }
+  }
+  return tables;
+}
+
 function parseStem(stem: string): StemPart[] {
   const parts: StemPart[] = [];
   
   // Extract markdown tables first
-  const tableRegex = /(?:\|.+\|\n)+\|[\s\-:|]+\|\n(?:\|.+\|\n?)+/g;
-  const tables: { start: number; end: number; html: string }[] = [];
-  let tm: RegExpExecArray | null;
-  while ((tm = tableRegex.exec(stem)) !== null) {
-    const html = mdTableToHtml(tm[0]);
-    if (html) tables.push({ start: tm.index, end: tm.index + tm[0].length, html });
-  }
+  const tables = findTables(stem);
   
   // Helper to parse images in a text segment
   function parseImages(text: string) {
