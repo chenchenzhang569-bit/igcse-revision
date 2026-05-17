@@ -1,6 +1,6 @@
 "use client";
 
-// force-redeploy-v14-drawing-pad
+// force-redeploy-v15-ocr-handwriting
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";

@@ -255,21 +255,24 @@ function SymbolToolbar({ onInsert }: { onInsert: (symbol: string) => void }) {
 }
 
 // ─── Drawing Pad ────────────────────────────────────────────────────────────
-function DrawingPad({ onInsert, onClose }: { onInsert: (dataUri: string) => void; onClose: () => void }) {
+function DrawingPad({ onInsertImage, onInsertText, onClose }: {
+  onInsertImage: (dataUri: string) => void;
+  onInsertText: (text: string) => void;
+  onClose: () => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("#1e293b");
   const [lineWidth, setLineWidth] = useState(2);
-  const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const [ocrBusy, setOcrBusy] = useState(false);
 
-  // Start drawing
   const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const clientX = "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
     const x = ((clientX - rect.left) / rect.width) * canvas.width;
     const y = ((clientY - rect.top) / rect.height) * canvas.height;
     const ctx = canvas.getContext("2d");
@@ -280,19 +283,17 @@ function DrawingPad({ onInsert, onClose }: { onInsert: (dataUri: string) => void
     ctx.lineWidth = lineWidth;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    lastPos.current = { x, y };
     setIsDrawing(true);
   };
 
-  // Draw
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing) return;
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const clientX = "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
     const x = ((clientX - rect.left) / rect.width) * canvas.width;
     const y = ((clientY - rect.top) / rect.height) * canvas.height;
     const ctx = canvas.getContext("2d");
@@ -301,71 +302,82 @@ function DrawingPad({ onInsert, onClose }: { onInsert: (dataUri: string) => void
     ctx.stroke();
   };
 
-  const endDraw = () => {
-    setIsDrawing(false);
-    lastPos.current = null;
-  };
-
+  const endDraw = () => setIsDrawing(false);
+  
   const clear = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const handleInsert = () => {
+  const handleInsertImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dataUri = canvas.toDataURL("image/png");
-    onInsert(dataUri);
+    onInsertImage(canvas.toDataURL("image/png"));
     onClose();
   };
 
-  const COLORS = ["#1e293b", "#dc2626", "#2563eb", "#16a34a", "#9333ea"];
+  const handleRecognize = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setOcrBusy(true);
+    try {
+      const Tesseract = (await import("tesseract.js")).default;
+      const { data } = await Tesseract.recognize(canvas, "eng", {
+        logger: () => {},
+      });
+      const text = data.text.trim();
+      if (text) {
+        onInsertText(text);
+        onClose();
+      }
+    } catch (e) {
+      console.error("OCR failed:", e);
+    } finally {
+      setOcrBusy(false);
+    }
+  };
+
+  const COLORS = ["#1e293b", "#dc2626", "#2563eb", "#16a34a"];
   const WIDTHS = [1, 2, 4, 6];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50">
-          <div className="flex items-center gap-2">
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-1">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-[98vw] sm:max-w-lg overflow-hidden">
+        {/* Toolbar - mobile: wrap */}
+        <div className="flex flex-wrap items-center justify-between gap-1 px-2 py-1.5 border-b bg-gray-50">
+          <div className="flex items-center gap-1">
             {COLORS.map((c) => (
               <button key={c} onClick={() => setColor(c)}
-                className={`w-6 h-6 rounded-full border-2 transition ${color === c ? "border-gray-800 scale-110" : "border-gray-300"}`}
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 transition shrink-0 ${color === c ? "border-gray-800 scale-110" : "border-gray-300"}`}
                 style={{ background: c }} />
             ))}
-            <div className="w-px h-5 bg-gray-300 mx-1" />
+            <span className="text-gray-300 text-xs hidden sm:inline">|</span>
             {WIDTHS.map((w) => (
               <button key={w} onClick={() => setLineWidth(w)}
-                className={`w-7 h-7 flex items-center justify-center rounded text-xs font-bold transition ${lineWidth === w ? "bg-gray-200" : "hover:bg-gray-100"}`}>
-                <div className="rounded-full bg-gray-700" style={{ width: w * 2 + 4, height: w * 2 + 4 }} />
+                className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded text-xs shrink-0 ${lineWidth === w ? "bg-gray-200 ring-1 ring-gray-400" : "hover:bg-gray-100"}`}>
+                <div className="rounded-full bg-gray-700" style={{ width: w + 3, height: w + 3 }} />
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={clear} className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Clear</button>
-            <button onClick={handleInsert} className="text-xs px-3 py-1.5 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition font-medium">Insert</button>
-            <button onClick={onClose} className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700">✕</button>
+          <div className="flex items-center gap-1">
+            <button onClick={clear} className="text-[11px] px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition shrink-0">Clear</button>
+            <button onClick={handleInsertImage} className="text-[11px] px-2 py-1 bg-primary-600 text-white hover:bg-primary-700 rounded transition font-medium shrink-0">Insert</button>
+            <button onClick={handleRecognize} disabled={ocrBusy}
+              className="text-[11px] px-2 py-1 bg-amber-500 text-white hover:bg-amber-600 rounded transition font-medium shrink-0 disabled:opacity-60">
+              {ocrBusy ? "..." : "OCR→"}
+            </button>
+            <button onClick={onClose} className="text-[11px] px-2 py-1 text-gray-400 hover:text-gray-600 shrink-0">✕</button>
           </div>
         </div>
         {/* Canvas */}
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={360}
+        <canvas ref={canvasRef} width={600} height={320}
           className="w-full touch-none bg-white cursor-crosshair"
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={endDraw}
-          onMouseLeave={endDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={endDraw}
-        />
-        <div className="px-3 py-2 text-[10px] text-gray-400 text-center border-t">
-          Draw diagrams, graphs, or equations · Insert as image in your answer
+          onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+          onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw} />
+        <div className="px-2 py-1.5 text-[10px] text-gray-400 text-center border-t">
+          <span className="hidden sm:inline">Draw diagrams or write text · </span>
+          <b>Insert</b> = as image &nbsp;|&nbsp; <b>OCR→</b> = recognize to text
         </div>
       </div>
     </div>
@@ -380,6 +392,7 @@ function AnswerInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showDrawing, setShowDrawing] = useState(false);
+  const [drawings, setDrawings] = useState<string[]>([]);
 
   const insertSymbol = useCallback((symbol: string) => {
     const el = textareaRef.current;
@@ -393,18 +406,25 @@ function AnswerInput({
     });
   }, [value, onChange]);
 
-  const insertDrawing = useCallback((dataUri: string) => {
+  const insertText = useCallback((text: string) => {
     const el = textareaRef.current;
-    const imgMd = `![drawing](${dataUri})`;
-    if (!el) return onChange(value + imgMd);
+    if (!el) return onChange(value + text);
     const start = el.selectionStart, end = el.selectionEnd;
-    const newVal = value.slice(0, start) + imgMd + value.slice(end);
+    const newVal = value.slice(0, start) + text + value.slice(end);
     onChange(newVal);
     requestAnimationFrame(() => {
       el.focus();
-      el.setSelectionRange(start + imgMd.length, start + imgMd.length);
+      el.setSelectionRange(start + text.length, start + text.length);
     });
   }, [value, onChange]);
+
+  const addDrawing = useCallback((dataUri: string) => {
+    setDrawings((p) => [...p, dataUri]);
+  }, []);
+
+  const removeDrawing = (idx: number) => {
+    setDrawings((p) => p.filter((_, i) => i !== idx));
+  };
 
   return (
     <div className="relative">
@@ -414,13 +434,33 @@ function AnswerInput({
       <div className="absolute right-2 top-2 flex items-center gap-0.5">
         <button type="button" onClick={() => setShowDrawing(true)}
           className="flex items-center gap-0.5 px-1.5 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
-          title="Draw diagram">
+          title="Draw diagram or write">
           🖊️
         </button>
         <SymbolToolbar onInsert={insertSymbol} />
       </div>
+
+      {/* Drawing previews */}
+      {drawings.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {drawings.map((d, i) => (
+            <div key={i} className="relative group">
+              <img src={d} alt={`drawing ${i + 1}`} className="max-h-24 rounded border" />
+              <button onClick={() => removeDrawing(i)}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {showDrawing && (
-        <DrawingPad onInsert={insertDrawing} onClose={() => setShowDrawing(false)} />
+        <DrawingPad
+          onInsertImage={addDrawing}
+          onInsertText={insertText}
+          onClose={() => setShowDrawing(false)}
+        />
       )}
     </div>
   );
