@@ -513,9 +513,59 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
-        <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-          <MixedContent text={renderStemWithTables(markdownify(stem))} />
-        </div>
+        {!isMcq && (() => {
+          const subParts = parseSubParts(stem);
+          const hasSubParts = subParts.length > 1;
+          if (hasSubParts) {
+            const firstMarkerIdx = stem.indexOf(`**(${subParts[0].label})**`);
+            const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
+            return (
+              <>
+                {introText && (
+                  <div className="prose prose-sm max-w-none text-gray-800 mb-4">
+                    <MixedContent text={introText} />
+                  </div>
+                )}
+                <div className="space-y-4">
+                  {subParts.map((sp) => {
+                    const subKey = `${q.id}-${sp.label}`;
+                    const subAns = answers[subKey] || "";
+                    return (
+                      <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
+                        <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
+                        {sp.text && (
+                          <div className="prose prose-sm max-w-none text-gray-700 mb-2">
+                            <MixedContent text={sp.text} />
+                          </div>
+                        )}
+                        <MathInput
+                          value={subAns}
+                          onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
+                          onEnter={handleCheck}
+                          disabled={isGraded}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          }
+          // Single part: show stem + single input
+          return (
+            <>
+              <div className="prose prose-sm max-w-none text-gray-800 mb-5">
+                <MixedContent text={renderStemWithTables(markdownify(stem))} />
+              </div>
+              <MathInput
+                value={userAns}
+                onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
+                onEnter={handleCheck}
+                disabled={isGraded}
+              />
+            </>
+          );
+        })()}
 
         {isMcq ? (
           <div className="space-y-2.5">
@@ -544,54 +594,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
               );
             })}
           </div>
-        ) : (() => {
-            const subParts = parseSubParts(stem);
-            const hasSubParts = subParts.length > 1;
-            
-            if (hasSubParts) {
-              // Extract intro text (before first sub-part)
-              const firstMarkerIdx = stem.indexOf(`**(${subParts[0].label})**`);
-              const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
-              
-              return (
-                <div className="space-y-4">
-                  {subParts.map((sp, si) => {
-                    const subKey = `${q.id}-${sp.label}`;
-                    const subAns = answers[subKey] || "";
-                    return (
-                      <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
-                        <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
-                        {sp.text && (
-                          <div className="prose prose-sm max-w-none text-gray-700 mb-2">
-                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>
-                              {renderStemWithTables(markdownify(sp.text))}
-                            </ReactMarkdown>
-                          </div>
-                        )}
-                        <MathInput
-                          value={subAns}
-                          onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
-                          onEnter={handleCheck}
-                          disabled={isGraded}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            }
-            
-            return (
-              <div>
-                <MathInput
-                  value={userAns}
-                  onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
-                  onEnter={handleCheck}
-                  disabled={isGraded}
-                />
-              </div>
-            );
-          })()}
+        ) : null}}
 
         {/* Grade result for this question */}
         {isGraded && (
