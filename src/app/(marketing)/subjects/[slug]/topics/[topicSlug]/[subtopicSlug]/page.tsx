@@ -165,7 +165,8 @@ export default async function SubtopicPage({
           const txt = q.question_text || "";
           // Detect MCQ: A/B/C/D followed by . ) : or space, or (A)/(B)/[A]/[B] format
           let hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
-          const hasTable = txt.includes("|") && txt.includes("---");
+          // Only treat pipe tables with A/B/C/D content as MCQ — pure data tables go to structured
+          const hasTable = txt.includes("|") && txt.includes("---") && /[A-D][.)\s:]/.test(txt);
           // Also check options JSONB column
           if (!hasAbcd && q.options) {
             try {

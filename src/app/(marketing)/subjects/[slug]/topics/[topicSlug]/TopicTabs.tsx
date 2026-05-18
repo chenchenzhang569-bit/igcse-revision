@@ -126,7 +126,7 @@ export function TopicTabs({
   }
 
   function isTableQuestion(text: string): boolean {
-    return text.includes("|") && text.includes("---") && !/^[A-D][.)]/m.test(text);
+    return text.includes("|") && text.includes("---") && /[A-D][.)\s:]/.test(text) && !/^[A-D][.)]/m.test(text);
   }
 
   function parseOptions(q: Question): string[] {
