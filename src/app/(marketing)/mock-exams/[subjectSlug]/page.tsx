@@ -1,14 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 // force-redeploy-v2-maths
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-);
+const supabase = getSupabaseClient();
 
 const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: string }> = {
   "caie-physics-0625": { name: "Physics", icon: "⚛️", dbSubject: "physics" },

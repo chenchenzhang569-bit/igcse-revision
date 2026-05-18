@@ -2,17 +2,14 @@
 
 // force-redeploy-v19-katex-render
 import { useState, useEffect, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import StructuredQuestion from "@/components/StructuredQuestion";
 import "katex/dist/katex.min.css";
 import { fixMathNotationUnicode, renderMath } from "@/lib/math";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-);
+const supabase = getSupabaseClient();
 
 // Parse markdown table to HTML
 function mdTableToHtml(md: string): string | null {

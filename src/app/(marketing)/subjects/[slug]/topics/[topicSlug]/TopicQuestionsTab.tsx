@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import katex from "katex";
 import "katex/dist/katex.min.css";
 import { fixMathNotation } from "@/lib/math";
+import { getSupabaseClient } from "@/lib/supabase-client";
+import { MixedContent } from "@/components/MixedContent";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -203,7 +200,7 @@ function parseSubParts(stem: string): SubPart[] {
 }
 
 export function TopicQuestionsTab({ topicId }: { topicId: string }) {
-  const supabase = useMemo(() => createClient(SUPABASE_URL, SUPABASE_KEY), []);
+  const supabase = useMemo(() => getSupabaseClient(), []);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDifficulty, setActiveDifficulty] = useState<string>("easy");
