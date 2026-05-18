@@ -1,4 +1,4 @@
-// force-redeploy-v21-renderMath
+// force-redeploy-v22-dynamic-import
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";

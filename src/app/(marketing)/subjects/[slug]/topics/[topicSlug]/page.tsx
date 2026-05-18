@@ -1,9 +1,13 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getSubtopics } from "@/lib/subtopic-data";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { TopicQuestionsTab } from "./TopicQuestionsTab";
 import { TopicSearchBox } from "./TopicSearchBox";
+
+const TopicQuestionsTab = dynamic(() => import("./TopicQuestionsTab").then(m => ({ default: m.TopicQuestionsTab })), {
+  ssr: false,
+});
 
 // Subject key lookup from composite slug
 const SLUG_TO_KEY: Record<string, string> = {
