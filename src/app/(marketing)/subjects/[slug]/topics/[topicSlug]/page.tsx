@@ -3,6 +3,7 @@ import { getSubtopics } from "@/lib/subtopic-data";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { TopicQuestionsTab } from "./TopicQuestionsTab";
+import { TopicSearchBox } from "./TopicSearchBox";
 
 // Subject key lookup from composite slug
 const SLUG_TO_KEY: Record<string, string> = {
