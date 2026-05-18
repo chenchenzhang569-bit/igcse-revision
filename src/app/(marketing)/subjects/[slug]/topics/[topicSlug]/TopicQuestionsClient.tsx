@@ -461,7 +461,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                     <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
                     {sp.text && (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
-                        dangerouslySetInnerHTML={{ __html: renderMath(sp.text) }} />
+                        dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
                     )}
                     <MathInput
                       value={subAns}
