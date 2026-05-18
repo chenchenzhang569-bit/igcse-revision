@@ -29,7 +29,6 @@ const SME_SECTION_ORDER = [
   "Statistics",
 ];
 
-// Map composite slug → subject key (same as topic page)
 const SLUG_TO_KEY: Record<string, string> = {
   "caie-physics-0625": "physics",
   "caie-chemistry-0620": "chemistry",
@@ -49,6 +48,12 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
 };
 
+interface SearchResult {
+  label: string;
+  href: string;
+  subtitle?: string;
+}
+
 export function SubjectSearchBox({
   topicSections,
   topics,
@@ -64,29 +69,49 @@ export function SubjectSearchBox({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   const subtopicData = SUBTOPIC_DATA[subjectKey] || {};
 
-  // Build flat subtopic list for search: { subtopic, topicSlug, topicDisplay }
-  const allSubtopics = useMemo(() => {
-    if (isMath) return [];
-    const result: { subtopic: SubtopicDef; topicSlug: string; topicDisplay: string }[] = [];
+  const matchedResults = useMemo((): SearchResult[] => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+
+    if (isMath) {
+      // Math: search SME topics across all sections
+      const results: SearchResult[] = [];
+      for (const sec of topicSections) {
+        for (const t of sec.topics) {
+          if (
+            t.name.toLowerCase().includes(q) ||
+            t.displayName.toLowerCase().includes(q) ||
+            t.slug.toLowerCase().includes(q)
+          ) {
+            results.push({
+              label: t.displayName,
+              href: `/subjects/${slug}/topics/${t.slug}`,
+              subtitle: sec.section,
+            });
+          }
+        }
+      }
+      return results.slice(0, 8);
+    }
+
+    // Non-math: search subtopics
+    const results: SearchResult[] = [];
     for (const [topicSlug, subs] of Object.entries(subtopicData)) {
       for (const st of subs) {
-        result.push({ subtopic: st, topicSlug, topicDisplay: topicSlug.replace(/-/g, " ") });
+        if (
+          st.name.toLowerCase().includes(q) ||
+          st.displayName.toLowerCase().includes(q)
+        ) {
+          results.push({
+            label: st.displayName,
+            href: `/subjects/${slug}/topics/${topicSlug}/${st.slug}`,
+            subtitle: st.pmtCode,
+          });
+        }
       }
     }
-    return result;
-  }, [subtopicData, isMath]);
-
-  // Search results: subtopics matching query
-  const matchedSubtopics = useMemo(() => {
-    if (!query.trim() || isMath) return [];
-    const q = query.toLowerCase();
-    return allSubtopics.filter(
-      (s) =>
-        s.subtopic.name.toLowerCase().includes(q) ||
-        s.subtopic.displayName.toLowerCase().includes(q) ||
-        s.topicSlug.toLowerCase().includes(q)
-    ).slice(0, 8);
-  }, [query, allSubtopics, isMath]);
+    return results.slice(0, 8);
+  }, [query, topicSections, subtopicData, isMath, slug]);
 
   const filteredSections = useMemo(() => {
     if (!query.trim()) return topicSections;
@@ -122,6 +147,8 @@ export function SubjectSearchBox({
     );
   }, [query, topics, isMath]);
 
+  const showDropdown = matchedResults.length > 0;
+
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
@@ -134,19 +161,19 @@ export function SubjectSearchBox({
             placeholder="🔍 Search topics..."
             className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-300 w-56 sm:w-64"
           />
-          {/* Subtopic search dropdown */}
-          {query && matchedSubtopics.length > 0 && (
+          {showDropdown && (
             <div className="absolute top-full mt-1 right-0 z-50 bg-white border rounded-lg shadow-lg w-72 max-h-64 overflow-y-auto">
-              {matchedSubtopics.map((s) => (
+              {matchedResults.map((r, i) => (
                 <Link
-                  key={`${s.topicSlug}-${s.subtopic.slug}`}
-                  href={`/subjects/${slug}/topics/${s.topicSlug}/${s.subtopic.slug}`}
+                  key={i}
+                  href={r.href}
                   onClick={() => setQuery("")}
                   className="block px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
                 >
-                  <span className="text-primary-600 font-medium">{s.subtopic.pmtCode}</span>{" "}
-                  <span className="text-gray-700">{s.subtopic.displayName}</span>
-                  <span className="text-gray-400 text-xs ml-2">in {s.topicDisplay}</span>
+                  <span className="text-gray-700">{r.label}</span>
+                  {r.subtitle && (
+                    <span className="text-gray-400 text-xs ml-2">· {r.subtitle}</span>
+                  )}
                 </Link>
               ))}
             </div>
@@ -183,7 +210,7 @@ export function SubjectSearchBox({
               </Link>
             );
           })}
-          {filteredSections.length === 0 && query && (
+          {filteredSections.length === 0 && query && matchedResults.length === 0 && (
             <div className="bg-gray-50 border rounded-xl p-8 text-center text-gray-400">
               No topics match &quot;{query}&quot;
             </div>
@@ -214,7 +241,7 @@ export function SubjectSearchBox({
               </Link>
             ))}
           </div>
-          {filteredTopics.length === 0 && query && matchedSubtopics.length === 0 && (
+          {filteredTopics.length === 0 && query && matchedResults.length === 0 && (
             <div className="bg-gray-50 border rounded-xl p-8 text-center text-gray-400">
               No topics match &quot;{query}&quot;
             </div>
