@@ -44,6 +44,13 @@ function normalizeAnswer(text: string): string {
     .trim();
 }
 
+function markdownify(text: string): string {
+  // Convert <img> HTML tags to markdown ![]() syntax so ReactMarkdown renders them
+  return text.replace(/<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?\s*\/?>/g, (_, src, alt) => {
+    return `![${alt || "diagram"}](${src})`;
+  });
+}
+
 export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   const supabase = useMemo(() => createClient(SUPABASE_URL, SUPABASE_KEY), []);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
@@ -339,7 +346,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
         <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{stem}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdownify(stem)}</ReactMarkdown>
         </div>
 
         {isMcq ? (
@@ -391,14 +398,14 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{q.explanation}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdownify(q.explanation)}</ReactMarkdown>
               </div>
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{q.explanation}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdownify(q.explanation)}</ReactMarkdown>
                 </div>
               </details>
             )}
