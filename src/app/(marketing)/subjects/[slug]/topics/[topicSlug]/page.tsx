@@ -1,13 +1,10 @@
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import TopicQuestionsClient from "./TopicQuestionsClient";
 import { getSubtopics } from "@/lib/subtopic-data";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { TopicSearchBox } from "./TopicSearchBox";
 
-const TopicQuestionsTab = dynamic(() => import("./TopicQuestionsTab").then(m => ({ default: m.TopicQuestionsTab })), {
-  ssr: false,
-});
 
 // Subject key lookup from composite slug
 const SLUG_TO_KEY: Record<string, string> = {
@@ -220,7 +217,7 @@ export default async function TopicPage({
 
       {/* Questions tab */}
       {activeTab === "questions" && topicId && (
-        <TopicQuestionsTab topicId={topicId} preloadedQuestions={questions} />
+        <TopicQuestionsClient topicId={topicId} preloadedQuestions={questions} />
       )}
       {activeTab === "questions" && !topicId && (
         <div className="mt-6 text-center py-20 text-gray-400">
