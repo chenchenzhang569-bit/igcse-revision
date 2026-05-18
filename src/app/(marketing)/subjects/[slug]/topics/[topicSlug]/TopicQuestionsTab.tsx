@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
@@ -455,7 +456,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
         <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-          <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>{renderStemWithTables(markdownify(stem))}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeRaw, rehypeKatex]} urlTransform={(url) => url}>{renderStemWithTables(markdownify(stem))}</ReactMarkdown>
         </div>
 
         {isMcq ? (
@@ -545,14 +546,14 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700">
-                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeRaw, rehypeKatex]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
               </div>
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeRaw, rehypeKatex]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
                 </div>
               </details>
             )}
