@@ -138,7 +138,7 @@ function parseSubParts(stem: string): SubPart[] {
   return parts;
 }
 
-export function TopicQuestionsTab({ topicId }: { topicId: string }) {
+export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: string; preloadedQuestions?: any[] }) {
   const supabase = useMemo(() => getSupabaseClient(), []);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,6 +185,11 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   }, [answers, graded, correctMap, submitted, activeDifficulty, storageKey]);
 
   useEffect(() => {
+    if (preloadedQuestions && preloadedQuestions.length > 0) {
+      setAllQuestions(preloadedQuestions);
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
         const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -201,7 +206,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       }
       setLoading(false);
     })();
-  }, [topicId]);
+  }, [topicId, preloadedQuestions]);
 
   if (loading) return <p className="text-gray-400 py-8 text-center">Loading questions...</p>;
   if (allQuestions.length === 0) {

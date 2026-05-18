@@ -89,10 +89,11 @@ export default async function TopicPage({
   // Fetch topic ID (needed for notes and questions)
   let topicId: string | null = null;
   let notes: any[] = [];
+  let questions: any[] = [];
   try {
     const tRes = await fetch(
       `${API}/topics?slug=ilike.*${encodeURIComponent(topicSlug)}&select=id,name&limit=1`,
-      { headers: baseHeaders }
+      { headers: baseHeaders, cache: "no-store" }
     );
     const topics = await tRes.json();
     if (topics?.[0]?.id) {
@@ -103,9 +104,15 @@ export default async function TopicPage({
       // Fetch notes
       const nRes = await fetch(
         `${API}/notes?select=*&topic_id=eq.${topicId}&order=sort_order&limit=50`,
-        { headers: baseHeaders }
+        { headers: baseHeaders, cache: "no-store" }
       );
       notes = await nRes.json();
+      // Fetch questions
+      const qRes = await fetch(
+        `${API}/questions?select=*&topic_id=eq.${topicId}&order=sort_order`,
+        { headers: baseHeaders, cache: "no-store" }
+      );
+      questions = await qRes.json();
     }
   } catch (e) {
     console.error("DB fetch failed:", e);
@@ -209,7 +216,7 @@ export default async function TopicPage({
 
       {/* Questions tab */}
       {activeTab === "questions" && topicId && (
-        <TopicQuestionsTab topicId={topicId} />
+        <TopicQuestionsTab topicId={topicId} preloadedQuestions={questions} />
       )}
       {activeTab === "questions" && !topicId && (
         <div className="mt-6 text-center py-20 text-gray-400">
