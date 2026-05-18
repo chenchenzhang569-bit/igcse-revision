@@ -182,16 +182,18 @@ function renderStemWithTables(stem: string): string {
 // ─── Sub-part parsing ───
 interface SubPart { label: string; text: string; }
 function parseSubParts(stem: string): SubPart[] {
-  // Match **(a)** or (a) patterns
+  // Match: **(i)**, (i), i), i. — all common sub-question markers at line start
+  // Groups: 1=bold, 2=parenthesized, 3=bare letter+dot/paren
   const parts: SubPart[] = [];
-  const regex = /\*\*\(([a-z]+)\)\*\*\s*/g;
+  const regex = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])\s*/gim;
   let lastIdx = 0;
   let m: RegExpExecArray | null;
   while ((m = regex.exec(stem)) !== null) {
+    const label = (m[1] || m[2] || m[3]).trim();
     if (parts.length > 0) {
       parts[parts.length - 1].text = stem.slice(lastIdx, m.index).trim();
     }
-    parts.push({ label: m[1], text: "" });
+    parts.push({ label, text: "" });
     lastIdx = m.index + m[0].length;
   }
   if (parts.length > 0) {
@@ -517,7 +519,10 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
           const subParts = parseSubParts(stem);
           const hasSubParts = subParts.length > 1;
           if (hasSubParts) {
-            const firstMarkerIdx = stem.indexOf(`**(${subParts[0].label})**`);
+            // Find first sub-question marker position (handles **(i)**, (i), i), i.)
+            const markerRe = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])/gim;
+            const firstMatch = markerRe.exec(stem);
+            const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
             const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
             return (
               <>
