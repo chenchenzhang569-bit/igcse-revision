@@ -2,12 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
-import { fixMathNotation } from "@/lib/math";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { MixedContent } from "@/components/MixedContent";
-
-const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
-const SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 interface Question {
   id: string;
@@ -52,63 +48,6 @@ function markdownify(text: string): string {
 }
 
 // Render mixed content: markdown + KaTeX math
-function MixedContent({ text }: { text: string }) {
-  const parts = useMemo(() => {
-    const result: { type: "md" | "math"; content: string; display?: boolean }[] = [];
-    // Fix SME math notation first (^2^ → <sup>2</sup>)
-    const fixedText = fixMathNotation(text);
-    // Match $$...$$ or $...$
-    const regex = /\$\$\s*([\s\S]*?)\s*\$\$|\$([^$\n]+?)\$/g;
-    let lastIdx = 0;
-    let m: RegExpExecArray | null;
-    while ((m = regex.exec(fixedText)) !== null) {
-      if (m.index > lastIdx) {
-        result.push({ type: "md", content: fixedText.slice(lastIdx, m.index) });
-      }
-      const isDisplay = !!m[1];
-      const mathContent = (m[1] || m[2]).trim();
-      try {
-        const html = katex.renderToString(mathContent, { displayMode: isDisplay, throwOnError: false });
-        result.push({ type: "math", content: html, display: isDisplay });
-      } catch {
-        result.push({ type: "md", content: m[0] });
-      }
-      lastIdx = m.index + m[0].length;
-    }
-    if (lastIdx < fixedText.length) {
-      result.push({ type: "md", content: fixedText.slice(lastIdx) });
-    }
-    return result;
-  }, [text]);
-
-  return (
-    <>
-      {parts.map((part, i) =>
-        part.type === "math" ? (
-          <span key={i} dangerouslySetInnerHTML={{ __html: part.content }} />
-        ) : (
-          <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={(url) => url}>
-            {part.content}
-          </ReactMarkdown>
-        )
-      )}
-    </>
-  );
-}
-
-// Legacy: kept for backward compat
-function renderMath(text: string): string {
-  let result = text.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_, math) => {
-    try { return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false }); }
-    catch { return `$$${math}$$`; }
-  });
-  result = result.replace(/\$(.+?)\$/g, (_, math) => {
-    try { return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false }); }
-    catch { return `$${math}$`; }
-  });
-  return result;
-}
-
 // ─── Table Detection & Rendering ───
 function findTables(stem: string): { start: number; end: number; html: string }[] {
   const tables: { start: number; end: number; html: string }[] = [];
@@ -579,7 +518,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
               );
             })}
           </div>
-        ) : null}}
+        ) : null}
 
         {/* Grade result for this question */}
         {isGraded && (
