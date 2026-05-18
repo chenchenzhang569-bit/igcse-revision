@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo } from "react";
+import "katex/dist/katex.min.css";
+import { fixMathNotationUnicode, renderMath } from "@/lib/math";
 
 // ─── Symbol groups ───────────────────────────────────────────────────────────
 const SYMBOL_GROUPS = [
@@ -205,11 +207,8 @@ function StemParts({ stem }: { stem: string }) {
     <>
       {parts.map((part, i) => {
         if (typeof part === "string") {
-          // Check for raw HTML (e.g. pre-rendered tables)
-          if (part.includes("<table")) {
-            return <div key={i} dangerouslySetInnerHTML={{ __html: part }} />;
-          }
-          return <span key={i} className="whitespace-pre-wrap">{part}</span>;
+          const html = renderMath(part);
+          return <span key={i} dangerouslySetInnerHTML={{ __html: html }} className="whitespace-pre-wrap" />;
         }
         if (part.type === "table")
           return <div key={i} dangerouslySetInnerHTML={{ __html: part.html }} />;
@@ -501,7 +500,8 @@ export default function StructuredQuestion({
 }: {
   question: Question; index: number;
 }) {
-  const { preamble, subs } = useMemo(() => parseSubParts(question.stem), [question.stem]);
+  const fixedStem = useMemo(() => fixMathNotationUnicode(question.stem), [question.stem]);
+  const { preamble, subs } = useMemo(() => parseSubParts(fixedStem), [fixedStem]);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showAnswer, setShowAnswer] = useState(false);
@@ -559,11 +559,13 @@ export default function StructuredQuestion({
               marks={sub.marks}
             />
             {/* Per-sub-answer toggle */}
-            {showPerSub[key] && question.explanation && (
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700 whitespace-pre-wrap">
-                {parseModelAnswer(question.explanation)}
-              </div>
-            )}
+            {showPerSub[key] && question.explanation && (() => {
+              const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.explanation)));
+              return (
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700 whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: html }} />
+              );
+            })()}
             {subs.length > 1 && (
               <button onClick={() => setShowPerSub((p) => ({ ...p, [key]: !p[key] }))}
                 className="mt-1 text-xs text-primary-600 hover:text-primary-700">
@@ -596,13 +598,15 @@ export default function StructuredQuestion({
       </div>
 
       {/* Full model answer (single sub-q) */}
-      {showAnswer && subs.length <= 1 && question.explanation && (
-        <div className="px-5 pb-5">
-          <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg text-sm text-gray-800 whitespace-pre-wrap">
-            {parseModelAnswer(question.explanation)}
+      {showAnswer && subs.length <= 1 && question.explanation && (() => {
+        const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.explanation)));
+        return (
+          <div className="px-5 pb-5">
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg text-sm text-gray-800 whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{ __html: html }} />
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

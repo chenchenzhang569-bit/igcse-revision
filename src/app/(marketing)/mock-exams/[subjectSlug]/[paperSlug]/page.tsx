@@ -1,11 +1,13 @@
 "use client";
 
-// force-redeploy-v17-maths-fix
+// force-redeploy-v19-katex-render
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import StructuredQuestion from "@/components/StructuredQuestion";
+import "katex/dist/katex.min.css";
+import { fixMathNotationUnicode, renderMath } from "@/lib/math";
 
 const supabase = createClient(
   "https://aondldqwwvttwpervrfq.supabase.co",
@@ -188,7 +190,9 @@ export default function MockExamPaperPage() {
         if (qs) {
           const parsed = qs.map((q: any) => ({
             ...q,
+            stem: fixMathNotationUnicode(q.stem || ""),
             options: q.options ? (typeof q.options === "string" ? JSON.parse(q.options) : q.options) : null,
+            explanation: q.explanation ? fixMathNotationUnicode(q.explanation) : q.explanation,
           }));
           setQuestions(parsed);
         }
@@ -267,7 +271,7 @@ export default function MockExamPaperPage() {
 
   // Render a stem part
   function renderPart(part: StemPart, key: number) {
-    if (typeof part === "string") return <span key={key}>{part}</span>;
+    if (typeof part === "string") return <span key={key} dangerouslySetInnerHTML={{ __html: renderMath(part) }} className="whitespace-pre-wrap" />;
     if (part.type === "table") {
       return <div key={key} dangerouslySetInnerHTML={{ __html: part.html }} />;
     }
@@ -415,7 +419,7 @@ export default function MockExamPaperPage() {
                 {submitted && q.explanation && (
                   <div className="px-5 pb-4 mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
                     <p className="text-xs font-medium text-blue-700 mb-1">Explanation</p>
-                    <p className="text-sm text-blue-800 whitespace-pre-wrap">{q.explanation}</p>
+                    <p className="text-sm text-blue-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMath(q.explanation) }} />
                   </div>
                 )}
               </div>

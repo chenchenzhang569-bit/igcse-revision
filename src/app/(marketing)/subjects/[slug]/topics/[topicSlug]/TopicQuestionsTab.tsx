@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { fixMathNotation } from "@/lib/math";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -57,13 +58,15 @@ function markdownify(text: string): string {
 function MixedContent({ text }: { text: string }) {
   const parts = useMemo(() => {
     const result: { type: "md" | "math"; content: string; display?: boolean }[] = [];
+    // Fix SME math notation first (^2^ → <sup>2</sup>)
+    const fixedText = fixMathNotation(text);
     // Match $$...$$ or $...$
     const regex = /\$\$\s*([\s\S]*?)\s*\$\$|\$([^$\n]+?)\$/g;
     let lastIdx = 0;
     let m: RegExpExecArray | null;
-    while ((m = regex.exec(text)) !== null) {
+    while ((m = regex.exec(fixedText)) !== null) {
       if (m.index > lastIdx) {
-        result.push({ type: "md", content: text.slice(lastIdx, m.index) });
+        result.push({ type: "md", content: fixedText.slice(lastIdx, m.index) });
       }
       const isDisplay = !!m[1];
       const mathContent = (m[1] || m[2]).trim();
@@ -75,8 +78,8 @@ function MixedContent({ text }: { text: string }) {
       }
       lastIdx = m.index + m[0].length;
     }
-    if (lastIdx < text.length) {
-      result.push({ type: "md", content: text.slice(lastIdx) });
+    if (lastIdx < fixedText.length) {
+      result.push({ type: "md", content: fixedText.slice(lastIdx) });
     }
     return result;
   }, [text]);

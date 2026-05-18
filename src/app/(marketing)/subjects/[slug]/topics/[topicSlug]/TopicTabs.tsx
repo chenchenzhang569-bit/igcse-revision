@@ -3,6 +3,9 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import "katex/dist/katex.min.css";
+import { processMathContent } from "@/lib/math";
 
 const markdownComponents = {
   img: (props: any) => (
@@ -198,7 +201,7 @@ export function TopicTabs({
               <span className="text-xs text-gray-400">{q.marks} marks</span>
             </div>
             <div className="text-gray-800 prose prose-sm max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{cleanText}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(cleanText)}</ReactMarkdown>
             </div>
           </div>
           <div className="px-5 pb-5 flex flex-wrap gap-2">
@@ -293,7 +296,7 @@ export function TopicTabs({
             <span className="text-xs text-gray-400">{q.marks} marks</span>
           </div>
           <div className="text-gray-800 prose prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{stem}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(stem)}</ReactMarkdown>
           </div>
           {((q as any).image_url || embeddedImageUrl) && (
             <div className="mt-4 flex justify-center">
@@ -552,7 +555,7 @@ export function TopicTabs({
                       <span className="text-xs text-gray-400">{q.marks} marks</span>
                     </div>
                     <div className="text-gray-800 prose prose-sm max-w-none mb-4">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{q.question_text}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
                     </div>
                     {q.answer_text && (
                       <details className="group">
@@ -560,7 +563,7 @@ export function TopicTabs({
                           Show Answer
                         </summary>
                         <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{q.answer_text}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.answer_text)}</ReactMarkdown>
                         </div>
                       </details>
                     )}
