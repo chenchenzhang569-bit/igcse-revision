@@ -1,4 +1,4 @@
-// force-redeploy-v17-fmt-names
+// force-redeploy-v18-fix-brace-and-supabase
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
