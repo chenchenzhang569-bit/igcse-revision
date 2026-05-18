@@ -119,7 +119,10 @@ export default async function TopicPage({
         <span className="text-gray-600">{displayName}</span>
       </div>
 
-      <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">{displayName}</h1>
+      <div className="flex flex-wrap items-center gap-4 mt-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">{displayName}</h1>
+        {isMaths && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
+      </div>
 
       {/* Tabs: Notes | Questions | Subtopics (if any) */}
       <div className="flex gap-1 mt-8 border-b">

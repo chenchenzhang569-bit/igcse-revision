@@ -365,7 +365,6 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
         handleGradeOne(qq.id, qq, ans);
       }
     }
-    setSubmitted((prev) => new Set([...prev, activeDifficulty]));
   };
 
   const allGradedInGroup = (() => {
@@ -448,14 +447,6 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   const isGraded = graded[q.id] || false;
   const isCorrect = correctMap[q.id] || false;
 
-  const handleCheck = () => {
-    const effectiveAns = hasSubParts
-      ? subParts.map(sp => answers[`${q.id}-${sp.label}`] || "").join(" ").trim()
-      : userAns;
-    if (!effectiveAns) return;
-    handleGradeOne(q.id, q, effectiveAns);
-  };
-
   const goTo = (idx: number) => {
     const clamped = Math.max(0, Math.min(idx, currentQs.length - 1));
     setCurrentIdx(clamped);
@@ -515,62 +506,54 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
-        {!isMcq && (() => {
-          const subParts = parseSubParts(stem);
-          const hasSubParts = subParts.length > 1;
-          if (hasSubParts) {
-            // Find first sub-question marker position (handles **(i)**, (i), i), i.)
-            const markerRe = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])/gim;
-            const firstMatch = markerRe.exec(stem);
-            const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
-            const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
-            return (
-              <>
-                {introText && (
-                  <div className="prose prose-sm max-w-none text-gray-800 mb-4">
-                    <MixedContent text={introText} />
-                  </div>
-                )}
-                <div className="space-y-4">
-                  {subParts.map((sp) => {
-                    const subKey = `${q.id}-${sp.label}`;
-                    const subAns = answers[subKey] || "";
-                    return (
-                      <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
-                        <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
-                        {sp.text && (
-                          <div className="prose prose-sm max-w-none text-gray-700 mb-2">
-                            <MixedContent text={sp.text} />
-                          </div>
-                        )}
-                        <MathInput
-                          value={subAns}
-                          onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
-                          onEnter={handleCheck}
-                          disabled={isGraded}
-                        />
-                      </div>
-                    );
-                  })}
+        {!isMcq && hasSubParts ? (
+          <>
+            {/* Find first sub-question marker position (handles **(i)**, (i), i), i.) */}
+            {(() => {
+              const markerRe = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])/gim;
+              const firstMatch = markerRe.exec(stem);
+              const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
+              const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
+              return introText ? (
+                <div className="prose prose-sm max-w-none text-gray-800 mb-4">
+                  <MixedContent text={introText} />
                 </div>
-              </>
-            );
-          }
-          // Single part: show stem + single input
-          return (
-            <>
-              <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-                <MixedContent text={renderStemWithTables(markdownify(stem))} />
-              </div>
-              <MathInput
-                value={userAns}
-                onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
-                onEnter={handleCheck}
-                disabled={isGraded}
-              />
-            </>
-          );
-        })()}
+              ) : null;
+            })()}
+            <div className="space-y-4">
+              {subParts.map((sp) => {
+                const subKey = `${q.id}-${sp.label}`;
+                const subAns = answers[subKey] || "";
+                return (
+                  <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
+                    <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
+                    {sp.text && (
+                      <div className="prose prose-sm max-w-none text-gray-700 mb-2">
+                        <MixedContent text={sp.text} />
+                      </div>
+                    )}
+                    <MathInput
+                      value={subAns}
+                      onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
+                      disabled={isGraded}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : !isMcq ? (
+          <>
+            <div className="prose prose-sm max-w-none text-gray-800 mb-5">
+              <MixedContent text={renderStemWithTables(markdownify(stem))} />
+            </div>
+            <MathInput
+              value={userAns}
+              onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
+              disabled={isGraded}
+            />
+          </>
+        ) : null}
 
         {isMcq ? (
           <div className="space-y-2.5">
@@ -626,7 +609,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
           </div>
         )}
 
-        {/* Navigation: Prev / Check / Next */}
+        {/* Navigation: Prev / Submit / Next */}
         <div className="mt-4 flex items-center justify-between gap-2">
           <button
             onClick={() => goTo(currentIdx - 1)}
@@ -637,16 +620,16 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
           </button>
 
           <div className="flex gap-2">
-            {!isGraded && userAns.trim() && (
-              <button onClick={handleCheck}
-                className="bg-primary-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-primary-700 transition text-sm">
-                Check
+            {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
+              <button onClick={handleSubmitGroup}
+                className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition text-sm">
+                Submit
               </button>
             )}
-            {allAnsweredInGroup && !submitted.has(activeDifficulty) && (
-              <button onClick={handleSubmitGroup}
-                className="bg-emerald-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-emerald-700 transition text-sm">
-                Submit Group →
+            {allGradedInGroup && !submitted.has(activeDifficulty) && (
+              <button onClick={() => setSubmitted((prev) => new Set([...prev, activeDifficulty]))}
+                className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition text-sm">
+                Finish →
               </button>
             )}
           </div>
@@ -674,9 +657,9 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
 /* ─── Math Symbol Input ─── */
 function MathInput({
-  value, onChange, onEnter, disabled,
+  value, onChange, disabled,
 }: {
-  value: string; onChange: (v: string) => void; onEnter: () => void; disabled: boolean;
+  value: string; onChange: (v: string) => void; disabled: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [showSymbols, setShowSymbols] = useState(false);
@@ -703,18 +686,11 @@ function MathInput({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !disabled) onEnter(); }}
           placeholder="Type your answer..."
           disabled={disabled}
           className="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50"
           autoFocus
         />
-        {!disabled && (
-          <button onClick={onEnter}
-            className="bg-primary-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-primary-700 transition text-sm">
-            Check
-          </button>
-        )}
       </div>
       {/* Symbol toggle */}
       {!disabled && (
