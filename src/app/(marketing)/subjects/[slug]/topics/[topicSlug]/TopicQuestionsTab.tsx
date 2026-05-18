@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
-import { MixedContent } from "@/components/MixedContent";
+import { renderMath } from "@/lib/math";
 
 interface Question {
   id: string;
@@ -448,9 +448,8 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
               const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
               const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
               return introText ? (
-                <div className="prose prose-sm max-w-none text-gray-800 mb-4">
-                  <MixedContent text={introText} />
-                </div>
+                <div className="prose prose-sm max-w-none text-gray-800 mb-4"
+                  dangerouslySetInnerHTML={{ __html: renderMath(introText) }} />
               ) : null;
             })()}
             <div className="space-y-4">
@@ -461,9 +460,8 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
                     {sp.text && (
-                      <div className="prose prose-sm max-w-none text-gray-700 mb-2">
-                        <MixedContent text={sp.text} />
-                      </div>
+                      <div className="prose prose-sm max-w-none text-gray-700 mb-2"
+                        dangerouslySetInnerHTML={{ __html: renderMath(sp.text) }} />
                     )}
                     <MathInput
                       value={subAns}
@@ -477,9 +475,8 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
           </>
         ) : !isMcq ? (
           <>
-            <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-              <MixedContent text={renderStemWithTables(markdownify(stem))} />
-            </div>
+            <div className="prose prose-sm max-w-none text-gray-800 mb-5"
+              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
             <MathInput
               value={userAns}
               onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
@@ -527,16 +524,14 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
                 : `❌ Incorrect. The answer is: ${q.answer_text}`}
             </p>
             {!isCorrect && q.explanation && (
-              <div className="prose prose-sm max-w-none mt-2 text-gray-700">
-                <MixedContent text={markdownify(q.explanation)} />
-              </div>
+              <div className="prose prose-sm max-w-none mt-2 text-gray-700"
+                dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.explanation)) }} />
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
-                <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <MixedContent text={markdownify(q.explanation)} />
-                </div>
+                <div className="prose prose-sm max-w-none mt-1 text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.explanation)) }} />
               </details>
             )}
           </div>
