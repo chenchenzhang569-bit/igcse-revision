@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -338,7 +339,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
         <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{stem}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{stem}</ReactMarkdown>
         </div>
 
         {isMcq ? (
@@ -390,14 +391,14 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.explanation}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{q.explanation}</ReactMarkdown>
               </div>
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.explanation}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{q.explanation}</ReactMarkdown>
                 </div>
               </details>
             )}
