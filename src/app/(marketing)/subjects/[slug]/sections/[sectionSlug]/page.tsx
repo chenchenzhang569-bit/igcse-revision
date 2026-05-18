@@ -5,11 +5,11 @@ const supabase = getSupabaseClient();
 
 const SLUG_TO_SECTION: Record<string, string> = {
   "number": "Number",
-  "algebra-and-sequences": "Algebra & Sequences",
-  "coordinate-geometry-and-graphs": "Coordinate Geometry & Graphs",
+  "algebra-sequences": "Algebra & Sequences",
+  "coordinate-geometry-graphs": "Coordinate Geometry & Graphs",
   "geometry": "Geometry",
-  "lengths-areas-and-volumes": "Lengths, Areas & Volumes",
-  "pythagoras-and-trigonometry": "Pythagoras & Trigonometry",
+  "lengths-areas-volumes": "Lengths, Areas & Volumes",
+  "pythagoras-trigonometry": "Pythagoras & Trigonometry",
   "transformations": "Transformations",
   "probability": "Probability",
   "statistics": "Statistics",
