@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { SUBTOPIC_DATA, type SubtopicDef } from "@/lib/subtopic-data";
 
 interface Topic {
   name: string;
@@ -28,6 +29,26 @@ const SME_SECTION_ORDER = [
   "Statistics",
 ];
 
+// Map composite slug → subject key (same as topic page)
+const SLUG_TO_KEY: Record<string, string> = {
+  "caie-physics-0625": "physics",
+  "caie-chemistry-0620": "chemistry",
+  "caie-biology-0610": "biology",
+  "caie-mathematics-0580": "mathematics",
+  "edexcel-physics-4ph1": "physics",
+  "edexcel-chemistry-4ch1": "chemistry",
+  "edexcel-biology-4bi1": "biology",
+  "edexcel-mathematics-4ma1": "mathematics",
+  "physics-0625": "physics", "chemistry-0620": "chemistry",
+  "biology-0610": "biology", "mathematics-0580": "mathematics",
+  "physics-4ph1": "physics", "chemistry-4ch1": "chemistry",
+  "biology-4bi1": "biology", "mathematics-4ma1": "mathematics",
+  "caie-physics": "physics", "caie-chemistry": "chemistry",
+  "caie-biology": "biology", "caie-mathematics": "mathematics",
+  "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
+  "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
+};
+
 export function SubjectSearchBox({
   topicSections,
   topics,
@@ -40,13 +61,38 @@ export function SubjectSearchBox({
   isMath: boolean;
 }) {
   const [query, setQuery] = useState("");
+  const subjectKey = SLUG_TO_KEY[slug] || "physics";
+  const subtopicData = SUBTOPIC_DATA[subjectKey] || {};
+
+  // Build flat subtopic list for search: { subtopic, topicSlug, topicDisplay }
+  const allSubtopics = useMemo(() => {
+    if (isMath) return [];
+    const result: { subtopic: SubtopicDef; topicSlug: string; topicDisplay: string }[] = [];
+    for (const [topicSlug, subs] of Object.entries(subtopicData)) {
+      for (const st of subs) {
+        result.push({ subtopic: st, topicSlug, topicDisplay: topicSlug.replace(/-/g, " ") });
+      }
+    }
+    return result;
+  }, [subtopicData, isMath]);
+
+  // Search results: subtopics matching query
+  const matchedSubtopics = useMemo(() => {
+    if (!query.trim() || isMath) return [];
+    const q = query.toLowerCase();
+    return allSubtopics.filter(
+      (s) =>
+        s.subtopic.name.toLowerCase().includes(q) ||
+        s.subtopic.displayName.toLowerCase().includes(q) ||
+        s.topicSlug.toLowerCase().includes(q)
+    ).slice(0, 8);
+  }, [query, allSubtopics, isMath]);
 
   const filteredSections = useMemo(() => {
     if (!query.trim()) return topicSections;
     const q = query.toLowerCase();
 
     if (isMath) {
-      // Filter sections where section name or any topic name matches
       return topicSections
         .map((sec) => ({
           ...sec,
@@ -62,11 +108,11 @@ export function SubjectSearchBox({
           return secMatch || sec.topics.length > 0;
         });
     }
-    return topicSections; // not used for non-math
+    return topicSections;
   }, [query, topicSections, isMath]);
 
   const filteredTopics = useMemo(() => {
-    if (!query.trim()) return topics;
+    if (!query.trim() || isMath) return topics;
     const q = query.toLowerCase();
     return topics.filter(
       (t) =>
@@ -74,19 +120,38 @@ export function SubjectSearchBox({
         t.displayName.toLowerCase().includes(q) ||
         t.slug.toLowerCase().includes(q)
     );
-  }, [query, topics]);
+  }, [query, topics, isMath]);
 
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-primary-900">Topics</h2>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="🔍 Search topics..."
-          className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-300 w-56 sm:w-64"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="🔍 Search topics..."
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-300 w-56 sm:w-64"
+          />
+          {/* Subtopic search dropdown */}
+          {query && matchedSubtopics.length > 0 && (
+            <div className="absolute top-full mt-1 right-0 z-50 bg-white border rounded-lg shadow-lg w-72 max-h-64 overflow-y-auto">
+              {matchedSubtopics.map((s) => (
+                <Link
+                  key={`${s.topicSlug}-${s.subtopic.slug}`}
+                  href={`/subjects/${slug}/topics/${s.topicSlug}/${s.subtopic.slug}`}
+                  onClick={() => setQuery("")}
+                  className="block px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                >
+                  <span className="text-primary-600 font-medium">{s.subtopic.pmtCode}</span>{" "}
+                  <span className="text-gray-700">{s.subtopic.displayName}</span>
+                  <span className="text-gray-400 text-xs ml-2">in {s.topicDisplay}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {isMath ? (
@@ -149,7 +214,7 @@ export function SubjectSearchBox({
               </Link>
             ))}
           </div>
-          {filteredTopics.length === 0 && query && (
+          {filteredTopics.length === 0 && query && matchedSubtopics.length === 0 && (
             <div className="bg-gray-50 border rounded-xl p-8 text-center text-gray-400">
               No topics match &quot;{query}&quot;
             </div>
