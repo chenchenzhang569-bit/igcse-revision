@@ -187,12 +187,14 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
   useEffect(() => {
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from("questions")
-          .select("*")
-          .eq("topic_id", topicId)
-          .order("sort_order");
-        if (error) throw error;
+        const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
+        const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+        const res = await fetch(
+          `${API}/questions?select=*&topic_id=eq.${topicId}&order=sort_order`,
+          { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
         setAllQuestions(data || []);
       } catch (e) {
         console.error("Failed to load questions:", e);
