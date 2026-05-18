@@ -220,15 +220,8 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
   const difficulties = DIFF_ORDER.filter((d) => byDifficulty[d].length > 0);
 
-  // Find highest unlocked difficulty (last completed + 1)
-  const unlockedDifficulty = (() => {
-    for (let i = difficulties.length - 1; i >= 0; i--) {
-      if (submitted.has(difficulties[i])) {
-        return i < difficulties.length - 1 ? difficulties[i + 1] : null;
-      }
-    }
-    return difficulties[0]; // none submitted → first is unlocked
-  })();
+  // All difficulties unlocked immediately
+  const unlockedDifficulty: string | null = difficulties[difficulties.length - 1] || null;
 
   const currentQs = byDifficulty[activeDifficulty] || [];
   const q = currentQs[currentIdx];
@@ -321,11 +314,8 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
   const handleDifficultyChange = (d: string) => {
     if (d === activeDifficulty) return;
-    // Only allow switching to unlocked difficulties
-    if (difficulties.indexOf(d) <= difficulties.indexOf(unlockedDifficulty || difficulties[difficulties.length - 1])) {
-      setActiveDifficulty(d);
-      setCurrentIdx(0);
-    }
+    setActiveDifficulty(d);
+    setCurrentIdx(0);
   };
 
   // Completion screen for a group
@@ -681,7 +671,7 @@ function DifficultyTabs({
         const cfg = DIFFICULTY_CONFIG[d] || DIFFICULTY_CONFIG.medium;
         const s = scores[d];
         const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : null;
-        const isLocked = difficulties.indexOf(d) > difficulties.indexOf(unlockedDifficulty || "");
+        const isLocked = false; // all unlocked
         const isDone = submitted.has(d);
 
         return (
