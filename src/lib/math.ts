@@ -108,8 +108,9 @@ export function renderMath(text: string): string {
     }
   });
 
-  // Inline math: $...$
-  result = result.replace(/\$(.+?)\$/g, (_, math) => {
+  // Inline math: $...$ — but NOT followed by digit/space (to avoid matching $15.95 etc.)
+  // Must be: $<non-digit>content$ or $<content with at least one letter/symbol>$
+  result = result.replace(/\$(?=[^0-9\s])(.+?)\$/g, (_, math) => {
     try {
       return katex.renderToString(math.trim(), {
         displayMode: false,

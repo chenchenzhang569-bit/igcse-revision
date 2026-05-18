@@ -1,4 +1,4 @@
-// force-redeploy-v22-dynamic-import
+// force-redeploy-v23-fix-pipe-table-structured
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
