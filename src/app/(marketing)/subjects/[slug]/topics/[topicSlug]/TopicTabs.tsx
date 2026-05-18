@@ -4,8 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import "katex/dist/katex.min.css";
-import { processMathContent } from "@/lib/math";
+import { MixedContent } from "@/components/MixedContent";
 
 const markdownComponents = {
   img: (props: any) => (
@@ -200,9 +199,7 @@ export function TopicTabs({
               <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
               <span className="text-xs text-gray-400">{q.marks} marks</span>
             </div>
-            <div className="text-gray-800 prose prose-sm max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(cleanText)}</ReactMarkdown>
-            </div>
+            <MixedContent text={cleanText} className="text-gray-800 prose prose-sm max-w-none" />
           </div>
           <div className="px-5 pb-5 flex flex-wrap gap-2">
             {["A", "B", "C", "D"].map((label) => {
@@ -295,9 +292,7 @@ export function TopicTabs({
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
             <span className="text-xs text-gray-400">{q.marks} marks</span>
           </div>
-          <div className="text-gray-800 prose prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(stem)}</ReactMarkdown>
-          </div>
+          <MixedContent text={stem} className="text-gray-800 prose prose-sm max-w-none" />
           {((q as any).image_url || embeddedImageUrl) && (
             <div className="mt-4 flex justify-center">
               <img 
@@ -440,9 +435,7 @@ export function TopicTabs({
                   )}
                 </div>
                 {note.content && (
-                  <div className="prose prose-sm max-w-none text-gray-700 mb-4">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={allowDataUrls} components={markdownComponents}>{note.content}</ReactMarkdown>
-                  </div>
+                  <MixedContent text={note.content} className="prose prose-sm max-w-none text-gray-700 mb-4" />
                 )}
                 {note.file_name && (
                   <button onClick={() => downloadContent(note)}
