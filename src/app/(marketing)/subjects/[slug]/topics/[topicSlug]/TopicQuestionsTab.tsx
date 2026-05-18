@@ -679,6 +679,7 @@ function MathInput({
   value: string; onChange: (v: string) => void; onEnter: () => void; disabled: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showSymbols, setShowSymbols] = useState(false);
 
   const insertSymbol = (sym: string) => {
     if (disabled) return;
@@ -688,7 +689,6 @@ function MathInput({
     const end = el.selectionEnd ?? value.length;
     const newVal = value.slice(0, start) + sym + value.slice(end);
     onChange(newVal);
-    // Restore cursor after React re-render
     requestAnimationFrame(() => {
       el.focus();
       el.setSelectionRange(start + sym.length, start + sym.length);
@@ -716,19 +716,35 @@ function MathInput({
           </button>
         )}
       </div>
-      {/* Symbol buttons */}
+      {/* Symbol toggle */}
       {!disabled && (
-        <div className="flex gap-1 mt-2 flex-wrap">
-          {MATH_SYMBOLS.map((sym) => (
-            <button
-              key={sym}
-              type="button"
-              onClick={() => insertSymbol(sym)}
-              className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-100 hover:border-gray-300 text-gray-600 transition"
-            >
-              {sym}
-            </button>
-          ))}
+        <div className="relative mt-1.5">
+          <button
+            type="button"
+            onClick={() => setShowSymbols(!showSymbols)}
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500 transition"
+          >
+            <span className="font-mono">Ω</span> Symbols
+          </button>
+          {showSymbols && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowSymbols(false)} />
+              <div className="absolute top-full mt-1 left-0 z-50 bg-white border rounded-lg shadow-lg p-2.5 min-w-[220px]">
+                <div className="flex gap-1 flex-wrap">
+                  {MATH_SYMBOLS.map((sym) => (
+                    <button
+                      key={sym}
+                      type="button"
+                      onClick={() => { insertSymbol(sym); setShowSymbols(false); }}
+                      className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-100 hover:border-gray-300 text-gray-600 transition"
+                    >
+                      {sym}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
