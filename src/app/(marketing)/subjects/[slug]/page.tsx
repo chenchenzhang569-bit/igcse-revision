@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PastPapersTab } from "./PastPapersTab";
 import { MockExamsTab } from "./MockExamsTab";
+import { SubjectSearchBox } from "./SubjectSearchBox";
 
 interface Topic { name: string; displayName: string; slug: string; sort: number }
 interface TopicSection { section: string; topics: Topic[] }
@@ -234,49 +235,12 @@ export default async function SubjectPage({
 
       {/* Topics tab */}
       {(!tab || tab === "topics") && (
-        <section className="mt-6">
-          <h2 className="text-xl font-bold text-primary-900 mb-4">Topics</h2>
-          {topicSections.length > 0 ? (
-            // Math: 9 section cards → click to section page
-            <div className="space-y-3">
-              {(SME_SECTION_ORDER.map(secName => {
-                const sec = topicSections.find(s => s.section === secName);
-                if (!sec) return null;
-                const sectionSlug = secName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
-                return (
-                  <Link key={secName}
-                    href={`/subjects/${slug}/sections/${sectionSlug}`}
-                    className="bg-white border rounded-xl p-5 hover:shadow-md hover:border-primary-300 transition-all group flex items-center justify-between"
-                  >
-                    <div>
-                      <h3 className="font-semibold text-primary-900 group-hover:text-primary-600 transition text-lg">
-                        {secName}
-                      </h3>
-                      <p className="text-sm text-gray-400 mt-0.5">{sec.topics.length} topics</p>
-                    </div>
-                    <span className="text-gray-300 group-hover:text-primary-500 text-xl transition">→</span>
-                  </Link>
-                );
-              }))}
-            </div>
-          ) : (
-            // Other subjects: flat grid
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {topics.map((topic) => (
-                <Link key={topic.slug} href={`/subjects/${slug}/topics/${topic.slug}`}
-                  className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group">
-                  <div className="flex items-start gap-3">
-                    <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{topic.sort}</span>
-                    <div>
-                      <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">{topic.displayName}</h3>
-                      <p className="text-sm text-gray-400 mt-0.5">{topic.name}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
+        <SubjectSearchBox
+          topicSections={topicSections}
+          topics={topics}
+          slug={slug}
+          isMath={key === "maths"}
+        />
       )}
 
       {/* Past Papers tab */}
