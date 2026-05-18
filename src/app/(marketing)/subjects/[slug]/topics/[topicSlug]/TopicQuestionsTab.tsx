@@ -4,7 +4,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -49,6 +51,94 @@ function markdownify(text: string): string {
   return text.replace(/<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?\s*\/?>/g, (_, src, alt) => {
     return `![${alt || "diagram"}](${src})`;
   });
+}
+
+// ─── Table Detection & Rendering ───
+function findTables(stem: string): { start: number; end: number; html: string }[] {
+  const tables: { start: number; end: number; html: string }[] = [];
+  const htmlTableRegex = /<table\b[^>]*>[\s\S]*?<\/table>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = htmlTableRegex.exec(stem)) !== null) {
+    tables.push({ start: m.index, end: m.index + m[0].length, html: m[0] });
+  }
+  // Also detect markdown pipe tables
+  const lines = stem.split("\n");
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (lines[i].includes("|") && /^\|[\s\-:\|]+\|$/.test(lines[i + 1]?.trim() || "")) {
+      let end = i + 2;
+      while (end < lines.length && lines[end].includes("|")) end++;
+      const mdLines = lines.slice(i, end);
+      const html = mdTableToHtml(mdLines);
+      if (html && !tables.some(t => t.start <= stem.indexOf(mdLines[0]))) {
+        tables.push({ start: stem.indexOf(mdLines[0]), end: stem.indexOf(mdLines[mdLines.length - 1]) + mdLines[mdLines.length - 1].length, html });
+      }
+      i = end;
+    }
+  }
+  tables.sort((a, b) => a.start - b.start);
+  return tables;
+}
+
+function mdTableToHtml(lines: string[]): string {
+  if (lines.length < 2) return "";
+  // Parse headers
+  let headers = lines[0].split("|").slice(1, -1).map(h => h.trim());
+  let bodyStart = 2;
+  // If headers are all empty, use first data row as headers
+  if (headers.every(h => h === "") && lines.length > 2) {
+    headers = lines[2].split("|").slice(1, -1).map(h => h.trim());
+    bodyStart = 3;
+  }
+  let html = '<table class="w-full text-sm border-collapse border border-gray-300 mb-4"><thead><tr>';
+  for (const h of headers) {
+    html += `<th class="border border-gray-300 px-3 py-1.5 bg-gray-100 text-left font-semibold">${h}</th>`;
+  }
+  html += '</tr></thead><tbody>';
+  for (let i = bodyStart; i < lines.length; i++) {
+    const cells = lines[i].split("|").slice(1, -1).map(c => c.trim());
+    if (cells.length === 0) continue;
+    html += '<tr>';
+    for (const c of cells) {
+      html += `<td class="border border-gray-300 px-3 py-1.5">${c}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderStemWithTables(stem: string): string {
+  const tables = findTables(stem);
+  if (tables.length === 0) return stem;
+  let result = "";
+  let lastEnd = 0;
+  for (const t of tables) {
+    result += stem.slice(lastEnd, t.start) + "\n" + t.html + "\n";
+    lastEnd = t.end;
+  }
+  result += stem.slice(lastEnd);
+  return result;
+}
+
+// ─── Sub-part parsing ───
+interface SubPart { label: string; text: string; }
+function parseSubParts(stem: string): SubPart[] {
+  // Match **(a)** or (a) patterns
+  const parts: SubPart[] = [];
+  const regex = /\*\*\(([a-z]+)\)\*\*\s*/g;
+  let lastIdx = 0;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(stem)) !== null) {
+    if (parts.length > 0) {
+      parts[parts.length - 1].text = stem.slice(lastIdx, m.index).trim();
+    }
+    parts.push({ label: m[1], text: "" });
+    lastIdx = m.index + m[0].length;
+  }
+  if (parts.length > 0) {
+    parts[parts.length - 1].text = stem.slice(lastIdx).trim();
+  }
+  return parts;
 }
 
 export function TopicQuestionsTab({ topicId }: { topicId: string }) {
@@ -166,6 +256,11 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       delete newAnswers[qq.id];
       delete newGraded[qq.id];
       delete newCorrect[qq.id];
+      // Also clear sub-part answers
+      const sp = parseSubParts(parseQuestion(qq.question_text).stem);
+      for (const s of sp) {
+        delete newAnswers[`${qq.id}-${s.label}`];
+      }
     }
     setAnswers(newAnswers);
     setGraded(newGraded);
@@ -219,7 +314,13 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
   const allAnsweredInGroup = (() => {
     const qs = byDifficulty[activeDifficulty] || [];
-    return qs.every((qq) => (answers[qq.id] || "").trim());
+    return qs.every((qq) => {
+      const sp = parseSubParts(parseQuestion(qq.question_text).stem);
+      if (sp.length > 1) {
+        return sp.every(s => (answers[`${qq.id}-${s.label}`] || "").trim());
+      }
+      return (answers[qq.id] || "").trim();
+    });
   })();
 
   const handleDifficultyChange = (d: string) => {
@@ -277,13 +378,21 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
 
   const isMcq = q.question_type === "multiple_choice" || q.question_text.includes("\nA) ");
   const { stem, options } = parseQuestion(q.question_text);
-  const userAns = answers[q.id] || "";
+  const subParts = parseSubParts(stem);
+  const hasSubParts = subParts.length > 1;
+  // For multi-part: combine sub-answers; for single: use direct answer
+  const userAns = hasSubParts
+    ? subParts.map(sp => answers[`${q.id}-${sp.label}`] || "").join(" ").trim()
+    : (answers[q.id] || "");
   const isGraded = graded[q.id] || false;
   const isCorrect = correctMap[q.id] || false;
 
   const handleCheck = () => {
-    if (!userAns.trim()) return;
-    handleGradeOne(q.id, q, userAns);
+    const effectiveAns = hasSubParts
+      ? subParts.map(sp => answers[`${q.id}-${sp.label}`] || "").join(" ").trim()
+      : userAns;
+    if (!effectiveAns) return;
+    handleGradeOne(q.id, q, effectiveAns);
   };
 
   const goTo = (idx: number) => {
@@ -346,7 +455,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
         <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={(url) => url}>{markdownify(stem)}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>{renderStemWithTables(markdownify(stem))}</ReactMarkdown>
         </div>
 
         {isMcq ? (
@@ -376,16 +485,54 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
               );
             })}
           </div>
-        ) : (
-          <div>
-            <MathInput
-              value={userAns}
-              onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
-              onEnter={handleCheck}
-              disabled={isGraded}
-            />
-          </div>
-        )}
+        ) : (() => {
+            const subParts = parseSubParts(stem);
+            const hasSubParts = subParts.length > 1;
+            
+            if (hasSubParts) {
+              // Extract intro text (before first sub-part)
+              const firstMarkerIdx = stem.indexOf(`**(${subParts[0].label})**`);
+              const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
+              
+              return (
+                <div className="space-y-4">
+                  {subParts.map((sp, si) => {
+                    const subKey = `${q.id}-${sp.label}`;
+                    const subAns = answers[subKey] || "";
+                    return (
+                      <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
+                        <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
+                        {sp.text && (
+                          <div className="prose prose-sm max-w-none text-gray-700 mb-2">
+                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>
+                              {renderStemWithTables(markdownify(sp.text))}
+                            </ReactMarkdown>
+                          </div>
+                        )}
+                        <MathInput
+                          value={subAns}
+                          onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
+                          onEnter={handleCheck}
+                          disabled={isGraded}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+            
+            return (
+              <div>
+                <MathInput
+                  value={userAns}
+                  onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
+                  onEnter={handleCheck}
+                  disabled={isGraded}
+                />
+              </div>
+            );
+          })()}
 
         {/* Grade result for this question */}
         {isGraded && (
@@ -398,14 +545,14 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
               </div>
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} urlTransform={(url) => url}>{markdownify(q.explanation)}</ReactMarkdown>
                 </div>
               </details>
             )}
