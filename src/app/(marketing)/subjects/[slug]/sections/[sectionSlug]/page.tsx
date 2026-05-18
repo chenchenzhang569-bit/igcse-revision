@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-);
+const supabase = getSupabaseClient();
 
 const SLUG_TO_SECTION: Record<string, string> = {
   "number": "Number",

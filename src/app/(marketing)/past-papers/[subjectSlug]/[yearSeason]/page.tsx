@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 export const dynamic = "force-dynamic";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = getSupabaseClient();
 
 const DATA: Record<string, { board: string; code: string; name: string; icon: string }> = {
   "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️" },
