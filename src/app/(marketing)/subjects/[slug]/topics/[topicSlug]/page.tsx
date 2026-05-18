@@ -79,11 +79,12 @@ export default async function TopicPage({
 }) {
   const { slug, topicSlug } = await params;
   const { tab } = await searchParams;
-  const activeTab = tab || "notes";
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics";
   const subtopics = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
+  // Math: default to notes tab; others: no tabs, show subtopics directly
+  const activeTab = isMaths ? (tab || "notes") : "subtopics";
 
   // Fetch topic ID (needed for notes and questions)
   let topicId: string | null = null;
@@ -125,7 +126,8 @@ export default async function TopicPage({
         {isMaths && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
       </div>
 
-      {/* Tabs: Notes | Questions | Subtopics (if any) */}
+      {/* Tabs: only for Math */}
+      {isMaths && (
       <div className="flex gap-1 mt-8 border-b">
         <Link
           href={`/subjects/${slug}/topics/${topicSlug}?tab=notes`}
@@ -154,6 +156,7 @@ export default async function TopicPage({
           </Link>
         )}
       </div>
+      )}
 
       {/* Notes tab */}
       {activeTab === "notes" && (
