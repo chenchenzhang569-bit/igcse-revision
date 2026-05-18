@@ -53,23 +53,58 @@ function markdownify(text: string): string {
   });
 }
 
-// Render $...$ and $$...$$ as KaTeX HTML
+// Render mixed content: markdown + KaTeX math
+function MixedContent({ text }: { text: string }) {
+  const parts = useMemo(() => {
+    const result: { type: "md" | "math"; content: string; display?: boolean }[] = [];
+    // Match $$...$$ or $...$
+    const regex = /\$\$\s*([\s\S]*?)\s*\$\$|\$([^$\n]+?)\$/g;
+    let lastIdx = 0;
+    let m: RegExpExecArray | null;
+    while ((m = regex.exec(text)) !== null) {
+      if (m.index > lastIdx) {
+        result.push({ type: "md", content: text.slice(lastIdx, m.index) });
+      }
+      const isDisplay = !!m[1];
+      const mathContent = (m[1] || m[2]).trim();
+      try {
+        const html = katex.renderToString(mathContent, { displayMode: isDisplay, throwOnError: false });
+        result.push({ type: "math", content: html, display: isDisplay });
+      } catch {
+        result.push({ type: "md", content: m[0] });
+      }
+      lastIdx = m.index + m[0].length;
+    }
+    if (lastIdx < text.length) {
+      result.push({ type: "md", content: text.slice(lastIdx) });
+    }
+    return result;
+  }, [text]);
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.type === "math" ? (
+          <span key={i} dangerouslySetInnerHTML={{ __html: part.content }} />
+        ) : (
+          <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={(url) => url}>
+            {part.content}
+          </ReactMarkdown>
+        )
+      )}
+    </>
+  );
+}
+
+// Legacy: kept for backward compat
 function renderMath(text: string): string {
-  // First handle display math $$...$$
   let result = text.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_, math) => {
-    try {
-      return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
-    } catch {
-      return `$$${math}$$`;
-    }
+    try { return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false }); }
+    catch { return `$$${math}$$`; }
   });
-  // Then handle inline math $...$
   result = result.replace(/\$(.+?)\$/g, (_, math) => {
-    try {
-      return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
-    } catch {
-      return `$${math}$`;
-    }
+    try { return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false }); }
+    catch { return `$${math}$`; }
   });
   return result;
 }
@@ -476,7 +511,7 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
         <div className="prose prose-sm max-w-none text-gray-800 mb-5">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={(url) => url}>{renderMath(renderStemWithTables(markdownify(stem)))}</ReactMarkdown>
+          <MixedContent text={renderStemWithTables(markdownify(stem))} />
         </div>
 
         {isMcq ? (
@@ -566,14 +601,14 @@ export function TopicQuestionsTab({ topicId }: { topicId: string }) {
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={(url) => url}>{renderMath(markdownify(q.explanation))}</ReactMarkdown>
+                <MixedContent text={markdownify(q.explanation)} />
               </div>
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={(url) => url}>{renderMath(markdownify(q.explanation))}</ReactMarkdown>
+                  <MixedContent text={markdownify(q.explanation)} />
                 </div>
               </details>
             )}
