@@ -136,37 +136,34 @@ function findTables(stem: string): { start: number; end: number; html: string }[
     tables.push({ start: m.index, end: m.index + m[0].length, html: m[0] });
   }
   
-  // Match markdown pipe tables
+  // Match markdown pipe tables — supports multi-line cells
   const lines = stem.split("\n");
-  let i = 0;
-  while (i < lines.length) {
-    const trimmed = lines[i].trim();
-    if (trimmed.startsWith("|") && trimmed.endsWith("|") &&
-        i + 1 < lines.length && /^\|[\s\-:|\|]+\|$/.test(lines[i + 1].trim())) {
-      const tableLines: string[] = [lines[i]];
-      let endIdx = i + 1;
-      tableLines.push(lines[i + 1]);
-      let j = i + 2;
-      while (j < lines.length) {
-        const t = lines[j].trim();
-        if (t.startsWith("|") && t.endsWith("|")) {
-          tableLines.push(lines[j]);
-          endIdx = j + 1;
-          j++;
-        } else {
-          break;
-        }
+  for (let i = 0; i < lines.length - 1; i++) {
+    const sepLine = lines[i + 1]?.trim() || "";
+    if (/^\|[\s\-:\|]+\|$/.test(sepLine)) {
+      // Found separator. Walk back to find header start (handles multi-line cells)
+      let headerStart = i;
+      while (headerStart >= 0) {
+        const l = lines[headerStart].trim();
+        if (l.startsWith("|")) break;
+        if (l === "" && headerStart < i) { headerStart++; break; }
+        headerStart--;
       }
+      if (headerStart < 0) { i++; continue; }
+      
+      let endIdx = i + 2;
+      while (endIdx < lines.length && (lines[endIdx].includes("|") || lines[endIdx].trim() === "")) endIdx++;
+      while (endIdx > i + 2 && lines[endIdx - 1].trim() === "") endIdx--;
+      
+      const tableLines = lines.slice(headerStart, endIdx);
       const md = tableLines.join("\n");
       const html = mdTableToHtml(md);
       if (html) {
-        const start = stem.indexOf(lines[i].trim());
-        const end = start + stem.slice(start).split("\n").slice(0, tableLines.length).join("\n").length;
+        const start = stem.indexOf(tableLines[0]);
+        const end = start + tableLines.map(l => l.length + 1).reduce((a, b) => a + b, 0);
         tables.push({ start, end, html });
       }
       i = endIdx;
-    } else {
-      i++;
     }
   }
   

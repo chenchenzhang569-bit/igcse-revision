@@ -1,4 +1,4 @@
-// force-redeploy-v9-img-fix
+// force-redeploy-v10-table-fix
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -60,10 +60,26 @@ function findTables(stem: string): { start: number; end: number; html: string }[
   // Also detect markdown pipe tables
   const lines = stem.split("\n");
   for (let i = 0; i < lines.length - 1; i++) {
-    if (lines[i].includes("|") && /^\|[\s\-:\|]+\|$/.test(lines[i + 1]?.trim() || "")) {
+    const sepLine = lines[i + 1]?.trim() || "";
+    if (/^\|[\s\-:\|]+\|$/.test(sepLine)) {
+      // Found a separator row. Walk back to find the table header start.
+      // Handle multi-line pipe table cells: e.g. "| cell line1\n cell line2 |\n| --- |"
+      let headerStart = i;
+      while (headerStart >= 0) {
+        const l = lines[headerStart].trim();
+        if (l.startsWith("|")) break; // found the opening |
+        // Check if this line is empty — stop searching (table header starts after blank line)
+        if (l === "" && headerStart < i) { headerStart++; break; }
+        headerStart--;
+      }
+      if (headerStart < 0) { i++; continue; }
+      
       let end = i + 2;
-      while (end < lines.length && lines[end].includes("|")) end++;
-      const mdLines = lines.slice(i, end);
+      while (end < lines.length && (lines[end].includes("|") || lines[end].trim() === "")) end++;
+      // Walk back past trailing blank lines
+      while (end > i + 2 && lines[end - 1].trim() === "") end--;
+      
+      const mdLines = lines.slice(headerStart, end);
       const html = mdTableToHtml(mdLines);
       if (html && !tables.some(t => t.start <= stem.indexOf(mdLines[0]))) {
         tables.push({ start: stem.indexOf(mdLines[0]), end: stem.indexOf(mdLines[mdLines.length - 1]) + mdLines[mdLines.length - 1].length, html });
