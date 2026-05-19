@@ -34,16 +34,11 @@ export function MixedContent({ text, className }: { text: string; className?: st
       }
       const isDisplay = !!m[1];
       const mathContent = (m[1] || m[2]).trim();
-      // Skip pure currency amounts like $15.95, $26
-      if (!isDisplay && /^\d[\d,.\s]*\.?\s*$/.test(mathContent)) {
+      try {
+        const html = katex.renderToString(mathContent, { displayMode: isDisplay, throwOnError: false });
+        result.push({ type: "math", content: html, display: isDisplay });
+      } catch {
         result.push({ type: "md", content: m[0] });
-      } else {
-        try {
-          const html = katex.renderToString(mathContent, { displayMode: isDisplay, throwOnError: false });
-          result.push({ type: "math", content: html, display: isDisplay });
-        } catch {
-          result.push({ type: "md", content: m[0] });
-        }
       }
       lastIdx = m.index + m[0].length;
     }
