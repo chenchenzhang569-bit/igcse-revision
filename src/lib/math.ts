@@ -111,16 +111,18 @@ export function renderMath(text: string): string {
     }
   });
 
-  // Inline math: $...$ — must start with letter/backslash/brace (not digit/paren/space)
-  // Avoids matching currency like $15.95 or plain parens like ($)
-  result = result.replace(/\$(?=[a-zA-Z\\\{])(.+?)\$/g, (_, math) => {
+  // Inline math: $...$ — match broadly, then skip pure numbers/currency (e.g. $15.95, $26)
+  result = result.replace(/\$(.+?)\$/g, (match, math) => {
+    const trimmed = math.trim();
+    // Skip pure currency amounts: digits only, possibly with . , and trailing punctuation
+    if (/^\d[\d,.\s]*\.?\s*$/.test(trimmed)) return match;
     try {
-      return katex.renderToString(math.trim(), {
+      return katex.renderToString(trimmed, {
         displayMode: false,
         throwOnError: false,
       });
     } catch {
-      return `$${math}$`;
+      return match;
     }
   });
 
