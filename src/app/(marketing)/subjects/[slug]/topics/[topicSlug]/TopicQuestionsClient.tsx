@@ -1,4 +1,4 @@
-// force-redeploy-v10-table-fix
+// force-redeploy-v11-inline-table
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -63,12 +63,11 @@ function findTables(stem: string): { start: number; end: number; html: string }[
     const sepLine = lines[i + 1]?.trim() || "";
     if (/^\|[\s\-:\|]+\|$/.test(sepLine)) {
       // Found a separator row. Walk back to find the table header start.
-      // Handle multi-line pipe table cells: e.g. "| cell line1\n cell line2 |\n| --- |"
+      // Handle multi-line pipe table cells AND inline tables (text before |)
       let headerStart = i;
       while (headerStart >= 0) {
         const l = lines[headerStart].trim();
-        if (l.startsWith("|")) break; // found the opening |
-        // Check if this line is empty — stop searching (table header starts after blank line)
+        if (l.startsWith("|") || l.includes("|")) break;
         if (l === "" && headerStart < i) { headerStart++; break; }
         headerStart--;
       }
@@ -76,10 +75,13 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       
       let end = i + 2;
       while (end < lines.length && (lines[end].includes("|") || lines[end].trim() === "")) end++;
-      // Walk back past trailing blank lines
       while (end > i + 2 && lines[end - 1].trim() === "") end--;
       
       const mdLines = lines.slice(headerStart, end);
+      // Strip non-table prefix from first line if it contains text before |
+      const firstPipe = mdLines[0].indexOf("|");
+      if (firstPipe > 0) mdLines[0] = mdLines[0].slice(firstPipe);
+      
       const html = mdTableToHtml(mdLines);
       if (html && !tables.some(t => t.start <= stem.indexOf(mdLines[0]))) {
         tables.push({ start: stem.indexOf(mdLines[0]), end: stem.indexOf(mdLines[mdLines.length - 1]) + mdLines[mdLines.length - 1].length, html });

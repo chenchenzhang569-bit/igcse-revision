@@ -65,7 +65,7 @@ function findTables(stem: string): { start: number; end: number; html: string }[
     tables.push({ start: m.index, end: m.index + m[0].length, html: m[0] });
   }
   
-  // Match markdown pipe tables — supports multi-line cells
+  // Match markdown pipe tables — supports multi-line cells and inline tables
   const lines = stem.split('\n');
   for (let i = 0; i < lines.length - 1; i++) {
     const sepLine = lines[i + 1]?.trim() || '';
@@ -73,7 +73,7 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       let headerStart = i;
       while (headerStart >= 0) {
         const l = lines[headerStart].trim();
-        if (l.startsWith('|')) break;
+        if (l.startsWith('|') || l.includes('|')) break;
         if (l === '' && headerStart < i) { headerStart++; break; }
         headerStart--;
       }
@@ -84,6 +84,10 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       while (endIdx > i + 2 && lines[endIdx - 1].trim() === '') endIdx--;
       
       const tableLines = lines.slice(headerStart, endIdx);
+      // Strip non-table prefix from first line
+      const firstPipe = tableLines[0].indexOf('|');
+      if (firstPipe > 0) tableLines[0] = tableLines[0].slice(firstPipe);
+      
       const md = tableLines.join('\n');
       const html = mdTableToHtml(md);
       if (html) {
