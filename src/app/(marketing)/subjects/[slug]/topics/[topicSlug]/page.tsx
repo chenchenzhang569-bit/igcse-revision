@@ -1,4 +1,4 @@
-// force-redeploy-v11 — fix minus sign after \$ in KaTeX regex
+// force-redeploy-v12 — SME root/exponent markup cleanup in KaTeX
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";

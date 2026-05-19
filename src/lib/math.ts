@@ -96,10 +96,14 @@ export function fixMathNotation(text: string): string {
  */
 function cleanSmeMathMarkup(math: string): string {
   let result = math;
-  result = result.replace(/square root of\s*\(/g, "\\sqrt{");
-  result = result.replace(/cube root of\s*\(/g, "\\sqrt[3]{");
-  result = result.replace(/end root/g, "}");
-  result = result.replace(/end exponent/g, "");
+  // Handle spaced and no-space variants: square root of / squarerootof
+  result = result.replace(/square\s*root\s*of\s*\(/g, "\\sqrt{");
+  // Handle cube root of / cuberootof
+  result = result.replace(/cube\s*root\s*of\s*\(/g, "\\sqrt[3]{");
+  // Handle end root / endroot (with or without space)
+  result = result.replace(/end\s*root/g, "}");
+  // Handle end exponent (with or without space)
+  result = result.replace(/end\s*exponent/g, "");
   return result;
 }
 
