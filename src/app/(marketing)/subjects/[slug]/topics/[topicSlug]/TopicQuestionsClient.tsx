@@ -1,4 +1,4 @@
-// force-redeploy-v19-red-border
+// force-redeploy-v20-frac-debug
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -492,10 +492,16 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
-                    {sp.text && (
+                    {sp.text && (() => {
+                      if (sp.text.includes("frac")) {
+                        console.log(`Sub-part ${sp.label} text (first 200):`, sp.text.substring(0, 200));
+                        console.log(`Sub-part ${sp.label} rendered (first 400):`, renderMath(renderStemWithTables(sp.text)).substring(0, 400));
+                      }
+                      return (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
                         dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
-                    )}
+                      );
+                    })()}
                     <MathInput
                       value={subAns}
                       onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
