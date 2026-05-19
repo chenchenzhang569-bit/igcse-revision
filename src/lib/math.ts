@@ -111,9 +111,10 @@ export function renderMath(text: string): string {
     }
   });
 
-  // Inline math: $...$ — must start with letter/backslash/brace (not digit/paren/space)
-  // Avoids matching currency like $15.95 or plain parens like ($)
-  result = result.replace(/\$(?=[a-zA-Z\\\{])(.+?)\$/g, (_, math) => {
+  // Inline math: $...$ — must start with letter/digit/backslash/brace
+  // We allow digits now because math expressions like $68+18$ are common
+  // Currency like $15.95 won't match because there's no closing $ before a non-math char
+  result = result.replace(/\$(?=[a-zA-Z0-9\\\{])(.+?)(?<!\\)\$/g, (_, math) => {
     try {
       return katex.renderToString(math.trim(), {
         displayMode: false,
