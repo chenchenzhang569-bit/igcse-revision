@@ -62,8 +62,7 @@ export default function HomePage() {
               className="w-full rounded-lg shadow-2xl"
               controls
               playsInline
-              preload="metadata"
-              poster="/promo-poster.jpg"
+              preload="auto"
             >
               <source src="/promo-video.mp4" type="video/mp4" />
               <source src="/promo-video.webm" type="video/webm" />
