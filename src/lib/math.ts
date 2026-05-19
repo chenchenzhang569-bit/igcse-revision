@@ -96,6 +96,9 @@ export function fixMathNotation(text: string): string {
  */
 function cleanSmeMathMarkup(math: string): string {
   let result = math;
+  // Fix double-escaped LaTeX commands: \\frac → \frac, \\sqrt → \sqrt, etc.
+  // Line breaks (\\) are typically followed by whitespace/newline, not a letter
+  result = result.replace(/\\\\([a-zA-Z])/g, "\\$1");
   // Handle spaced and no-space variants: square root of / squarerootof
   result = result.replace(/square\s*root\s*of\s*\(/g, "\\sqrt{");
   // Handle cube root of / cuberootof
