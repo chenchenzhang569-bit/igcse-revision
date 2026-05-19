@@ -1,4 +1,4 @@
-// force-redeploy-v18-debug-html
+// force-redeploy-v19-red-border
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -481,7 +481,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 console.log("Final HTML:", processed.substring(0, 400));
               }
               return introText ? (
-                <div className="prose prose-sm max-w-none text-gray-800 mb-4"
+                <div className="border-2 border-red-500 prose prose-sm max-w-none text-gray-800 mb-4"
                   dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(introText)) }} />
               ) : null;
             })()}
