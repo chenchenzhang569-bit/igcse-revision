@@ -29,7 +29,6 @@ const MATH_SYMBOLS = [
   "≤", "≥", "≠", "≈", "∞", "∠", "→", "%",
   "½", "¼", "¾", "⁻¹", "Δ", "θ", "Σ", "∫",
 ];
-const FRAC_TEMPLATE = "\\frac{}{}";
 
 const DIFF_ORDER = ["easy", "medium", "hard"] as const;
 
@@ -625,24 +624,6 @@ function MathInput({
     });
   };
 
-  const insertFraction = () => {
-    if (disabled) return;
-    const el = inputRef.current;
-    if (!el) { onChange(value + FRAC_TEMPLATE); return; }
-    const start = el.selectionStart ?? value.length;
-    const end = el.selectionEnd ?? value.length;
-    const prefix = value.slice(0, start);
-    const suffix = value.slice(end);
-    // cursor goes between first { and } — after \frac{
-    const cursorPos = start + 6; // "\frac{" is 6 chars
-    const newVal = prefix + FRAC_TEMPLATE + suffix;
-    onChange(newVal);
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(cursorPos, cursorPos);
-    });
-  };
-
   return (
     <div>
       <div className="flex gap-2">
@@ -657,17 +638,9 @@ function MathInput({
           autoFocus
         />
       </div>
-      {/* Fraction + Symbol toggle */}
+      {/* Symbol toggle */}
       {!disabled && (
-        <div className="relative mt-1.5 flex gap-1.5">
-          <button
-            type="button"
-            onClick={insertFraction}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-primary-50 hover:bg-primary-100 rounded border border-primary-200 text-primary-700 font-medium transition"
-            title="Insert fraction (⅟)"
-          >
-            <span className="text-sm leading-none">⅟</span> Frac
-          </button>
+        <div className="relative mt-1.5">
           <button
             type="button"
             onClick={() => setShowSymbols(!showSymbols)}
