@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { renderMath } from "@/lib/math";
+import { gradeAnswerSync, extractCommandWord } from "@/lib/grading";
 
 interface Question {
   id: string;
@@ -31,14 +32,6 @@ const MATH_SYMBOLS = [
 ];
 
 const DIFF_ORDER = ["easy", "medium", "hard"] as const;
-
-function normalizeAnswer(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9.\-]/g, "")
-    .replace(/\s+/g, "")
-    .trim();
-}
 
 function markdownify(text: string): string {
   // Convert <img> HTML tags to markdown ![]() syntax so ReactMarkdown renders them
@@ -302,9 +295,12 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (isMcq) {
       correct = userAns === q.answer_text?.trim().charAt(0);
     } else {
-      const userNorm = normalizeAnswer(userAns);
-      const correctNorm = normalizeAnswer(q.answer_text);
-      correct = userNorm === correctNorm || userNorm.includes(correctNorm) || correctNorm.includes(userAns);
+      const result = gradeAnswerSync(
+        userAns,
+        q.answer_text || "",
+        q.explanation || undefined,
+      );
+      correct = result.correct;
     }
     setCorrectMap((prev) => ({ ...prev, [qId]: correct }));
     setGraded((prev) => ({ ...prev, [qId]: true }));
