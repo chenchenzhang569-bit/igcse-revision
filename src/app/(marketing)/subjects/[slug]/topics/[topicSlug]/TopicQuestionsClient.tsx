@@ -1,4 +1,4 @@
-// force-redeploy-v15-intro-table
+// force-redeploy-v16-DEBUG
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -412,6 +412,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
 
   return (
     <div className="mt-6 space-y-4">
+      {/* DEBUG v16 — remove after verifying deployment */}
+      <div className="bg-green-500 text-white text-xs px-2 py-1 rounded">DEPLOYED v16</div>
       <DifficultyTabs
         difficulties={difficulties}
         active={activeDifficulty}
