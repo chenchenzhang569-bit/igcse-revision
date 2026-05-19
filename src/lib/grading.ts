@@ -20,6 +20,11 @@ const COMMAND_WORDS = [
   "explain", "describe", "justify", "identify", "complete",
 ] as const;
 
+// Command words that require essay-style answers — cannot auto-grade with Tier 1/2
+const ESSAY_COMMAND_WORDS = new Set([
+  "explain", "describe", "justify", "prove", "show",
+]);
+
 export function extractCommandWord(text: string): string | null {
   const pattern = new RegExp(`\\b(${COMMAND_WORDS.join("|")})\\b`, "i");
   const m = text.match(pattern);
@@ -168,12 +173,22 @@ export async function gradeAnswer(
     return { correct: false, partial: false, tier: 0 };
   }
 
+  // Essay-type questions (explain, describe, justify, prove, show) cannot be auto-graded
+  if (commandWord && ESSAY_COMMAND_WORDS.has(commandWord.toLowerCase())) {
+    return { correct: false, partial: false, tier: 3 };
+  }
+
   // ── Tier 1: Normalized exact match ──────────────────────────────────────
   const na = normalizeAnswer(studentAnswer);
   const nc = normalizeAnswer(correctAnswer);
 
-  if (na === nc || na.includes(nc) || nc.includes(na)) {
+  if (na === nc) {
     return { correct: true, partial: false, tier: 1, matchedAnswer: correctAnswer };
+  }
+  if (na.length <= 30 && nc.length <= 30) {
+    if (na.includes(nc) || nc.includes(na)) {
+      return { correct: true, partial: false, tier: 1, matchedAnswer: correctAnswer };
+    }
   }
 
   // Also check against extracted final answers from explanation
@@ -181,8 +196,14 @@ export async function gradeAnswer(
     const finals = extractFinalAnswers(explanation);
     for (const f of finals) {
       const nf = normalizeAnswer(f);
-      if (na === nf || na.includes(nf) || nf.includes(na)) {
+      if (na === nf) {
         return { correct: true, partial: false, tier: 1, matchedAnswer: f };
+      }
+      // Only substring match for short answers
+      if (na.length <= 30 && nf.length <= 30) {
+        if (na.includes(nf) || nf.includes(na)) {
+          return { correct: true, partial: false, tier: 1, matchedAnswer: f };
+        }
       }
     }
   }
@@ -216,24 +237,46 @@ export function gradeAnswerSync(
   studentAnswer: string,
   correctAnswer: string,
   explanation?: string,
+  commandWord?: string | null,
 ): GradeResult {
   if (!studentAnswer?.trim()) {
     return { correct: false, partial: false, tier: 0 };
   }
 
+  // Essay-type questions (explain, describe, justify, prove, show) cannot be auto-graded
+  // with Tier 1/2 — needs LLM semantic matching (Tier 3)
+  if (commandWord && ESSAY_COMMAND_WORDS.has(commandWord.toLowerCase())) {
+    // Skip auto-grading for essay questions — mark as tier 3 (needs LLM review)
+    // Don't mark as correct or incorrect — just say "needs review"
+    return { correct: false, partial: false, tier: 3 };
+  }
+
   const na = normalizeAnswer(studentAnswer);
   const nc = normalizeAnswer(correctAnswer);
 
-  if (na === nc || na.includes(nc) || nc.includes(na)) {
+  // Only do includes matching when both sides are short (<30 chars)
+  // Prevents false matches like "1" matching inside a long explanation text
+  if (na === nc) {
     return { correct: true, partial: false, tier: 1, matchedAnswer: correctAnswer };
+  }
+  if (na.length <= 30 && nc.length <= 30) {
+    if (na.includes(nc) || nc.includes(na)) {
+      return { correct: true, partial: false, tier: 1, matchedAnswer: correctAnswer };
+    }
   }
 
   if (explanation) {
     const finals = extractFinalAnswers(explanation);
     for (const f of finals) {
       const nf = normalizeAnswer(f);
-      if (na === nf || na.includes(nf) || nf.includes(na)) {
+      if (na === nf) {
         return { correct: true, partial: false, tier: 1, matchedAnswer: f };
+      }
+      // Only substring match for short answers
+      if (na.length <= 30 && nf.length <= 30) {
+        if (na.includes(nf) || nf.includes(na)) {
+          return { correct: true, partial: false, tier: 1, matchedAnswer: f };
+        }
       }
     }
   }

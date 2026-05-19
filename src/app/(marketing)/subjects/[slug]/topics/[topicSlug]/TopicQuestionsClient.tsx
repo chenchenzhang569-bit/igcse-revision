@@ -300,11 +300,15 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (isMcq) {
       correct = userAns === q.answer_text?.trim().charAt(0);
     } else {
+      const cw = extractCommandWord(q.question_text);
       const result = gradeAnswerSync(
         userAns,
         q.answer_text || "",
         q.explanation || undefined,
+        cw,
       );
+      // Tier 3 = essay question, can't auto-grade — don't mark correct/incorrect
+      if (result.tier === 3) return;
       correct = result.correct;
     }
     setCorrectMap((prev) => ({ ...prev, [qId]: correct }));
@@ -325,9 +329,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           const subKey = `${qq.id}-${sub.label}`;
           const subAns = answers[subKey] || "";
           if (!graded[qq.id] && subAns.trim()) {
-            const result = gradeAnswerSync(subAns, qq.answer_text || "", qq.explanation || undefined);
-            newSubCorrect[subKey] = result.correct;
-            newSubGraded[subKey] = true;
+            const cw = extractCommandWord(qq.question_text);
+            const result = gradeAnswerSync(subAns, qq.answer_text || "", qq.explanation || undefined, cw);
+            // Skip essay-type sub-questions (tier 3) — can't auto-grade
+            if (result.tier !== 3) {
+              newSubCorrect[subKey] = result.correct;
+              newSubGraded[subKey] = true;
+            }
           }
         }
         // Mark parent as graded if all sub-questions attempted

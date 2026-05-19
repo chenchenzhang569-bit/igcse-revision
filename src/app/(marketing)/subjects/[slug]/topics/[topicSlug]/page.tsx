@@ -1,4 +1,4 @@
-// force-redeploy-v7 — fix client component chunk generation
+// force-redeploy-v8 — fix explain-question auto-grading (skip essay cmd words + guard includes)
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
