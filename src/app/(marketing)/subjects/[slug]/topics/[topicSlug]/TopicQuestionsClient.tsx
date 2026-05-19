@@ -162,6 +162,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   const [graded, setGraded] = useState<Record<string, boolean>>({});
   // correct[questionId] = whether user's answer was correct
   const [correctMap, setCorrectMap] = useState<Record<string, boolean>>({});
+  // sub-part grading: subCorrectMap[subKey] and subGraded[subKey]
+  const [subCorrectMap, setSubCorrectMap] = useState<Record<string, boolean>>({});
+  const [subGraded, setSubGraded] = useState<Record<string, boolean>>({});
   // submitted groups
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -176,6 +179,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
         if (parsed.answers) setAnswers(parsed.answers);
         if (parsed.graded) setGraded(parsed.graded);
         if (parsed.correctMap) setCorrectMap(parsed.correctMap);
+        if (parsed.subCorrectMap) setSubCorrectMap(parsed.subCorrectMap);
+        if (parsed.subGraded) setSubGraded(parsed.subGraded);
         if (parsed.submitted) setSubmitted(new Set(parsed.submitted));
         if (parsed.activeDifficulty) setActiveDifficulty(parsed.activeDifficulty);
       }
@@ -188,7 +193,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (Object.keys(answers).length === 0) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify({
-        answers, graded, correctMap,
+        answers, graded, correctMap, subCorrectMap, subGraded,
         submitted: Array.from(submitted),
         activeDifficulty,
       }));
@@ -309,11 +314,40 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   const handleSubmitGroup = () => {
     // Grade all ungraded questions in this difficulty
     const qs = byDifficulty[activeDifficulty] || [];
+    const newSubCorrect: Record<string, boolean> = {};
+    const newSubGraded: Record<string, boolean> = {};
+    
     for (const qq of qs) {
-      const ans = answers[qq.id] || "";
-      if (!graded[qq.id] && ans.trim()) {
-        handleGradeOne(qq.id, qq, ans);
+      // Grade sub-questions independently
+      const sp = parseSubParts(parseQuestion(qq.question_text).stem);
+      if (sp.length > 1) {
+        for (const sub of sp) {
+          const subKey = `${qq.id}-${sub.label}`;
+          const subAns = answers[subKey] || "";
+          if (!graded[qq.id] && subAns.trim()) {
+            const result = gradeAnswerSync(subAns, qq.answer_text || "", qq.explanation || undefined);
+            newSubCorrect[subKey] = result.correct;
+            newSubGraded[subKey] = true;
+          }
+        }
+        // Mark parent as graded if all sub-questions attempted
+        const allSubKeys = sp.map(s => `${qq.id}-${s.label}`);
+        if (allSubKeys.some(k => answers[k]?.trim())) {
+          setGraded((prev) => ({ ...prev, [qq.id]: true }));
+          const allCorrect = allSubKeys.every(k => newSubCorrect[k]);
+          setCorrectMap((prev) => ({ ...prev, [qq.id]: allCorrect }));
+        }
+      } else {
+        const ans = answers[qq.id] || "";
+        if (!graded[qq.id] && ans.trim()) {
+          handleGradeOne(qq.id, qq, ans);
+        }
       }
+    }
+    
+    if (Object.keys(newSubCorrect).length > 0) {
+      setSubCorrectMap((prev) => ({ ...prev, ...newSubCorrect }));
+      setSubGraded((prev) => ({ ...prev, ...newSubGraded }));
     }
   };
 
@@ -472,7 +506,14 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 const subAns = answers[subKey] || "";
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
+                    <p className="text-sm font-semibold text-primary-700 mb-2">
+                      ({sp.label})
+                      {subGraded[subKey] && (
+                        subCorrectMap[subKey]
+                          ? <span className="text-green-600 ml-1">✓</span>
+                          : <span className="text-red-500 ml-1">✗</span>
+                      )}
+                    </p>
                     {sp.text && (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
                         dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
