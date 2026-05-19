@@ -1,4 +1,3 @@
-// force-redeploy-v20-frac-debug
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -412,8 +411,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
 
   return (
     <div className="mt-6 space-y-4">
-      {/* DEBUG v16 — remove after verifying deployment */}
-      <div className="bg-green-500 text-white text-xs px-2 py-1 rounded">DEPLOYED v16</div>
       <DifficultyTabs
         difficulties={difficulties}
         active={activeDifficulty}
@@ -468,20 +465,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
               const firstMatch = markerRe.exec(stem);
               const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
               const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
-              // DEBUG
-              if (introText) {
-                console.log("INTRO TEXT:", introText.substring(0, 200));
-                console.log("Has pipe:", introText.includes("|"));
-                const tables = findTables(introText);
-                console.log("Tables found:", tables.length);
-                if (tables.length > 0) {
-                  console.log("Table HTML:", tables[0].html.substring(0, 300));
-                }
-                const processed = renderMath(renderStemWithTables(introText));
-                console.log("Final HTML:", processed.substring(0, 400));
-              }
               return introText ? (
-                <div className="border-2 border-red-500 prose prose-sm max-w-none text-gray-800 mb-4"
+                <div className="prose prose-sm max-w-none text-gray-800 mb-4"
                   dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(introText)) }} />
               ) : null;
             })()}
@@ -492,16 +477,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">({sp.label})</p>
-                    {sp.text && (() => {
-                      if (sp.text.includes("frac")) {
-                        console.log(`Sub-part ${sp.label} text (first 200):`, sp.text.substring(0, 200));
-                        console.log(`Sub-part ${sp.label} rendered (first 400):`, renderMath(renderStemWithTables(sp.text)).substring(0, 400));
-                      }
-                      return (
+                    {sp.text && (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
                         dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
-                      );
-                    })()}
+                    )}
                     <MathInput
                       value={subAns}
                       onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
