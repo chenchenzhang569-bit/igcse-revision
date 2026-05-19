@@ -1,4 +1,4 @@
-// force-redeploy-v17-debug-logs
+// force-redeploy-v18-debug-html
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -474,6 +474,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 console.log("Has pipe:", introText.includes("|"));
                 const tables = findTables(introText);
                 console.log("Tables found:", tables.length);
+                if (tables.length > 0) {
+                  console.log("Table HTML:", tables[0].html.substring(0, 300));
+                }
+                const processed = renderMath(renderStemWithTables(introText));
+                console.log("Final HTML:", processed.substring(0, 400));
               }
               return introText ? (
                 <div className="prose prose-sm max-w-none text-gray-800 mb-4"
