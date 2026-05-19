@@ -1,4 +1,4 @@
-// force-redeploy-v12 — SME root/exponent markup cleanup in KaTeX
+// force-redeploy-v13 — double-backslash LaTeX fix + SME markup cleanup
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
