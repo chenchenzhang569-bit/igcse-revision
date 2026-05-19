@@ -1,4 +1,4 @@
-// force-redeploy-v8 — fix explain-question auto-grading (skip essay cmd words + guard includes)
+// force-redeploy-v10 — fix renderMath regex for digit-starting math expressions
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
