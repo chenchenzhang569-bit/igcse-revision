@@ -55,45 +55,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Promo Video Banner */}
-      <section className="bg-blue-700 px-4 sm:px-6 py-10 sm:py-14">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8">
-          {/* Left text */}
-          <div className="flex-1 text-white">
-            <h3 className="font-poppins text-xl sm:text-2xl md:text-3xl font-bold mb-4">
-              你的 IGCSE A* 加速器
-            </h3>
-            <ul className="space-y-2 text-white/90 text-sm sm:text-base mb-6">
-              <li>✅ CAIE 数理化生全覆盖</li>
-              <li>✅ 按 Topic 分类，Easy/Medium/Hard 三档难度</li>
-              <li>✅ 做完即改，自动判分，错题显示解析</li>
-              <li>✅ Mock Exam 全真模拟</li>
-              <li>✅ ¥100/科，¥500 全科，支付宝支付</li>
-            </ul>
-            <Link
-              href="/subjects"
-              className="inline-block bg-white text-blue-700 font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors hover:bg-blue-50"
-            >
-              开始刷题
-            </Link>
-          </div>
-          {/* Right video */}
-          <div className="flex-1 w-full max-w-[500px]">
-            <div className="relative w-full aspect-video bg-blue-900 rounded-lg overflow-hidden shadow-xl">
-              <video
-                className="w-full h-full object-cover"
-                controls
-                poster="/video-poster.png"
-                preload="metadata"
-              >
-                <source src="/promo-video.mp4" type="video/mp4" />
-                你的浏览器不支持视频播放。
-              </video>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Exam Board Selector */}
       <section className="w-full px-3 sm:px-5 -mt-10 sm:-mt-14 relative z-10 pb-6 sm:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
