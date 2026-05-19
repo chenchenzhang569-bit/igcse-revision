@@ -63,6 +63,9 @@ export default function HomePage() {
               className="w-full rounded-lg shadow-2xl"
               controls
               playsInline
+              autoPlay
+              muted
+              loop
               preload="auto"
             >
               <source src="/promo-video.mp4" type="video/mp4" />

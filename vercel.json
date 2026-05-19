@@ -1,0 +1,18 @@
+{
+  "headers": [
+    {
+      "source": "/promo-video.mp4",
+      "headers": [
+        { "key": "Content-Type", "value": "video/mp4" },
+        { "key": "Accept-Ranges", "value": "bytes" }
+      ]
+    },
+    {
+      "source": "/promo-video.webm",
+      "headers": [
+        { "key": "Content-Type", "value": "video/webm" },
+        { "key": "Accept-Ranges", "value": "bytes" }
+      ]
+    }
+  ]
+}
