@@ -74,7 +74,7 @@ function findTables(stem: string): { start: number; end: number; html: string }[
       while (headerStart >= 0) {
         const l = lines[headerStart].trim();
         if (l.startsWith('|') || l.includes('|')) break;
-        if (l === '' && headerStart < i) { headerStart++; break; }
+        if (l === '' && headerStart <= i) { headerStart++; break; }
         headerStart--;
       }
       if (headerStart < 0) { i++; continue; }
