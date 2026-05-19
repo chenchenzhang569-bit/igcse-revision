@@ -422,19 +422,6 @@ function AnswerInput({
     });
   }, [value, onChange]);
 
-  const insertFraction = useCallback(() => {
-    const el = textareaRef.current;
-    const tpl = "\\frac{}{}";
-    if (!el) return onChange(value + tpl);
-    const start = el.selectionStart, end = el.selectionEnd;
-    const newVal = value.slice(0, start) + tpl + value.slice(end);
-    onChange(newVal);
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(start + 6, start + 6);
-    });
-  }, [value, onChange]);
-
   const insertText = useCallback((text: string) => {
     const el = textareaRef.current;
     if (!el) return onChange(value + text);
@@ -461,11 +448,6 @@ function AnswerInput({
         placeholder={placeholder} rows={Math.max(2, marks + 1)}
         className="w-full p-3 pr-20 text-sm border border-gray-300 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition" />
       <div className="absolute right-2 top-2 flex items-center gap-0.5">
-        <button type="button" onClick={insertFraction}
-          className="flex items-center gap-0.5 px-1.5 py-1 text-xs bg-primary-50 hover:bg-primary-100 rounded border border-primary-200 text-primary-700 font-medium transition"
-          title="Insert fraction">
-          <span className="text-sm">⅟</span> Frac
-        </button>
         <button type="button" onClick={() => setShowDrawing(true)}
           className="flex items-center gap-0.5 px-1.5 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
           title="Draw diagram or write">
