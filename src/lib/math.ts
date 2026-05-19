@@ -96,6 +96,9 @@ export function fixMathNotation(text: string): string {
 export function renderMath(text: string): string {
   let result = text;
 
+  // Convert markdown images to HTML (before LaTeX, so base64 won't trigger $ matching)
+  result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />');
+
   // Display math: $$...$$
   result = result.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_, math) => {
     try {
