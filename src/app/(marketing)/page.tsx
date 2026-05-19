@@ -66,6 +66,7 @@ export default function HomePage() {
               poster="/promo-poster.jpg"
             >
               <source src="/promo-video.mp4" type="video/mp4" />
+              <source src="/promo-video.webm" type="video/webm" />
             </video>
           </div>
         </div>
