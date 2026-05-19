@@ -1,4 +1,4 @@
-// force-redeploy-v11 — dedup + bold fix SME OCR artifacts (946 fixes total)
+// force-redeploy-v10 — deep clean SME OCR artifacts (946 fixes total)
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
