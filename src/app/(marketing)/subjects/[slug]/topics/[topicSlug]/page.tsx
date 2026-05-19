@@ -1,4 +1,4 @@
-// force-redeploy-v8 — fix explain-question auto-grading (skip essay cmd words + guard includes)
+// force-redeploy-v9 — fix cross OCR artifacts in DB (778 fixes)
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
