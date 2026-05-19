@@ -62,6 +62,7 @@ export default function HomePage() {
             <video
               className="w-full rounded-lg shadow-2xl"
               controls
+              poster="https://cdn.jsdelivr.net/gh/chenchenzhang569-bit/igcse-revision@master/public/promo-poster.png"
               playsInline
               webkit-playsinline="true"
               x5-video-player-type="h5"
