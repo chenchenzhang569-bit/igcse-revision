@@ -35,23 +35,39 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <section className="bg-primary-900 px-4 sm:px-6 py-14 sm:py-20">
-        <div className="max-w-[720px]">
-          <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
-            Master IGCSE, Achieve More
-          </h2>
-          <p className="text-white/70 text-sm md:text-base mb-2 leading-relaxed">
-            The most comprehensive IGCSE revision platform for CAIE and Edexcel.
-          </p>
-          <p className="text-white/50 text-sm md:text-base mb-8 leading-relaxed">
-            Access expertly curated past papers, topic questions, and revision notes — 
-            all organized by subject and topic so you can focus on what matters most.
-          </p>
-          <Link
-            href="/subjects"
-            className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
-          >
-            Start Revising
-          </Link>
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+          {/* Left: text */}
+          <div className="flex-1">
+            <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
+              Master IGCSE, Achieve More
+            </h2>
+            <p className="text-white/70 text-sm md:text-base mb-2 leading-relaxed">
+              The most comprehensive IGCSE revision platform for CAIE and Edexcel.
+            </p>
+            <p className="text-white/50 text-sm md:text-base mb-8 leading-relaxed">
+              Access expertly curated past papers, topic questions, and revision notes — 
+              all organized by subject and topic so you can focus on what matters most.
+            </p>
+            <Link
+              href="/subjects"
+              className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
+            >
+              Start Revising
+            </Link>
+          </div>
+
+          {/* Right: video */}
+          <div className="flex-1 w-full max-w-[540px]">
+            <video
+              className="w-full rounded-lg shadow-2xl"
+              controls
+              playsInline
+              preload="metadata"
+              poster="/promo-poster.jpg"
+            >
+              <source src="/promo-video.mp4" type="video/mp4" />
+            </video>
+          </div>
         </div>
       </section>
 
