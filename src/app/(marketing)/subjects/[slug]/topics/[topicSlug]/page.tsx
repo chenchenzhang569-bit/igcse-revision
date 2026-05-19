@@ -1,4 +1,4 @@
-// force-redeploy-v10 — fix renderMath regex for digit-starting math expressions
+// force-redeploy-v11 — fix minus sign after \$ in KaTeX regex
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
