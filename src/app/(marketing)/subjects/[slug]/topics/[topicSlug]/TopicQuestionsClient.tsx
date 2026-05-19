@@ -1,4 +1,4 @@
-// force-redeploy-v16-DEBUG
+// force-redeploy-v17-debug-logs
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -468,6 +468,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
               const firstMatch = markerRe.exec(stem);
               const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
               const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
+              // DEBUG
+              if (introText) {
+                console.log("INTRO TEXT:", introText.substring(0, 200));
+                console.log("Has pipe:", introText.includes("|"));
+                const tables = findTables(introText);
+                console.log("Tables found:", tables.length);
+              }
               return introText ? (
                 <div className="prose prose-sm max-w-none text-gray-800 mb-4"
                   dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(introText)) }} />
