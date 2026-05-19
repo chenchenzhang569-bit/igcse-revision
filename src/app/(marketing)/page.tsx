@@ -59,18 +59,11 @@ export default function HomePage() {
 
           {/* Right: video */}
           <div className="flex-1 w-full max-w-[540px]">
-            <video
+            <img
+              src="/promo-video.gif"
+              alt="Promo Video"
               className="w-full rounded-lg shadow-2xl"
-              controls
-              playsInline
-              autoPlay
-              muted
-              loop
-              preload="auto"
-            >
-              <source src="/promo-video.mp4" type="video/mp4" />
-              <source src="/promo-video.webm" type="video/webm" />
-            </video>
+            />
           </div>
         </div>
       </section>
