@@ -1,4 +1,4 @@
-// force-redeploy-v14-table-fix
+// force-redeploy-v15-intro-table
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -468,7 +468,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
               const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
               return introText ? (
                 <div className="prose prose-sm max-w-none text-gray-800 mb-4"
-                  dangerouslySetInnerHTML={{ __html: renderMath(introText) }} />
+                  dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(introText)) }} />
               ) : null;
             })()}
             <div className="space-y-4">

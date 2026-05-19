@@ -1,4 +1,5 @@
 // force-redeploy-v7 — fix client component chunk generation
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
 import { getSubtopics } from "@/lib/subtopic-data";
