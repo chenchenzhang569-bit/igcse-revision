@@ -68,8 +68,7 @@ export default function HomePage() {
               x5-video-orientation="portraint"
               preload="auto"
             >
-              <source src="/promo-video.mp4" type="video/mp4" />
-              <source src="/promo-video.webm" type="video/webm" />
+              <source src="/test-video.mp4" type="video/mp4" />
             </video>
           </div>
         </div>
