@@ -89,6 +89,21 @@ export function fixMathNotation(text: string): string {
 }
 
 /**
+ * Clean SME proprietary math markup inside $...$ delimiters.
+ * - square root of (expr) end root → \sqrt{expr}
+ * - cube root of (expr) end root → \sqrt[3]{expr}
+ * - end exponent → (remove)
+ */
+function cleanSmeMathMarkup(math: string): string {
+  let result = math;
+  result = result.replace(/square root of\s*\(/g, "\\sqrt{");
+  result = result.replace(/cube root of\s*\(/g, "\\sqrt[3]{");
+  result = result.replace(/end root/g, "}");
+  result = result.replace(/end exponent/g, "");
+  return result;
+}
+
+/**
  * Render LaTeX math expressions ($...$ and $$...$$) to KaTeX HTML.
  * Apply this AFTER fixMathNotation() since $ is the LaTeX delimiter.
  * Must be paired with rehype-raw in ReactMarkdown to preserve KaTeX HTML.
@@ -102,7 +117,7 @@ export function renderMath(text: string): string {
   // Display math: $$...$$
   result = result.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return katex.renderToString(cleanSmeMathMarkup(math.trim()), {
         displayMode: true,
         throwOnError: false,
       });
@@ -114,7 +129,7 @@ export function renderMath(text: string): string {
   // Inline math: $...$ — must start with letter/digit/backslash/brace/minus
   result = result.replace(/\$(?=[a-zA-Z0-9\\\{\-])(.+?)(?<!\\)\$/g, (_, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return katex.renderToString(cleanSmeMathMarkup(math.trim()), {
         displayMode: false,
         throwOnError: false,
       });
