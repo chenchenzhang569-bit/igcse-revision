@@ -568,7 +568,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${bg} ${isGraded ? "cursor-default" : "cursor-pointer"}`}
                 >
                   <span className="font-semibold text-primary-600 mr-2">{letter}.</span>
-                  <span className="text-gray-700 text-sm">{opt.replace(/^[A-D]\)\s*/, "")}</span>
+                  <span className="text-gray-700 text-sm">{opt.replace(/^[A-D][.)]?\s*/, "") || opt}</span>
                   {isGraded && isCorrectOption && <span className="ml-2 text-green-600">✓</span>}
                   {isGraded && isSelected && !isCorrectOption && <span className="ml-2 text-red-600">✗</span>}
                 </button>
