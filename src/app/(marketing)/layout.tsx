@@ -8,7 +8,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/subjects", label: "Revision" },
   { href: "/past-papers", label: "Past Paper" },
-  { href: "/subjects", label: "Notes" },
+  { href: "/mock-exams", label: "Mock Exam" },
   { href: "/pricing", label: "Purchase" },
   { href: "/submit-errors", label: "Submit Errors" },
 ];
