@@ -9,9 +9,30 @@ import "katex/dist/katex.min.css";
 import { fixMathNotation } from "@/lib/math";
 
 const markdownComponents = {
-  img: (props: any) => (
-    <img {...props} style={{ maxWidth: "100%", height: "auto" }} />
-  ),
+  img: (props: any) => {
+    const src = props.src || "";
+    // WeChat/Weixin browser does not render SVG text when loaded via <img>,
+    // so we inline SVG data URIs using dangerouslySetInnerHTML.
+    if (src.startsWith("data:image/svg+xml")) {
+      let svg = "";
+      if (src.includes(";base64,")) {
+        try {
+          svg = atob(src.split(";base64,")[1]);
+        } catch { /* fall through to <img> */ }
+      } else {
+        svg = decodeURIComponent(src.slice(src.indexOf(",") + 1));
+      }
+      if (svg) {
+        return (
+          <div
+            dangerouslySetInnerHTML={{ __html: svg }}
+            style={{ maxWidth: "100%", overflow: "hidden" }}
+          />
+        );
+      }
+    }
+    return <img {...props} style={{ maxWidth: "100%", height: "auto" }} />;
+  },
 };
 
 /**
