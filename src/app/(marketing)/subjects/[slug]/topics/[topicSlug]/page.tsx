@@ -1,4 +1,4 @@
-// force-redeploy-v14-trigger-full-rebuild — double-backslash LaTeX fix + SME markup cleanup
+// force-redeploy-v15-katex-dangerouslySetInnerHTML — MixedContent math rendering fix
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
