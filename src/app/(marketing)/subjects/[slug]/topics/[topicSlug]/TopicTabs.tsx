@@ -230,7 +230,9 @@ export function TopicTabs({
     // 1. Try question_text
     const lines = text.split("\n");
     const fromText = lines.filter((l) => /^[A-D][.)]/.test(l.trim()));
-    if (fromText.length >= 2) {
+    // Only use question_text options if they have real content (not just "A.", "B.", etc.)
+    const fromTextWithContent = fromText.filter((l) => l.replace(/^[A-D][.)]\s*/, "").trim().length > 0);
+    if (fromText.length >= 2 && fromTextWithContent.length >= 2) {
       rawOptions = fromText;
     }
     
