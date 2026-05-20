@@ -1,4 +1,4 @@
-// force-redeploy-v24-fix-cache-clear
+// force-redeploy-v25-trigger-full-rebuild
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
