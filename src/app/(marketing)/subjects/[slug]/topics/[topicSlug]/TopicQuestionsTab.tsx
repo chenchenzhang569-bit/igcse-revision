@@ -630,7 +630,7 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
             {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
               const isSelected = userAns === letter;
-              const isCorrectOption = letter === q.answer_text?.trim().charAt(0);
+              const isCorrectOption = letter === (q.clean_answer_text || q.answer_text)?.trim().charAt(0);
               let bg = "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50";
               if (isGraded && isSelected && isCorrectOption) bg = "bg-green-50 border-green-400";
               else if (isGraded && isSelected && !isCorrectOption) bg = "bg-red-50 border-red-400";

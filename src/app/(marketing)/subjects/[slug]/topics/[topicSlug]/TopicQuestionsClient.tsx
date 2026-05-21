@@ -10,7 +10,9 @@ interface Question {
   id: string;
   question_text: string;
   answer_text: string;
+  clean_answer_text: string | null;
   explanation: string | null;
+  clean_explanation: string | null;
   difficulty: string;
   question_type: string;
   marks: number;
@@ -296,15 +298,18 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   const handleGradeOne = (qId: string, q: Question, userAns: string) => {
     if (graded[qId]) return; // already graded
     const isMcq = q.question_type === "multiple_choice" || q.question_text.includes("\nA) ");
+    // Use clean_answer_text if available, fallback to answer_text
+    const answerText = q.clean_answer_text || q.answer_text || "";
+    const explanationText = q.clean_explanation || q.explanation || undefined;
     let correct: boolean;
     if (isMcq) {
-      correct = userAns === q.answer_text?.trim().charAt(0);
+      correct = userAns === answerText.trim().charAt(0);
     } else {
       const cw = extractCommandWord(q.question_text);
       const result = gradeAnswerSync(
         userAns,
-        q.answer_text || "",
-        q.explanation || undefined,
+        answerText,
+        explanationText,
         cw,
       );
       // Tier 3 = essay question, can't auto-grade — don't mark correct/incorrect
@@ -329,8 +334,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           const subKey = `${qq.id}-${sub.label}`;
           const subAns = answers[subKey] || "";
           if (!graded[qq.id] && subAns.trim()) {
+            const answerText = qq.clean_answer_text || qq.answer_text || "";
+            const explanationText = qq.clean_explanation || qq.explanation || undefined;
             const cw = extractCommandWord(qq.question_text);
-            const result = gradeAnswerSync(subAns, qq.answer_text || "", qq.explanation || undefined, cw);
+            const result = gradeAnswerSync(subAns, answerText, explanationText, cw);
             // Skip essay-type sub-questions (tier 3) — can't auto-grade
             if (result.tier !== 3) {
               newSubCorrect[subKey] = result.correct;
@@ -553,7 +560,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
             {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
               const isSelected = userAns === letter;
-              const isCorrectOption = letter === q.answer_text?.trim().charAt(0);
+              const isCorrectOption = letter === (q.clean_answer_text || q.answer_text)?.trim().charAt(0);
               let bg = "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50";
               if (isGraded && isSelected && isCorrectOption) bg = "bg-green-50 border-green-400";
               else if (isGraded && isSelected && !isCorrectOption) bg = "bg-red-50 border-red-400";
@@ -584,17 +591,17 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           }`}>
             <p className="font-semibold mb-1">
               {isCorrect ? `✅ Correct! (+${q.marks} mark${q.marks > 1 ? "s" : ""})`
-                : `❌ Incorrect. The answer is: ${q.answer_text}`}
+                : `❌ Incorrect. The answer is: ${q.clean_answer_text || q.answer_text}`}
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700"
-                dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.explanation)) }} />
+                dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
             )}
             {isCorrect && q.explanation && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.explanation)) }} />
+                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
               </details>
             )}
           </div>
