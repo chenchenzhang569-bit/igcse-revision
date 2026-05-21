@@ -77,6 +77,8 @@ function isMathAnswerCorrect(
     
     if (cleanParts.length === userParts.length) {
       return userParts.every((up, i) => {
+        // Empty answer = not attempted, skip
+        if (!up.trim()) return true;
         const userNorm = normalizeMathAnswer(up);
         const alternatives = cleanParts[i].split("||");
         return alternatives.some(alt => {
@@ -85,11 +87,23 @@ function isMathAnswerCorrect(
         });
       });
     }
+
+    // If clean has 1 part but user has multiple (incomplete clean_answer), 
+    // match each user part against the full clean_answer
+    if (cleanParts.length === 1) {
+      return userParts.every(up => {
+        if (!up.trim()) return true;
+        const userNorm = normalizeMathAnswer(up);
+        const alternatives = cleanParts[0].split("||");
+        return alternatives.some(alt => checkSingleAnswer(userNorm, normalizeMathAnswer(alt)));
+      });
+    }
     
     // Fallback: extract all numbers from clean_answer and compare positionally
     const cleanNumbers = extractNumbers(cleanAnswer);
     if (cleanNumbers.length === userParts.length) {
       return userParts.every((up, i) => {
+        if (!up.trim()) return true;
         return checkSingleAnswer(
           normalizeMathAnswer(up),
           normalizeMathAnswer(cleanNumbers[i])
