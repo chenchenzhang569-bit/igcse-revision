@@ -585,7 +585,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           }`}>
             <p className="font-semibold mb-1">
               {isCorrect ? `✅ Correct! (+${q.marks} mark${q.marks > 1 ? "s" : ""})`
-                : <span dangerouslySetInnerHTML={{ __html: `❌ Incorrect. The answer is: ${renderMath(q.clean_answer_text || q.answer_text)}` }} />
+                : <span>❌ Incorrect. The answer is: {q.clean_answer_text || q.answer_text}</span>
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700"
