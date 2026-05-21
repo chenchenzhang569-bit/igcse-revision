@@ -1,5 +1,0 @@
-file 'home_clip.webm'
-file 'subjects_clip.webm'
-file 'questions_stats.webm'
-file 'papers_clip.webm'
-file 'promo-video.webm'
