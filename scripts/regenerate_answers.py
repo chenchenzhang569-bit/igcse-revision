@@ -5,7 +5,7 @@ Takes --offset and --limit for parallel runs."""
 import os, sys, json, time, requests, argparse
 
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-SRV_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjQ3Nzg1OCwiZXhwIjoyMDU4MjUyMjU4fQ.SFaGksQ4LvI0In-CnFwLuW1zXa16b33E8QyJPh4JwM0"
+SRV_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88"
 DS_KEY = "sk-8a31bc8a84ab416d97dab6ee8c19ffae"
 
 HEADERS = {
