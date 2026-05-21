@@ -69,59 +69,42 @@ function isMathAnswerCorrect(
 ): boolean {
   if (!cleanAnswer || !userAnswer?.trim()) return false;
 
-  const userParts = userAnswer.split(";").map(s => s.trim()).filter(Boolean);
-  const cleanNorm = normalizeMathAnswer(cleanAnswer);
+  // Split user answer by ; ； , — all accepted as delimiters
+  const userParts = userAnswer.split(/[;；,]/).map(s => s.trim()).filter(Boolean);
+  
+  // Split clean answer by || to get sub-parts (e.g. "(i) -11||(ii) -7")
+  const cleanParts = cleanAnswer.split("||").map(s => s.trim()).filter(Boolean);
 
-  // Multi-part: user used ; separator
-  if (userParts.length > 1) {
-    // Try splitting clean_answer by ; (format used in data like "(a) 32; (b) 48")
-    const cleanParts = cleanAnswer.split(";").map(s => s.trim()).filter(Boolean);
-    
-    if (cleanParts.length === userParts.length) {
-      return userParts.every((up, i) => {
-        // Empty answer = not attempted, skip
-        if (!up.trim()) return true;
-        const userNorm = normalizeMathAnswer(up);
-        const alternatives = cleanParts[i].split("||");
-        return alternatives.some(alt => {
-          const correctNorm = normalizeMathAnswer(alt);
-          return checkSingleAnswer(userNorm, correctNorm);
-        });
-      });
+  if (userParts.length === 1) {
+    // Single answer: check against ALL alternatives in ALL sub-parts
+    const userNorm = normalizeMathAnswer(userParts[0]);
+    for (const cp of cleanParts) {
+      const alternatives = cp.split(",");  // "," for multiple acceptable answers
+      for (const alt of alternatives) {
+        if (checkSingleAnswer(userNorm, normalizeMathAnswer(alt))) return true;
+      }
     }
-
-    // If clean has 1 part but user has multiple (incomplete clean_answer), 
-    // match each user part against the full clean_answer
-    if (cleanParts.length === 1) {
-      return userParts.every(up => {
-        if (!up.trim()) return true;
-        const userNorm = normalizeMathAnswer(up);
-        const alternatives = cleanParts[0].split("||");
-        return alternatives.some(alt => checkSingleAnswer(userNorm, normalizeMathAnswer(alt)));
-      });
-    }
-    
-    // Fallback: extract all numbers from clean_answer and compare positionally
-    const cleanNumbers = extractNumbers(cleanAnswer);
-    if (cleanNumbers.length === userParts.length) {
-      return userParts.every((up, i) => {
-        if (!up.trim()) return true;
-        return checkSingleAnswer(
-          normalizeMathAnswer(up),
-          normalizeMathAnswer(cleanNumbers[i])
-        );
-      });
-    }
-    
     return false;
   }
 
-  // Single answer: try || alternatives
-  const userNorm = normalizeMathAnswer(userParts[0]);
-  const alternatives = cleanAnswer.split("||");
-  return alternatives.some(alt => {
-    const correctNorm = normalizeMathAnswer(alt);
-    return checkSingleAnswer(userNorm, correctNorm);
+  // Multi-part: user has multiple answers
+  if (userParts.length === cleanParts.length) {
+    return userParts.every((up, i) => {
+      if (!up.trim()) return true;
+      const userNorm = normalizeMathAnswer(up);
+      const alternatives = cleanParts[i].split(",");
+      return alternatives.some(alt => checkSingleAnswer(userNorm, normalizeMathAnswer(alt)));
+    });
+  }
+
+  // Counts don't match: try matching each user part against ANY clean part
+  return userParts.every(up => {
+    if (!up.trim()) return true;
+    const userNorm = normalizeMathAnswer(up);
+    return cleanParts.some(cp => {
+      const alternatives = cp.split(",");
+      return alternatives.some(alt => checkSingleAnswer(userNorm, normalizeMathAnswer(alt)));
+    });
   });
 }
 
