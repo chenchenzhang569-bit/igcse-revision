@@ -42,15 +42,17 @@ function normalizeMathAnswer(s: string | null | undefined): string {
   if (!s) return "";
   return s
     .replace(/\$/g, "")           // strip LaTeX $ delimiters
-    .replace(/\\%/g, "%")          // LaTeX percent
-    .replace(/\\times/g, "×")      // LaTeX times
-    .replace(/\\div/g, "÷")        // LaTeX division
-    .replace(/\\cdot/g, "·")       // LaTeX dot
+    .replace(/\\text\{([^}]*)\}/g, "$1")  // strip \text{...} wrapper
+    .replace(/\\%\{/g, "%")
+    .replace(/\\times/g, "×")     
+    .replace(/\\div/g, "÷")       
+    .replace(/\\cdot/g, "·")      
     .replace(/\\%/g, "%")
-    .replace(/\s+/g, "")           // remove all whitespace
+    .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")  // strip remaining LaTeX commands
+    .replace(/\s+/g, "")          // remove all whitespace
     .toLowerCase()
-    .replace(/^0+(?=\d)/, "")      // remove leading zeros (0.5 → .5)
-    .replace(/\.0+$/, "")          // trailing zeros (3.0 → 3)
+    .replace(/^0+(?=\d)/, "")     
+    .replace(/\.0+$/, "")         
     .trim();
 }
 

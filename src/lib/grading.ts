@@ -252,16 +252,27 @@ export function gradeAnswerSync(
   }
 
   const na = normalizeAnswer(studentAnswer);
-  const nc = normalizeAnswer(correctAnswer);
 
-  // Only do includes matching when both sides are short (<30 chars)
-  // Prevents false matches like "1" matching inside a long explanation text
-  if (na === nc) {
-    return { correct: true, partial: false, tier: 1, matchedAnswer: correctAnswer };
-  }
-  if (na.length <= 30 && nc.length <= 30) {
-    if (na.includes(nc) || nc.includes(na)) {
-      return { correct: true, partial: false, tier: 1, matchedAnswer: correctAnswer };
+  // Split correct answer by || for multi-part matching
+  const correctParts = correctAnswer.split("||").map(p => p.trim()).filter(Boolean);
+
+  // Try matching against each part
+  for (const part of correctParts.length > 0 ? correctParts : [correctAnswer]) {
+    const nc = normalizeAnswer(part);
+
+    if (na === nc) {
+      return { correct: true, partial: false, tier: 1, matchedAnswer: part };
+    }
+    if (na.length <= 30 && nc.length <= 30) {
+      if (na.includes(nc) || nc.includes(na)) {
+        return { correct: true, partial: false, tier: 1, matchedAnswer: part };
+      }
+    }
+
+    // Try sync math equiv for this part
+    const syncResult = mathEquivSync(studentAnswer, part);
+    if (syncResult === true) {
+      return { correct: true, partial: true, tier: 2, matchedAnswer: part };
     }
   }
 
@@ -272,19 +283,12 @@ export function gradeAnswerSync(
       if (na === nf) {
         return { correct: true, partial: false, tier: 1, matchedAnswer: f };
       }
-      // Only substring match for short answers
       if (na.length <= 30 && nf.length <= 30) {
         if (na.includes(nf) || nf.includes(na)) {
           return { correct: true, partial: false, tier: 1, matchedAnswer: f };
         }
       }
     }
-  }
-
-  // Try sync math equiv
-  const syncResult = mathEquivSync(studentAnswer, correctAnswer);
-  if (syncResult === true) {
-    return { correct: true, partial: true, tier: 2, matchedAnswer: correctAnswer };
   }
 
   return { correct: false, partial: false, tier: 0 };
