@@ -69,7 +69,7 @@ export default function HomePage() {
               x5-video-orientation="portraint"
               preload="auto"
             >
-              <source src="https://cdn.jsdelivr.net/gh/chenchenzhang569-bit/igcse-revision@a3e9998/public/promo-video.mp4" type="video/mp4" />
+              <source src="https://cdn.jsdelivr.net/gh/chenchenzhang569-bit/igcse-revision@b7d4c04/public/promo-video.mp4" type="video/mp4" />
             </video>
           </div>
         </div>
