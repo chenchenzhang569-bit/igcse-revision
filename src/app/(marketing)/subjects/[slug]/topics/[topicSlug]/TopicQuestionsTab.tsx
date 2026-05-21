@@ -665,14 +665,14 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
               {isCorrect ? `✅ Correct! (+${q.marks} mark${q.marks > 1 ? "s" : ""})`
                 : `❌ Incorrect`}
             </p>
-            {!isCorrect && q.explanation && (
+            {!isCorrect && (q.clean_explanation || q.explanation) && (
               <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
                 <p className="font-semibold text-amber-800 mb-1">Solution:</p>
                 <div className="prose prose-sm max-w-none text-gray-700"
                   dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
               </div>
             )}
-            {isCorrect && q.explanation && (
+            {isCorrect && (q.clean_explanation || q.explanation) && (
               <details className="mt-3">
                 <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">Explanation</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700"
