@@ -163,3 +163,95 @@ export function processMathContent(text: string): string {
 export function processMathContentUnicode(text: string): string {
   return renderMath(fixMathNotationUnicode(text));
 }
+
+// ─── Answer Normalization for Auto-Grading ───
+
+/**
+ * Evaluate a fraction string like "1/2" to a decimal number, or return NaN.
+ */
+function parseFraction(s: string): number {
+  const m = s.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+  if (m) {
+    const num = parseFloat(m[1]);
+    const den = parseFloat(m[2]);
+    return den !== 0 ? num / den : NaN;
+  }
+  return NaN;
+}
+
+/**
+ * Normalize a math answer for comparison.
+ * Handles:
+ *  - LaTeX stripping ($...$, \%, etc.)
+ *  - Fraction → decimal conversion (1/2 ↔ 0.5)
+ *  - Unit stripping ($, °, %, etc.)
+ *  - Whitespace/case normalization
+ *  - Equivalent decimal representations (0.5 = .5 = 0.50)
+ */
+export function normalizeMathAnswer(raw: string): string {
+  if (!raw) return "";
+  let s = raw.trim();
+
+  // Strip LaTeX delimiters
+  s = s.replace(/^\$\s*/, "").replace(/\s*\$$/, "");
+
+  // Replace LaTeX commands with plain equivalents
+  s = s.replace(/\\%/g, "%");
+  s = s.replace(/\\times/g, "×");
+  s = s.replace(/\\div/g, "÷");
+  s = s.replace(/\\degree/g, "°");
+  s = s.replace(/\\text\{[^}]*\}/g, "");
+
+  // Convert common Unicode fractions
+  s = s.replace(/½/g, "1/2");
+  s = s.replace(/⅓/g, "1/3");
+  s = s.replace(/¼/g, "1/4");
+  s = s.replace(/¾/g, "3/4");
+  s = s.replace(/⅔/g, "2/3");
+
+  // Try to convert fraction to decimal
+  const fracVal = parseFraction(s);
+  if (!isNaN(fracVal)) {
+    // Round to avoid floating point issues
+    return fracVal.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+  }
+
+  // Strip currency symbols and degree signs (but keep the number)
+  s = s.replace(/^[\$\£\€\¥\₹]\s*/, "");
+  s = s.replace(/°$/, "");
+
+  // Normalize whitespace
+  s = s.replace(/\s+/g, " ").trim();
+
+  // Try parsing as number for decimal normalization
+  const numVal = parseFloat(s);
+  if (!isNaN(numVal) && /^-?[\d.,]+%?$/.test(s.trim())) {
+    // Strip % for comparison
+    const isPercent = s.includes("%");
+    const val = isPercent ? numVal : numVal;
+    return val.toFixed(6).replace(/0+$/, "").replace(/\.$/, "") + (isPercent ? "%" : "");
+  }
+
+  // Lowercase
+  return s.toLowerCase();
+}
+
+/**
+ * Check if user's answer matches any of the acceptable clean answers.
+ * cleanAnswer can be a single string or "||" separated list of alternatives.
+ */
+export function checkMathAnswer(userAnswer: string, cleanAnswer: string | null): boolean {
+  if (!cleanAnswer || !userAnswer) return false;
+
+  const userNorm = normalizeMathAnswer(userAnswer);
+  if (!userNorm) return false;
+
+  // Split by || for multiple acceptable answers
+  const alternatives = cleanAnswer.split("||").map(a => a.trim()).filter(Boolean);
+
+  return alternatives.some(alt => {
+    const altNorm = normalizeMathAnswer(alt);
+    // Exact match or one contains the other (for partial answers)
+    return userNorm === altNorm || userNorm.includes(altNorm) || altNorm.includes(userNorm);
+  });
+}

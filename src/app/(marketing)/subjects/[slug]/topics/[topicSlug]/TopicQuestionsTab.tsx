@@ -16,6 +16,8 @@ interface Question {
   options: string[] | null;
   correct_answer: string | null;
   sort_order: number;
+  clean_answer_text: string | null;
+  clean_explanation: string | null;
 }
 
 const DIFFICULTY_CONFIG: Record<string, { color: string; label: string; icon: string }> = {
@@ -32,12 +34,127 @@ const MATH_SYMBOLS = [
 
 const DIFF_ORDER = ["easy", "medium", "hard"] as const;
 
-function normalizeAnswer(text: string): string {
-  return text
+/**
+ * Normalize a math answer for comparison.
+ * Handles: $ signs, LaTeX markup, percentage, whitespace, case, leading zeros.
+ */
+function normalizeMathAnswer(s: string | null | undefined): string {
+  if (!s) return "";
+  return s
+    .replace(/\$/g, "")           // strip LaTeX $ delimiters
+    .replace(/\\%/g, "%")          // LaTeX percent
+    .replace(/\\times/g, "×")      // LaTeX times
+    .replace(/\\div/g, "÷")        // LaTeX division
+    .replace(/\\cdot/g, "·")       // LaTeX dot
+    .replace(/\\%/g, "%")
+    .replace(/\s+/g, "")           // remove all whitespace
     .toLowerCase()
-    .replace(/[^a-z0-9.\-]/g, "")
-    .replace(/\s+/g, "")
+    .replace(/^0+(?=\d)/, "")      // remove leading zeros (0.5 → .5)
+    .replace(/\.0+$/, "")          // trailing zeros (3.0 → 3)
     .trim();
+}
+
+/**
+ * Check if two math answers match, considering:
+ * - Fraction equivalence (1/2 vs 0.5)
+ * - Multiple acceptable answers (delimited by ||)
+ * - Multi-part answers (user uses ;, clean may use ; or labels like (a) ... (b) ...)
+ * - Partial match (user answer contained within correct answer)
+ */
+function isMathAnswerCorrect(
+  userAnswer: string,
+  cleanAnswer: string | null | undefined
+): boolean {
+  if (!cleanAnswer || !userAnswer?.trim()) return false;
+
+  const userParts = userAnswer.split(";").map(s => s.trim()).filter(Boolean);
+  const cleanNorm = normalizeMathAnswer(cleanAnswer);
+
+  // Multi-part: user used ; separator
+  if (userParts.length > 1) {
+    // Try splitting clean_answer by ; (format used in data like "(a) 32; (b) 48")
+    const cleanParts = cleanAnswer.split(";").map(s => s.trim()).filter(Boolean);
+    
+    if (cleanParts.length === userParts.length) {
+      return userParts.every((up, i) => {
+        const userNorm = normalizeMathAnswer(up);
+        const alternatives = cleanParts[i].split("||");
+        return alternatives.some(alt => {
+          const correctNorm = normalizeMathAnswer(alt);
+          return checkSingleAnswer(userNorm, correctNorm);
+        });
+      });
+    }
+    
+    // Fallback: extract all numbers from clean_answer and compare positionally
+    const cleanNumbers = extractNumbers(cleanAnswer);
+    if (cleanNumbers.length === userParts.length) {
+      return userParts.every((up, i) => {
+        return checkSingleAnswer(
+          normalizeMathAnswer(up),
+          normalizeMathAnswer(cleanNumbers[i])
+        );
+      });
+    }
+    
+    return false;
+  }
+
+  // Single answer: try || alternatives
+  const userNorm = normalizeMathAnswer(userParts[0]);
+  const alternatives = cleanAnswer.split("||");
+  return alternatives.some(alt => {
+    const correctNorm = normalizeMathAnswer(alt);
+    return checkSingleAnswer(userNorm, correctNorm);
+  });
+}
+
+/** Extract numeric/currency values from mixed text like "(a) £28.74 (b) £3.59" → ["28.74", "3.59"] */
+function extractNumbers(text: string): string[] {
+  const matches = text.match(/[\d,.]+/g);
+  return matches ? matches.map(m => m.replace(/,/g, "")) : [];
+}
+
+function checkSingleAnswer(userNorm: string, correctNorm: string): boolean {
+  if (!userNorm || !correctNorm) return false;
+  
+  // Direct match
+  if (userNorm === correctNorm) return true;
+  
+  // User answer contains correct answer (e.g. "x=5" contains "5")
+  if (userNorm.includes(correctNorm) && correctNorm.length > 0) return true;
+  
+  // Correct answer contains user answer
+  if (correctNorm.includes(userNorm) && userNorm.length > 0) return true;
+  
+  // Fraction equivalence: try to parse both as numbers
+  const userNum = tryParseNumber(userNorm);
+  const correctNum = tryParseNumber(correctNorm);
+  if (userNum !== null && correctNum !== null) {
+    return Math.abs(userNum - correctNum) < 0.0001;
+  }
+  
+  return false;
+}
+
+function tryParseNumber(s: string): number | null {
+  // Try direct parse
+  const n = parseFloat(s);
+  if (!isNaN(n) && String(n) === s.replace(/^-/, "")) return n;
+  
+  // Try fraction: "1/2", "3/4"
+  const fracMatch = s.match(/^(-?\d+)\/(-?\d+)$/);
+  if (fracMatch) {
+    const num = parseInt(fracMatch[1]);
+    const den = parseInt(fracMatch[2]);
+    if (den !== 0) return num / den;
+  }
+  
+  // Try "0.5" style
+  const n2 = Number(s);
+  if (!isNaN(n2)) return n2;
+  
+  return null;
 }
 
 function markdownify(text: string): string {
@@ -284,9 +401,9 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
     if (isMcq) {
       correct = userAns === q.answer_text?.trim().charAt(0);
     } else {
-      const userNorm = normalizeAnswer(userAns);
-      const correctNorm = normalizeAnswer(q.answer_text);
-      correct = userNorm === correctNorm || userNorm.includes(correctNorm) || correctNorm.includes(userAns);
+      // Use clean_answer_text if available, fall back to answer_text
+      const cleanAnswer = q.clean_answer_text || q.answer_text;
+      correct = isMathAnswerCorrect(userAns, cleanAnswer);
     }
     setCorrectMap((prev) => ({ ...prev, [qId]: correct }));
     setGraded((prev) => ({ ...prev, [qId]: true }));
@@ -296,8 +413,16 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
     // Grade all ungraded questions in this difficulty
     const qs = byDifficulty[activeDifficulty] || [];
     for (const qq of qs) {
-      const ans = answers[qq.id] || "";
-      if (!graded[qq.id] && ans.trim()) {
+      if (graded[qq.id]) continue;
+      // For multi-part: combine sub-answers; for single: use direct answer
+      const sp = parseSubParts(parseQuestion(qq.question_text).stem);
+      let ans: string;
+      if (sp.length > 1) {
+        ans = sp.map(s => answers[`${qq.id}-${s.label}`] || "").join(";").trim();
+      } else {
+        ans = (answers[qq.id] || "").trim();
+      }
+      if (ans) {
         handleGradeOne(qq.id, qq, ans);
       }
     }
@@ -453,6 +578,7 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
               ) : null;
             })()}
             <div className="space-y-4">
+              <p className="text-xs text-gray-400 mb-1">多空题 · 逐空作答，自动按序匹配</p>
               {subParts.map((sp) => {
                 const subKey = `${q.id}-${sp.label}`;
                 const subAns = answers[subKey] || "";

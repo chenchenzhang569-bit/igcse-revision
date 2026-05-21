@@ -1,4 +1,4 @@
-// force-redeploy-v15-katex-dangerouslySetInnerHTML — MixedContent math rendering fix
+// force-redeploy-v16-math-auto-grade
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
