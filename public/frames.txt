@@ -1,0 +1,7 @@
+file '/home/ubuntu/igcse-site/public/frame_0.png'
+duration 8
+file '/home/ubuntu/igcse-site/public/frame_2.png'
+duration 8
+file '/home/ubuntu/igcse-site/public/frame_3.png'
+duration 8
+file '/home/ubuntu/igcse-site/public/frame_3.png'

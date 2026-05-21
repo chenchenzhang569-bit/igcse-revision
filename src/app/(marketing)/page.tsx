@@ -1,4 +1,4 @@
-// force-redeploy-v3-cdn
+// force-redeploy-v16
 import Link from "next/link";
 import Image from "next/image";
 
@@ -69,7 +69,7 @@ export default function HomePage() {
               x5-video-orientation="portraint"
               preload="auto"
             >
-              <source src="https://cdn.jsdelivr.net/gh/chenchenzhang569-bit/igcse-revision@f7c178d/public/promo-video.mp4" type="video/mp4" />
+              <source src="https://cdn.jsdelivr.net/gh/chenchenzhang569-bit/igcse-revision@0ce7c53/public/promo-video.webm" type="video/webm" />
             </video>
           </div>
         </div>
