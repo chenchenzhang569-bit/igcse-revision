@@ -304,13 +304,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (isMcq) {
       correct = userAns === answerText.trim().charAt(0);
     } else {
-      // Match against clean_answer_text: || separates sub-parts, , separates alternatives
+      // Direct match against clean_answer_text (already stripped of LaTeX/labels)
+      // Split by || for multi-acceptable-answer support
       const userNorm = userAns.toLowerCase().replace(/\s+/g, ' ').trim();
-      const subParts = answerText.split('||');
-      correct = subParts.some(sp => {
-        const alternatives = sp.split(',').map(a => a.toLowerCase().replace(/\s+/g, ' ').trim());
-        return alternatives.includes(userNorm);
-      });
+      const answers = answerText.split('||').map(a => a.toLowerCase().replace(/\s+/g, ' ').trim());
+      correct = answers.includes(userNorm);
     }
     setCorrectMap((prev) => ({ ...prev, [qId]: correct }));
     setGraded((prev) => ({ ...prev, [qId]: true }));
@@ -332,11 +330,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           if (!graded[qq.id] && subAns.trim()) {
             const answerText = qq.clean_answer_text || qq.answer_text || "";
             const subAnsNorm = subAns.toLowerCase().replace(/\s+/g, ' ').trim();
-            const subParts = answerText.split('||');
-            if (subParts.some(sp => {
-              const alternatives = sp.split(',').map(a => a.toLowerCase().replace(/\s+/g, ' ').trim());
-              return alternatives.includes(subAnsNorm);
-            })) {
+            const answers = answerText.split('||').map(a => a.toLowerCase().replace(/\s+/g, ' ').trim());
+            if (answers.includes(subAnsNorm)) {
               newSubCorrect[subKey] = true;
               newSubGraded[subKey] = true;
             } else {
