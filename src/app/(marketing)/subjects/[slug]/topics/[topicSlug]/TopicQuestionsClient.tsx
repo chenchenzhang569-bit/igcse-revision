@@ -584,8 +584,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
             isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
           }`}>
             <p className="font-semibold mb-1">
-              {isCorrect ? `✅ Correct! (+${q.marks} mark${q.marks > 1 ? "s" : ""})`
+              {isCorrect
+                ? "✅ Correct! (+" + q.marks + " mark" + (q.marks > 1 ? "s" : "") + ")"
                 : <span>❌ Incorrect. The answer is: {q.clean_answer_text || q.answer_text}</span>
+              }
             </p>
             {!isCorrect && q.explanation && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700"
