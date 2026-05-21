@@ -304,10 +304,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (isMcq) {
       correct = userAns === answerText.trim().charAt(0);
     } else {
-      // Direct match against clean_answer_text — strip part labels like (i), (ii) first
-      const userNorm = userAns.toLowerCase().replace(/\s+/g, ' ').trim();
+      // Normalize delimiters: treat ; ； , all as same
+      const userNorm = userAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim();
       const answers = answerText.split('||').map(a => 
-        a.toLowerCase().replace(/\s+/g, ' ').replace(/^\([a-z0-9]+\)\s*/i, '').trim()
+        a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').replace(/^\([a-z0-9]+\)\s*/i, '').trim()
       );
       correct = answers.includes(userNorm);
     }
@@ -330,9 +330,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           const subAns = answers[subKey] || "";
           if (!graded[qq.id] && subAns.trim()) {
             const answerText = qq.clean_answer_text || qq.answer_text || "";
-            const subAnsNorm = subAns.toLowerCase().replace(/\s+/g, ' ').trim();
+            const subAnsNorm = subAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim();
             const answers = answerText.split('||').map(a => 
-              a.toLowerCase().replace(/\s+/g, ' ').replace(/^\([a-z0-9]+\)\s*/i, '').trim()
+              a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').replace(/^\([a-z0-9]+\)\s*/i, '').trim()
             );
             if (answers.includes(subAnsNorm)) {
               newSubCorrect[subKey] = true;
