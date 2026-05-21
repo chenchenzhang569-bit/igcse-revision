@@ -62,6 +62,10 @@ export function extractFinalAnswers(explanation: string): string[] {
 export function normalizeAnswer(text: string): string {
   let s = text.toLowerCase().trim();
 
+  // Remove LaTeX commands: \text{...}, \frac{...}{...}, etc.
+  s = s.replace(/\\text\{([^}]*)\}/gi, "$1");
+  s = s.replace(/\\[a-zA-Z]+(\{[^}]*\})*/g, "");
+
   // Remove currency symbols
   s = s.replace(/[$€£¥]/g, "");
 
