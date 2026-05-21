@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { renderMath } from "@/lib/math";
-import { gradeAnswerSync, extractCommandWord } from "@/lib/grading";
 
 interface Question {
   id: string;
@@ -305,16 +304,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (isMcq) {
       correct = userAns === answerText.trim().charAt(0);
     } else {
-      const cw = extractCommandWord(q.question_text);
-      const result = gradeAnswerSync(
-        userAns,
-        answerText,
-        explanationText,
-        cw,
-      );
-      // Tier 3 = essay question, can't auto-grade — don't mark correct/incorrect
-      if (result.tier === 3) return;
-      correct = result.correct;
+      // Direct match against clean_answer_text (already stripped of LaTeX/labels)
+      // Split by || for multi-acceptable-answer support
+      const userNorm = userAns.toLowerCase().replace(/\s+/g, ' ').trim();
+      const answers = answerText.split('||').map(a => a.toLowerCase().replace(/\s+/g, ' ').trim());
+      correct = answers.includes(userNorm);
     }
     setCorrectMap((prev) => ({ ...prev, [qId]: correct }));
     setGraded((prev) => ({ ...prev, [qId]: true }));
@@ -335,12 +329,12 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           const subAns = answers[subKey] || "";
           if (!graded[qq.id] && subAns.trim()) {
             const answerText = qq.clean_answer_text || qq.answer_text || "";
-            const explanationText = qq.clean_explanation || qq.explanation || undefined;
-            const cw = extractCommandWord(qq.question_text);
-            const result = gradeAnswerSync(subAns, answerText, explanationText, cw);
-            // Skip essay-type sub-questions (tier 3) — can't auto-grade
-            if (result.tier !== 3) {
-              newSubCorrect[subKey] = result.correct;
+            const subAnsNorm = subAns.toLowerCase().replace(/\s+/g, ' ').trim();
+            const answers = answerText.split('||').map(a => a.toLowerCase().replace(/\s+/g, ' ').trim());
+            if (answers.includes(subAnsNorm)) {
+              newSubCorrect[subKey] = true;
+              newSubGraded[subKey] = true;
+            } else {
               newSubGraded[subKey] = true;
             }
           }
