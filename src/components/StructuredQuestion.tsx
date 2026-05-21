@@ -26,6 +26,8 @@ interface Question {
   options?: string[] | null;
   correct_answer?: string;
   explanation: string;
+  clean_explanation?: string | null;
+  clean_answer_text?: string | null;
   marks: number;
 }
 
@@ -560,8 +562,8 @@ export default function StructuredQuestion({
               marks={sub.marks}
             />
             {/* Per-sub-answer toggle */}
-            {showPerSub[key] && question.explanation && (() => {
-              const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.explanation)));
+            {showPerSub[key] && (question.clean_explanation || question.explanation) && (() => {
+              const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.clean_explanation || question.explanation)));
               return (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700 whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ __html: html }} />
@@ -599,8 +601,8 @@ export default function StructuredQuestion({
       </div>
 
       {/* Full model answer (single sub-q) */}
-      {showAnswer && subs.length <= 1 && question.explanation && (() => {
-        const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.explanation)));
+      {showAnswer && subs.length <= 1 && (question.clean_explanation || question.explanation) && (() => {
+        const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.clean_explanation || question.explanation)));
         return (
           <div className="px-5 pb-5">
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg text-sm text-gray-800 whitespace-pre-wrap"
