@@ -661,17 +661,20 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
           }`}>
             <p className="font-semibold mb-1">
               {isCorrect ? `✅ Correct! (+${q.marks} mark${q.marks > 1 ? "s" : ""})`
-                : `❌ Incorrect. The answer is: ${q.answer_text}`}
+                : `❌ Incorrect`}
             </p>
             {!isCorrect && q.explanation && (
-              <div className="prose prose-sm max-w-none mt-2 text-gray-700"
-                dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.explanation)) }} />
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+                <p className="font-semibold text-amber-800 mb-1">Solution:</p>
+                <div className="prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
+              </div>
             )}
             {isCorrect && q.explanation && (
-              <details className="mt-2">
-                <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
+              <details className="mt-3">
+                <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">Explanation</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.explanation)) }} />
+                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
               </details>
             )}
           </div>
