@@ -1,4 +1,4 @@
-// force-redeploy-v25-trigger-full-rebuild
+// force-redeploy-v26-clean-answer-scoring-fix
 // DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
