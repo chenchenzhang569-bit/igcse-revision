@@ -1,4 +1,4 @@
-// force-redeploy-v3-katex-dangerouslySetInnerHTML
+// force-redeploy-v4-katex+clean-explanation
 "use client";
 
 import { useState } from "react";
