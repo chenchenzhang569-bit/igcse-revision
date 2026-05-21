@@ -589,11 +589,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 : <span>❌ Incorrect. The answer is: {q.clean_answer_text || q.answer_text}</span>
               }
             </p>
-            {!isCorrect && q.explanation && (
+            {!isCorrect && (q.clean_explanation || q.explanation) && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700"
                 dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
             )}
-            {isCorrect && q.explanation && (
+            {isCorrect && (q.clean_explanation || q.explanation) && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700"
