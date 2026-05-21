@@ -62,11 +62,10 @@ export function extractFinalAnswers(explanation: string): string[] {
 export function normalizeAnswer(text: string): string {
   let s = text.toLowerCase().trim();
 
-  // Remove LaTeX commands: \text{...}, \frac{...}{...}, etc.
+  // Unwrap \\text{Subtract }7 → Subtract 7 (before $ stripping)
   s = s.replace(/\\text\{([^}]*)\}/gi, "$1");
-  s = s.replace(/\\[a-zA-Z]+(\{[^}]*\})*/g, "");
 
-  // Remove currency symbols
+  // Remove $ signs
   s = s.replace(/[$€£¥]/g, "");
 
   // Remove common units (preserve numbers)
