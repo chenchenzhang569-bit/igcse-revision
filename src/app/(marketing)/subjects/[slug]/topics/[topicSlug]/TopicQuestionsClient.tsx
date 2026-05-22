@@ -372,7 +372,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
       // Normalize delimiters: treat ; ； , all as same
       const userNorm = userAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim();
       const answers = answerText.split('||').map(a => 
-        a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim()
+        a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim()
       );
       correct = answers.includes(userNorm);
     }
@@ -398,7 +398,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
             const answerText = qq.clean_answer_text || qq.answer_text || "";
             const subAnsNorm = subAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim();
             const answerParts = answerText.split('||').map(a => 
-              a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim()
+              a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim()
             );
             // Positional matching: i-th leaf sub matches i-th answer part
             const leafIdx = leafSubs.indexOf(sub);
