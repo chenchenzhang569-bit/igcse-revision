@@ -266,6 +266,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     const newAnswers = { ...answers };
     const newGraded = { ...graded };
     const newCorrect = { ...correctMap };
+    const newSubCorrect = { ...subCorrectMap };
+    const newSubGraded = { ...subGraded };
     for (const qq of qs) {
       delete newAnswers[qq.id];
       delete newGraded[qq.id];
@@ -274,11 +276,15 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
       const sp = parseSubParts(parseQuestion(qq.question_text).stem);
       for (const s of sp) {
         delete newAnswers[`${qq.id}-${s.label}`];
+        delete newSubCorrect[`${qq.id}-${s.label}`];
+        delete newSubGraded[`${qq.id}-${s.label}`];
       }
     }
     setAnswers(newAnswers);
     setGraded(newGraded);
     setCorrectMap(newCorrect);
+    setSubCorrectMap(newSubCorrect);
+    setSubGraded(newSubGraded);
     setSubmitted((prev) => { const s = new Set(prev); s.delete(diff); return s; });
     setActiveDifficulty(diff);
     setCurrentIdx(0);
