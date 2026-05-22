@@ -431,10 +431,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
             // Positional matching: i-th leaf sub matches i-th answer part
             const leafIdx = leafSubs.indexOf(sub);
             if (leafIdx >= answerParts.length) {
-              // No answer to compare — mark wrong, not skip
+              // No answer to compare — mark wrong
               newSubCorrect[subKey] = false;
             } else if (answerParts[leafIdx] === subAnsNorm) {
               newSubCorrect[subKey] = true;
+            } else {
+              // Answer doesn't match — mark wrong
+              newSubCorrect[subKey] = false;
             }
             newSubGraded[subKey] = true;
           }
