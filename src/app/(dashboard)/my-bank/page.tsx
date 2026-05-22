@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getSupabaseClient } from "@/lib/supabase-client";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 interface Bookmark {
@@ -44,7 +44,6 @@ export default function MyBankPage() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
-  const supabase = getSupabaseClient();
 
   useEffect(() => {
     loadBookmarks();
@@ -52,6 +51,7 @@ export default function MyBankPage() {
 
   const loadBookmarks = async () => {
     try {
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError("Please log in to view your question bank.");
