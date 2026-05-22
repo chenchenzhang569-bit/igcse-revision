@@ -155,7 +155,15 @@ function parseSubParts(stem: string): ParseResult {
       text = text.replace(/\s*\[\d+\]\s*$/m, "").trim();
 
       if (node.children.length > 0) {
-        // Section: show label + intro text, then recurse into children
+        // Section: show label + intro text only (before first child), then recurse
+        const firstChild = node.children[0];
+        const childStartInNode = firstChild.startIdx - (node.startIdx + node.raw.length);
+        if (childStartInNode > 0) {
+          text = stem.slice(node.startIdx + node.raw.length, firstChild.startIdx).trim();
+        } else {
+          // No intro text between parent and first child
+          text = "";
+        }
         items.push({ type: "section", label: node.label, text });
         items.push(...flatten(node.children, path));
       } else {
