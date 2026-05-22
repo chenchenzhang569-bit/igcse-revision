@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -18,6 +19,14 @@ export default function DashboardLayout({
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { href: "/dashboard", label: "📊 Dashboard" },
+    { href: "/subjects", label: "📚 Browse Subjects" },
+    { href: "/past-papers", label: "📄 Past Papers" },
+    { href: "/dashboard/my-bank", label: "💾 My Question Bank" },
+  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -81,22 +90,52 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b z-50 px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="text-lg font-bold text-primary-900">
-          <Image src="/logo.png" alt="IGMaster" width={100} height={42} className="h-8 w-auto" />
-        </Link>
-        {user && (
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs">
-              {user.email?.charAt(0).toUpperCase()}
-            </div>
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <Link href="/" className="text-lg font-bold text-primary-900">
+            <Image src="/logo.png" alt="IGMaster" width={100} height={42} className="h-8 w-auto" />
+          </Link>
+          <div className="flex items-center gap-2">
+            {user && (
+              <>
+                <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs">
+                  {user.email?.charAt(0).toUpperCase()}
+                </div>
+                <button
+                  onClick={signOut}
+                  className="text-xs text-gray-400 hover:text-accent-500 transition mr-1"
+                >
+                  Sign out
+                </button>
+              </>
+            )}
             <button
-              onClick={signOut}
-              className="text-xs text-gray-400 hover:text-accent-500 transition"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-1.5 rounded-lg hover:bg-gray-100 transition"
             >
-              Sign out
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
             </button>
           </div>
+        </div>
+        {mobileMenuOpen && (
+          <nav className="px-4 pb-3 space-y-1 border-t bg-white">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium text-sm"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         )}
       </div>
 
