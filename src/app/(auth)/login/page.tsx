@@ -1,7 +1,7 @@
-// force-redeploy-v37-simple-reset
+// force-redeploy-v38-manual-hash
 "use client";
 
-import { useState, Suspense, useRef } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -55,7 +55,6 @@ function LoginForm() {
     }
     setLoading(true);
     try {
-      // Fresh client — created in browser, detectSessionInUrl works
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
         email,
@@ -132,8 +131,31 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Fresh client on every render — on hydration, window exists → detectSessionInUrl fires
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const [ready, setReady] = useState(false);
+  const supabaseRef = { current: null as ReturnType<typeof createClient> | null };
+
+  // Manually extract session from URL hash — don't rely on detectSessionInUrl
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token")) {
+      const params = new URLSearchParams(hash.replace("#", ""));
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+      if (access_token && refresh_token) {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+          if (error) {
+            console.error("setSession error:", error.message);
+          }
+          supabaseRef.current = supabase;
+          setReady(true);
+        });
+        return;
+      }
+    }
+    supabaseRef.current = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    setReady(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,6 +166,7 @@ function ResetPasswordForm() {
     }
     setLoading(true);
     try {
+      const supabase = supabaseRef.current!;
       const { error: updateErr } = await supabase.auth.updateUser({ password });
       if (updateErr) {
         setError(updateErr.message);
@@ -155,6 +178,14 @@ function ResetPasswordForm() {
     }
     setLoading(false);
   };
+
+  if (!ready) {
+    return (
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
 
   if (success) {
     return (
