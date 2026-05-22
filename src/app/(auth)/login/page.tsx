@@ -1,4 +1,4 @@
-// force-redeploy-v39-ssr-login
+// force-redeploy-v40-ssr-setSession
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -37,7 +38,7 @@ function LoginForm() {
         return;
       }
 
-      window.location.href = "/dashboard";
+      window.location.href = "/subjects";
     } catch (err: any) {
       setError(
         err.name === "TimeoutError" || err.name === "AbortError"
@@ -134,7 +135,7 @@ function ResetPasswordForm() {
   const [ready, setReady] = useState(false);
   const supabaseRef = { current: null as ReturnType<typeof createClient> | null };
 
-  // Manually extract session from URL hash — don't rely on detectSessionInUrl
+  // Manually extract session from URL hash — use SSR client so cookies are set
   useEffect(() => {
     const hash = window.location.hash;
     if (hash && hash.includes("access_token")) {
@@ -142,10 +143,15 @@ function ResetPasswordForm() {
       const access_token = params.get("access_token");
       const refresh_token = params.get("refresh_token");
       if (access_token && refresh_token) {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // SSR client: setSession writes cookies that middleware can read
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
         supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
           if (error) {
             console.error("setSession error:", error.message);
+            setError("Invalid or expired reset link. Please request a new one.");
           }
           supabaseRef.current = supabase;
           setReady(true);
