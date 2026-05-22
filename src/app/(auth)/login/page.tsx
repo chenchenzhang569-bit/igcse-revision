@@ -33,7 +33,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = "/dashboard";
+      window.location.replace("/dashboard");
     } catch (err: any) {
       setError(
         err.name === "TimeoutError" || err.name === "AbortError"
