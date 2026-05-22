@@ -85,10 +85,7 @@ function parseSubParts(stem: string): ParseResult {
   }
 
   // ── Step 2: classify into parent/child ──────────────────────────────────
-  // Rule: a LETTER marker (a-z) is a parent if the NEXT marker is ROMAN (i,ii,...)
-  //        Otherwise it's a leaf.
-  //        A ROMAN marker is always a leaf; it belongs to the most recent LETTER parent.
-  const nodes: { label: string; raw: string; startIdx: number; endIdx: number; children: typeof allMarkers }[] = [];
+  const nodes: { label: string; raw: string; idx: number; end: number; children: typeof allMarkers }[] = [];
   let i = 0;
   while (i < allMarkers.length) {
     const mk = allMarkers[i];
@@ -102,23 +99,21 @@ function parseSubParts(stem: string): ParseResult {
         children.push(allMarkers[j]);
         j++;
       }
-      // Parent's endIdx is end of last child
       const lastChild = children[children.length - 1];
       nodes.push({
         label: mk.label,
         raw: mk.raw,
-        startIdx: mk.idx,
-        endIdx: lastChild.end,
+        idx: mk.idx,        // unified: idx, not startIdx
+        end: lastChild.end,
         children,
       });
       i = j;
     } else {
-      // Leaf (either ROMAN without preceding LETTER, or LETTER without ROMAN children)
       nodes.push({
         label: mk.label,
         raw: mk.raw,
-        startIdx: mk.idx,
-        endIdx: mk.end,
+        idx: mk.idx,
+        end: mk.end,
         children: [],
       });
       i++;
@@ -126,7 +121,7 @@ function parseSubParts(stem: string): ParseResult {
   }
 
   // ── Step 3: preamble ────────────────────────────────────────────────────
-  const firstIdx = nodes[0].startIdx;
+  const firstIdx = nodes[0].idx;
   let preamble = stem.slice(0, firstIdx).trim();
   preamble = preamble.replace(/\n\s*Fig\.\s*\d+\s*$/, "").trim();
 
@@ -135,7 +130,7 @@ function parseSubParts(stem: string): ParseResult {
     const items: DisplayItem[] = [];
     for (const node of nodes) {
       const path = parentPath ? `${parentPath}-${node.label}` : node.label;
-      const textStart = node.startIdx + node.raw.length;
+      const textStart = node.idx + node.raw.length;  // unified: idx
       let text: string;
 
       if (node.children && node.children.length > 0) {
