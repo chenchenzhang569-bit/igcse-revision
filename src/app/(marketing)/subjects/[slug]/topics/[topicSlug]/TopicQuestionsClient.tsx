@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { createBrowserClient } from "@supabase/ssr";
 import { renderMath } from "@/lib/math";
 import BookmarkButton from "@/components/BookmarkButton";
 
@@ -265,7 +266,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   useEffect(() => {
     (async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const ssrClient = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { session } } = await ssrClient.auth.getSession();
         if (!session?.access_token) { setBookmarksLoaded(true); return; }
         const res = await fetch("/api/bookmarks", {
           headers: { Authorization: `Bearer ${session.access_token}` },
@@ -277,7 +282,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
       } catch {} 
       setBookmarksLoaded(true);
     })();
-  }, [supabase]);
+  }, []);
 
   // Load saved answers from localStorage (browser only)
   useEffect(() => {

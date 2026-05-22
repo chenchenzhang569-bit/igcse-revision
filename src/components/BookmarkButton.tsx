@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSupabaseClient } from "@/lib/supabase-client";
+import { createBrowserClient } from "@supabase/ssr";
 
 interface BookmarkButtonProps {
   questionId: string;
@@ -12,7 +12,6 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const supabase = getSupabaseClient();
 
   useEffect(() => {
     setMounted(true);
@@ -21,6 +20,10 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
 
   const checkBookmark = async () => {
     try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
 
@@ -38,6 +41,10 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
 
   const toggle = async () => {
     try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         alert("Please log in to save questions to your bank.");
