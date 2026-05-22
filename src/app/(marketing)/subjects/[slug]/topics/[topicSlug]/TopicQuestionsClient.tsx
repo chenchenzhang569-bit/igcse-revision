@@ -132,8 +132,10 @@ interface SubPart { label: string; text: string; hasChildren: boolean; }
 function parseSubParts(stem: string): SubPart[] {
   if (!stem) return [];
 
-  // Find all markers with indentation (same regex as StructuredQuestion)
-  const allMarkers: { idx: number; label: string; raw: string; indent: number }[] = [];
+  const isRoman = (s: string) => /^[ivx]+$/i.test(s);
+
+  // Find all markers
+  const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
   const re = /(?:^|\n)([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
@@ -141,11 +143,11 @@ function parseSubParts(stem: string): SubPart[] {
       idx: m.index + (m[0].startsWith("\n") ? 1 : 0),
       label: m[2].replace(/[()]/g, "").trim(),
       raw: m[0],
-      indent: m[1].length,
+      end: 0,
     });
   }
 
-  // Fallback to old flat matching if no indent-based markers found
+  // Fallback to old flat matching (bold markers etc.)
   if (allMarkers.length === 0) {
     const parts: SubPart[] = [];
     const regex = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])\s*/gim;
@@ -165,30 +167,43 @@ function parseSubParts(stem: string): SubPart[] {
     return parts;
   }
 
-  // Detect nesting: a marker has children if the next marker is deeper
-  const parts: SubPart[] = [];
+  // Compute end positions
   for (let i = 0; i < allMarkers.length; i++) {
-    const cur = allMarkers[i];
+    allMarkers[i].end = i + 1 < allMarkers.length ? allMarkers[i + 1].idx : stem.length;
+  }
+
+  // Classify: LETTER + next ROMAN = parent; everything else = leaf
+  const parts: SubPart[] = [];
+  let i = 0;
+  while (i < allMarkers.length) {
+    const mk = allMarkers[i];
     const next = allMarkers[i + 1];
-    const hasChildren = next ? next.indent > cur.indent : false;
 
-    // Extract text: from after marker to next marker at same/shallower level (or end)
-    const textStart = cur.idx + cur.raw.length;
-    let textEnd = stem.length;
-    for (let j = i + 1; j < allMarkers.length; j++) {
-      if (allMarkers[j].indent <= cur.indent) {
-        textEnd = allMarkers[j].idx;
-        break;
+    if (!isRoman(mk.label) && next && isRoman(next.label)) {
+      // Parent letter with roman children
+      const children: typeof allMarkers = [];
+      let j = i + 1;
+      while (j < allMarkers.length && isRoman(allMarkers[j].label)) {
+        children.push(allMarkers[j]);
+        j++;
       }
+      // Parent text: before first child
+      const pText = stem.slice(mk.idx + mk.raw.length, children[0].idx).trim();
+      parts.push({ label: mk.label, text: pText, hasChildren: true });
+      // Children
+      for (const ch of children) {
+        const cText = stem.slice(ch.idx + ch.raw.length, ch.end).trim()
+          .replace(/\s*\[\d+\]\s*$/m, "").trim();
+        parts.push({ label: ch.label, text: cText, hasChildren: false });
+      }
+      i = j;
+    } else {
+      // Leaf
+      const text = stem.slice(mk.idx + mk.raw.length, mk.end).trim()
+        .replace(/\s*\[\d+\]\s*$/m, "").trim();
+      parts.push({ label: mk.label, text, hasChildren: false });
+      i++;
     }
-    let text = stem.slice(textStart, textEnd).trim();
-
-    // Strip nested markers from text (only show immediate intro text)
-    if (hasChildren && next) {
-      text = stem.slice(textStart, next.idx).trim();
-    }
-
-    parts.push({ label: cur.label, text, hasChildren });
   }
 
   return parts;

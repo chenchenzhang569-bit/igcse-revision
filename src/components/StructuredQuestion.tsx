@@ -55,8 +55,11 @@ interface ParseResult {
 function parseSubParts(stem: string): ParseResult {
   if (!stem) return { preamble: "", items: [] };
 
+  // Helper: is label a roman numeral?
+  const isRoman = (s: string) => /^[ivx]+$/i.test(s);
+
   // ── Step 1: find ALL markers ────────────────────────────────────────────
-  const allMarkers: { idx: number; label: string; raw: string; indent: number }[] = [];
+  const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
   const re = /(?:^|\n)([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
@@ -64,12 +67,11 @@ function parseSubParts(stem: string): ParseResult {
       idx: m.index + (m[0].startsWith("\n") ? 1 : 0),
       label: m[2].replace(/[()]/g, "").trim(),
       raw: m[0],
-      indent: m[1].length,
+      end: 0, // filled below
     });
   }
 
   if (allMarkers.length === 0) {
-    // No markers — one input
     const marksMatch = stem.match(/\[(\d+)\]\s*$/m);
     return {
       preamble: stem.replace(/\s*\[\d+\]\s*$/m, "").trim(),
@@ -77,105 +79,88 @@ function parseSubParts(stem: string): ParseResult {
     };
   }
 
-  // ── Step 2: build tree ──────────────────────────────────────────────────
-  // Assign endIdx for each marker
+  // Compute end positions
   for (let i = 0; i < allMarkers.length; i++) {
-    const start = allMarkers[i].idx + allMarkers[i].raw.length;
-    const end = i + 1 < allMarkers.length ? allMarkers[i + 1].idx : stem.length;
-    allMarkers[i] = { ...allMarkers[i], end: end };
+    allMarkers[i].end = i + 1 < allMarkers.length ? allMarkers[i + 1].idx : stem.length;
   }
 
-  // Recursively build children from a range of markers at a given indent floor
-  function buildTree(fromIdx: number, toIdx: number, indentFloor: number): PartNode[] {
-    const nodes: PartNode[] = [];
-    let i = fromIdx;
-    while (i < toIdx) {
-      const mk = allMarkers[i];
-      if (mk.indent < indentFloor) { i++; continue; } // shouldn't happen
+  // ── Step 2: classify into parent/child ──────────────────────────────────
+  // Rule: a LETTER marker (a-z) is a parent if the NEXT marker is ROMAN (i,ii,...)
+  //        Otherwise it's a leaf.
+  //        A ROMAN marker is always a leaf; it belongs to the most recent LETTER parent.
+  const nodes: { label: string; raw: string; startIdx: number; endIdx: number; children: typeof allMarkers }[] = [];
+  let i = 0;
+  while (i < allMarkers.length) {
+    const mk = allMarkers[i];
+    const next = allMarkers[i + 1];
 
-      // Find all immediate children (markers within this one's content range, deeper than this one)
-      const childrenStart = i + 1;
-      let childrenEnd = childrenStart;
-      // Determine the indent threshold: deeper than current marker
-      const childIndentThreshold = mk.indent + 1;
-      while (childrenEnd < toIdx && allMarkers[childrenEnd].indent >= childIndentThreshold && allMarkers[childrenEnd].idx < mk.end) {
-        childrenEnd++;
+    if (!isRoman(mk.label) && next && isRoman(next.label)) {
+      // LETTER with ROMAN children — collect all consecutive ROMANs as children
+      const children: typeof allMarkers = [];
+      let j = i + 1;
+      while (j < allMarkers.length && isRoman(allMarkers[j].label)) {
+        children.push(allMarkers[j]);
+        j++;
       }
-      // But children must also end before mk.end
-      while (childrenEnd > childrenStart && allMarkers[childrenEnd - 1].idx >= mk.end) {
-        childrenEnd--;
-      }
-
-      const children = childrenStart < childrenEnd
-        ? buildTree(childrenStart, childrenEnd, childIndentThreshold)
-        : [];
-
-      const nodeEnd = children.length > 0 ? mk.end : mk.end;
-
+      // Parent's endIdx is end of last child
+      const lastChild = children[children.length - 1];
       nodes.push({
         label: mk.label,
         raw: mk.raw,
-        indent: mk.indent,
         startIdx: mk.idx,
-        endIdx: nodeEnd, // don't use mk.end directly
+        endIdx: lastChild.end,
         children,
       });
-
-      i = childrenEnd > childrenStart ? childrenEnd : i + 1;
+      i = j;
+    } else {
+      // Leaf (either ROMAN without preceding LETTER, or LETTER without ROMAN children)
+      nodes.push({
+        label: mk.label,
+        raw: mk.raw,
+        startIdx: mk.idx,
+        endIdx: mk.end,
+        children: [],
+      });
+      i++;
     }
-    return nodes;
   }
 
-  const minIndent = Math.min(...allMarkers.map((x) => x.indent));
-  const tree = buildTree(0, allMarkers.length, minIndent);
-
   // ── Step 3: preamble ────────────────────────────────────────────────────
-  const firstIdx = allMarkers[0].idx;
+  const firstIdx = nodes[0].startIdx;
   let preamble = stem.slice(0, firstIdx).trim();
   preamble = preamble.replace(/\n\s*Fig\.\s*\d+\s*$/, "").trim();
 
-  // ── Step 4: flatten tree → DisplayItem[] ────────────────────────────────
-  function flatten(nodes: PartNode[], parentPath: string): DisplayItem[] {
+  // ── Step 4: flatten to DisplayItems ─────────────────────────────────────
+  function flatten(nodes: typeof allMarkers, parentPath: string): DisplayItem[] {
     const items: DisplayItem[] = [];
     for (const node of nodes) {
       const path = parentPath ? `${parentPath}-${node.label}` : node.label;
-      // Extract text: from after marker to next marker or end of this node
       const textStart = node.startIdx + node.raw.length;
-      const textEnd = node.endIdx;
-      let text = stem.slice(textStart, textEnd).trim();
+      let text: string;
 
-      // Extract marks from text
-      const marksRe = /\[(\d+)\]/g;
-      let totalMarks = 0;
-      let mm: RegExpExecArray | null;
-      while ((mm = marksRe.exec(text)) !== null) {
-        totalMarks += parseInt(mm[1]);
-      }
-      // Also clean text: strip trailing [N] marks and nested markers
-      text = text.replace(/\s*\[\d+\]\s*$/m, "").trim();
-
-      if (node.children.length > 0) {
-        // Section: show label + intro text only (before first child), then recurse
-        const firstChild = node.children[0];
-        const childStartInNode = firstChild.startIdx - (node.startIdx + node.raw.length);
-        if (childStartInNode > 0) {
-          text = stem.slice(node.startIdx + node.raw.length, firstChild.startIdx).trim();
-        } else {
-          // No intro text between parent and first child
-          text = "";
-        }
+      if (node.children && node.children.length > 0) {
+        // Section: text from this marker to first child
+        text = stem.slice(textStart, node.children[0].idx).trim();
         items.push({ type: "section", label: node.label, text });
         items.push(...flatten(node.children, path));
       } else {
-        // Leaf: input box here
-        if (totalMarks === 0) totalMarks = 1;
-        items.push({ type: "leaf", label: node.label, fullLabel: path, text, marks: totalMarks });
+        // Leaf
+        text = stem.slice(textStart, node.end).trim();
+        // Strip trailing [N]
+        text = text.replace(/\s*\[\d+\]\s*$/m, "").trim();
+        // Extract marks
+        let marks = 0;
+        const marksRe = /\[(\d+)\]/g;
+        let mm: RegExpExecArray | null;
+        while ((mm = marksRe.exec(text)) !== null) marks += parseInt(mm[1]);
+        if (marks === 0) marks = 1;
+        items.push({ type: "leaf", label: node.label, fullLabel: path, text, marks });
       }
     }
     return items;
   }
 
-  const items = flatten(tree, "");
+  const items = flatten(nodes, "");
   return { preamble, items };
 }
 
