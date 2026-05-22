@@ -1,12 +1,14 @@
-// force-redeploy-v36-hash-or-code
+// force-redeploy-v37-simple-reset
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getSupabaseClient } from "@/lib/supabase-client";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -46,6 +48,31 @@ function LoginForm() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Enter your email first");
+      return;
+    }
+    setLoading(true);
+    try {
+      // Fresh client — created in browser, detectSessionInUrl works
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: `${window.location.origin}/login?reset=true` }
+      );
+      if (resetErr) {
+        alert(resetErr.message);
+      } else {
+        setError("");
+        alert("Reset link sent! Check your email (including spam folder).");
+      }
+    } catch {
+      alert("Failed to send reset email");
+    }
+    setLoading(false);
+  };
+
   return (
     <form
       onSubmit={handleLogin}
@@ -77,31 +104,7 @@ function LoginForm() {
         />
         <button
           type="button"
-          onClick={async () => {
-            if (!email) {
-              setError("Enter your email first");
-              return;
-            }
-            setLoading(true);
-            try {
-              const ssupabase = createBrowserClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-              );
-              const { error: resetErr } = await ssupabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/callback`,
-              });
-              if (resetErr) {
-                alert(resetErr.message);
-              } else {
-                setError("");
-                alert("Reset link sent! Check your email (including spam folder).");
-              }
-            } catch {
-              alert("Failed to send reset email");
-            }
-            setLoading(false);
-          }}
+          onClick={handleForgotPassword}
           className="text-sm text-primary-600 hover:underline mt-2 inline-block font-medium"
         >
           Forgot password?
@@ -129,7 +132,8 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const supabase = getSupabaseClient();
+  // Fresh client on every render — on hydration, window exists → detectSessionInUrl fires
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
