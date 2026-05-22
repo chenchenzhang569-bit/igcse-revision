@@ -1,9 +1,10 @@
-// force-redeploy-v41-clean-reset
+// force-redeploy-v42-auth-fix-2026
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -101,14 +102,17 @@ export default function LoginPage() {
                 if (!email) { setError("Enter your email first"); return; }
                 setLoading(true);
                 try {
-                  const res = await fetch("/api/auth/reset-password", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email }),
-                  });
-                  const data = await res.json();
-                  if (res.ok) setError("");
-                  alert(data.message || "Check your email for reset link");
+                  const supabase = getSupabaseClient();
+                  const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
+                    email,
+                    { redirectTo: `${window.location.origin}/auth/callback` }
+                  );
+                  if (resetErr) {
+                    alert(resetErr.message);
+                  } else {
+                    setError("");
+                    alert("Reset link sent! Check your email.");
+                  }
                 } catch {
                   alert("Failed to send reset email");
                 }
