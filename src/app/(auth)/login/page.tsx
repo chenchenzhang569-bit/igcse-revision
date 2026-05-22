@@ -51,9 +51,9 @@ export default function LoginPage() {
             <Image
               src="/logo.png"
               alt="IGMaster"
-              width={160}
-              height={67}
-              className="h-14 w-auto mx-auto"
+              width={240}
+              height={100}
+              className="h-20 w-auto mx-auto"
             />
           </Link>
           <p className="text-gray-500">Sign in to your account</p>
