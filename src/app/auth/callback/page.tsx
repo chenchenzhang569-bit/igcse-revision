@@ -2,45 +2,45 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+import { createBrowserClient } from "@supabase/ssr";
 
 function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Create fresh client INSIDE useEffect — runs ONLY in browser
-    // Singleton getSupabaseClient() was created during SSR = never saw URL hash
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const next = searchParams.get("next") || "/login?reset=true";
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          router.replace(next);
-        }
-      }
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // Also check immediate (session may already be set)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace(next);
-      }
-    });
+    const code = searchParams.get("code");
 
+    if (code) {
+      // PKCE flow: exchange code for session (sets cookies automatically)
+      supabase.auth
+        .exchangeCodeForSession(code)
+        .then(({ error }) => {
+          if (error) {
+            console.error("[callback] exchange error:", error.message);
+            router.replace("/login?error=auth_callback_failed");
+          } else {
+            console.log("[callback] exchange success → update-password");
+            router.replace("/update-password");
+          }
+        });
+    } else {
+      console.log("[callback] no code in URL");
+      router.replace("/login?error=no_code");
+    }
+
+    // Safety timeout
     const timeout = setTimeout(() => {
-      router.replace("/login?error=auth_callback_failed");
-    }, 8000);
+      console.log("[callback] timeout");
+      router.replace("/login?error=auth_callback_timeout");
+    }, 10000);
 
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
+    return () => clearTimeout(timeout);
   }, [router, searchParams]);
 
   return (

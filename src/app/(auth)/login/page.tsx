@@ -1,4 +1,4 @@
-// force-redeploy-v34-fresh-client
+// force-redeploy-v35-pkce-flow
 "use client";
 
 import { useState, Suspense } from "react";
@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { createBrowserClient } from "@supabase/ssr";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -83,9 +84,12 @@ function LoginForm() {
             }
             setLoading(true);
             try {
-              const supabase = getSupabaseClient();
-              const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+              const ssupabase = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+              );
+              const { error: resetErr } = await ssupabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/auth/callback`,
               });
               if (resetErr) {
                 alert(resetErr.message);
