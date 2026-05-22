@@ -31,21 +31,20 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // 公开路由 OR API 路由（API 自带 requireAdmin 校验）
+  // 公开路由：无需登录
   const publicPaths = [
-    "/", "/login", "/register", "/subjects", "/pricing", "/past-papers",
-    "/mock-exams", "/submit-errors",
+    "/", "/login", "/register",
     "/api/auth",
+    "/api/payment",
     "/auth/callback",
     "/update-password",
   ];
   const isPublic = publicPaths.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
-  const isApiRoute = pathname.startsWith("/api/");
 
-  // 未登录 → 重定向到 /login（跳过 API 路由，它们自带 requireAdmin）
-  if (!user && !isPublic && !isApiRoute) {
+  // 未登录 → 重定向到 /login
+  if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
