@@ -31,17 +31,31 @@ interface Question {
   marks: number;
 }
 
-interface SubPart {
-  label: string;       // e.g. "i", "ii", "" if no sub-parts
-  text: string;         // sub-question text (without [marks])
-  marks: number;        // from [N] in stem
+/** Tree node: represents one labelled part (a, b, i, ii, etc.) */
+interface PartNode {
+  label: string;       // e.g. "a", "i", "ii"
+  raw: string;         // raw marker text like "(a) " or "ii) "
+  indent: number;      // spaces/tabs before marker
+  startIdx: number;    // position of marker within stem
+  endIdx: number;      // position right after this node's content (exclusive)
+  children: PartNode[];
 }
 
-// ─── Parse stem into sub-questions ───────────────────────────────────────────
-function parseSubParts(stem: string): { preamble: string; subs: SubPart[] } {
-  if (!stem) return { preamble: "", subs: [] };
+/** Flat display item for rendering */
+type DisplayItem =
+  | { type: "section"; label: string; text: string }                                // parent label — no input
+  | { type: "leaf";   label: string; fullLabel: string; text: string; marks: number } // leaf — has input
 
-  // Find all markers with indentation info (spaces only, NOT newlines)
+interface ParseResult {
+  preamble: string;
+  items: DisplayItem[];
+}
+
+// ─── Parse stem into flat display items (sections + leaves) ──────────────────
+function parseSubParts(stem: string): ParseResult {
+  if (!stem) return { preamble: "", items: [] };
+
+  // ── Step 1: find ALL markers ────────────────────────────────────────────
   const allMarkers: { idx: number; label: string; raw: string; indent: number }[] = [];
   const re = /(?:^|\n)([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
@@ -55,42 +69,106 @@ function parseSubParts(stem: string): { preamble: string; subs: SubPart[] } {
   }
 
   if (allMarkers.length === 0) {
-    // No sub-parts — one input
+    // No markers — one input
     const marksMatch = stem.match(/\[(\d+)\]\s*$/m);
     return {
       preamble: stem.replace(/\s*\[\d+\]\s*$/m, "").trim(),
-      subs: [{ label: "", text: "", marks: marksMatch ? parseInt(marksMatch[1]) : 1 }],
+      items: [{ type: "leaf", label: "", fullLabel: "", text: "", marks: marksMatch ? parseInt(marksMatch[1]) : 1 }],
     };
   }
 
-  // Only keep top-level markers (minimal indentation)
-  const minIndent = Math.min(...allMarkers.map((x) => x.indent));
-  const topMarkers = allMarkers.filter((x) => x.indent === minIndent);
+  // ── Step 2: build tree ──────────────────────────────────────────────────
+  // Assign endIdx for each marker
+  for (let i = 0; i < allMarkers.length; i++) {
+    const start = allMarkers[i].idx + allMarkers[i].raw.length;
+    const end = i + 1 < allMarkers.length ? allMarkers[i + 1].idx : stem.length;
+    allMarkers[i] = { ...allMarkers[i], end: end };
+  }
 
-  // Slice stem into preamble + top-level sub-parts
-  const firstIdx = topMarkers[0].idx;
+  // Recursively build children from a range of markers at a given indent floor
+  function buildTree(fromIdx: number, toIdx: number, indentFloor: number): PartNode[] {
+    const nodes: PartNode[] = [];
+    let i = fromIdx;
+    while (i < toIdx) {
+      const mk = allMarkers[i];
+      if (mk.indent < indentFloor) { i++; continue; } // shouldn't happen
+
+      // Find all immediate children (markers within this one's content range, deeper than this one)
+      const childrenStart = i + 1;
+      let childrenEnd = childrenStart;
+      // Determine the indent threshold: deeper than current marker
+      const childIndentThreshold = mk.indent + 1;
+      while (childrenEnd < toIdx && allMarkers[childrenEnd].indent >= childIndentThreshold && allMarkers[childrenEnd].idx < mk.end) {
+        childrenEnd++;
+      }
+      // But children must also end before mk.end
+      while (childrenEnd > childrenStart && allMarkers[childrenEnd - 1].idx >= mk.end) {
+        childrenEnd--;
+      }
+
+      const children = childrenStart < childrenEnd
+        ? buildTree(childrenStart, childrenEnd, childIndentThreshold)
+        : [];
+
+      const nodeEnd = children.length > 0 ? mk.end : mk.end;
+
+      nodes.push({
+        label: mk.label,
+        raw: mk.raw,
+        indent: mk.indent,
+        startIdx: mk.idx,
+        endIdx: nodeEnd, // don't use mk.end directly
+        children,
+      });
+
+      i = childrenEnd > childrenStart ? childrenEnd : i + 1;
+    }
+    return nodes;
+  }
+
+  const minIndent = Math.min(...allMarkers.map((x) => x.indent));
+  const tree = buildTree(0, allMarkers.length, minIndent);
+
+  // ── Step 3: preamble ────────────────────────────────────────────────────
+  const firstIdx = allMarkers[0].idx;
   let preamble = stem.slice(0, firstIdx).trim();
   preamble = preamble.replace(/\n\s*Fig\.\s*\d+\s*$/, "").trim();
 
-  const subs: SubPart[] = [];
-  for (let i = 0; i < topMarkers.length; i++) {
-    const start = topMarkers[i].idx + topMarkers[i].raw.length;
-    const end = i + 1 < topMarkers.length ? topMarkers[i + 1].idx : stem.length;
-    let subText = stem.slice(start, end).trim();
+  // ── Step 4: flatten tree → DisplayItem[] ────────────────────────────────
+  function flatten(nodes: PartNode[], parentPath: string): DisplayItem[] {
+    const items: DisplayItem[] = [];
+    for (const node of nodes) {
+      const path = parentPath ? `${parentPath}-${node.label}` : node.label;
+      // Extract text: from after marker to next marker or end of this node
+      const textStart = node.startIdx + node.raw.length;
+      const textEnd = node.endIdx;
+      let text = stem.slice(textStart, textEnd).trim();
 
-    // Sum all [N] marks in this sub-part (handles nested marks)
-    let totalMarks = 0;
-    const marksRe = /\[(\d+)\]/g;
-    let mm: RegExpExecArray | null;
-    while ((mm = marksRe.exec(subText)) !== null) {
-      totalMarks += parseInt(mm[1]);
+      // Extract marks from text
+      const marksRe = /\[(\d+)\]/g;
+      let totalMarks = 0;
+      let mm: RegExpExecArray | null;
+      while ((mm = marksRe.exec(text)) !== null) {
+        totalMarks += parseInt(mm[1]);
+      }
+      // Also clean text: strip trailing [N] marks and nested markers
+      text = text.replace(/\s*\[\d+\]\s*$/m, "").trim();
+
+      if (node.children.length > 0) {
+        // Section: show label + intro text, then recurse into children
+        items.push({ type: "section", label: node.label, text });
+        items.push(...flatten(node.children, path));
+      } else {
+        // Leaf: input box here
+        if (totalMarks === 0) totalMarks = 1;
+        items.push({ type: "leaf", label: node.label, fullLabel: path, text, marks: totalMarks });
+      }
     }
-    if (totalMarks === 0) totalMarks = 1;
-
-    subs.push({ label: topMarkers[i].label, text: subText, marks: totalMarks });
+    return items;
   }
 
-  return { preamble, subs };
+  const items = flatten(tree, "");
+  return { preamble, items };
 }
 
 // ─── Stem parsing (images + tables) ──────────────────────────────────────────
@@ -504,16 +582,21 @@ export default function StructuredQuestion({
   question: Question; index: number;
 }) {
   const fixedStem = useMemo(() => fixMathNotationUnicode(question.stem), [question.stem]);
-  const { preamble, subs } = useMemo(() => parseSubParts(fixedStem), [fixedStem]);
+  const { preamble, items } = useMemo(() => parseSubParts(fixedStem), [fixedStem]);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showAnswer, setShowAnswer] = useState(false);
   const [showPerSub, setShowPerSub] = useState<Record<string, boolean>>({});
 
-  // Build key by sub-label or index
-  const subKey = (sub: SubPart, i: number) => sub.label || String(i);
+  // Key for answer state: fullLabel for leaves, label for others
+  const itemKey = (item: DisplayItem) =>
+    item.type === "leaf" ? (item.fullLabel || "_single") : `_section_${item.label}`;
 
-  const totalMarks = subs.reduce((s, sub) => s + sub.marks, 0);
+  const totalMarks = items
+    .filter((it): it is Extract<DisplayItem, { type: "leaf" }> => it.type === "leaf")
+    .reduce((s, it) => s + it.marks, 0);
+
+  const leafCount = items.filter(it => it.type === "leaf").length;
 
   return (
     <div className="bg-white border rounded-xl overflow-hidden">
@@ -536,30 +619,49 @@ export default function StructuredQuestion({
         </div>
       </div>
 
-      {/* Sub-questions with inputs directly below */}
-      {subs.map((sub, i) => {
-        const key = subKey(sub, i);
-        const isMulti = subs.length > 1;
+      {/* Sub-questions with inputs only at leaf nodes */}
+      {items.map((item, i) => {
+        const key = itemKey(item);
+        if (item.type === "section") {
+          // Parent label with intro text — no input box
+          return (
+            <div key={key} className="px-5 pb-2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded">
+                  ({item.label})
+                </span>
+              </div>
+              {item.text && (
+                <div className="text-sm text-gray-700 mb-2 whitespace-pre-wrap pl-1">
+                  <StemParts stem={item.text} />
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // Leaf: has input box
+        const isMulti = leafCount > 1;
         return (
           <div key={key} className="px-5 pb-3">
             {isMulti && (
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs font-bold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded">
-                  ({sub.label})
+                  ({item.label})
                 </span>
-                <span className="text-xs text-gray-400">[{sub.marks} mark{sub.marks > 1 ? "s" : ""}]</span>
+                <span className="text-xs text-gray-400">[{item.marks} mark{item.marks > 1 ? "s" : ""}]</span>
               </div>
             )}
-            {sub.text && (
+            {item.text && (
               <div className="text-sm text-gray-700 mb-2 whitespace-pre-wrap">
-                <StemParts stem={sub.text} />
+                <StemParts stem={item.text} />
               </div>
             )}
             <AnswerInput
               value={answers[key] || ""}
               onChange={(val) => setAnswers((p) => ({ ...p, [key]: val }))}
-              placeholder={`Type your answer${isMulti ? ` for (${sub.label})` : ""}...`}
-              marks={sub.marks}
+              placeholder={`Type your answer${isMulti ? ` for (${item.label})` : ""}...`}
+              marks={item.marks}
             />
             {/* Per-sub-answer toggle */}
             {showPerSub[key] && (question.clean_explanation || question.explanation) && (() => {
@@ -569,10 +671,10 @@ export default function StructuredQuestion({
                   dangerouslySetInnerHTML={{ __html: html }} />
               );
             })()}
-            {subs.length > 1 && (
+            {leafCount > 1 && (
               <button onClick={() => setShowPerSub((p) => ({ ...p, [key]: !p[key] }))}
                 className="mt-1 text-xs text-primary-600 hover:text-primary-700">
-                {showPerSub[key] ? "Hide answer" : "Show answer"} for ({sub.label})
+                {showPerSub[key] ? "Hide answer" : "Show answer"} for ({item.label})
               </button>
             )}
           </div>
@@ -581,7 +683,7 @@ export default function StructuredQuestion({
 
       {/* Bottom action bar */}
       <div className="px-5 pb-5 flex items-center gap-3 pt-1 border-t border-gray-100 mt-2">
-        {subs.length <= 1 && (
+        {leafCount <= 1 && (
           !showAnswer ? (
             <button onClick={() => setShowAnswer(true)}
               className="text-sm bg-primary-50 text-primary-700 px-4 py-2 rounded-lg hover:bg-primary-100 transition font-medium">
@@ -600,8 +702,8 @@ export default function StructuredQuestion({
         </button>
       </div>
 
-      {/* Full model answer (single sub-q) */}
-      {showAnswer && subs.length <= 1 && (question.clean_explanation || question.explanation) && (() => {
+      {/* Full model answer (single leaf) */}
+      {showAnswer && leafCount <= 1 && (question.clean_explanation || question.explanation) && (() => {
         const html = renderMath(parseModelAnswer(fixMathNotationUnicode(question.clean_explanation || question.explanation)));
         return (
           <div className="px-5 pb-5">
