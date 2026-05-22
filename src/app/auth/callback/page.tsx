@@ -15,28 +15,42 @@ function CallbackHandler() {
     );
 
     const code = searchParams.get("code");
+    const hash = window.location.hash;
 
     if (code) {
-      // PKCE flow: exchange code for session (sets cookies automatically)
+      // PKCE flow
       supabase.auth
         .exchangeCodeForSession(code)
         .then(({ error }) => {
           if (error) {
-            console.error("[callback] exchange error:", error.message);
             router.replace("/login?error=auth_callback_failed");
           } else {
-            console.log("[callback] exchange success → update-password");
             router.replace("/update-password");
           }
         });
+    } else if (hash && hash.includes("access_token")) {
+      // Implicit flow — tokens in URL hash
+      const params = new URLSearchParams(hash.replace("#", ""));
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+      if (access_token && refresh_token) {
+        supabase.auth
+          .setSession({ access_token, refresh_token })
+          .then(({ error }) => {
+            if (error) {
+              router.replace("/login?error=auth_callback_failed");
+            } else {
+              router.replace("/update-password");
+            }
+          });
+      } else {
+        router.replace("/login?error=no_token");
+      }
     } else {
-      console.log("[callback] no code in URL");
       router.replace("/login?error=no_code");
     }
 
-    // Safety timeout
     const timeout = setTimeout(() => {
-      console.log("[callback] timeout");
       router.replace("/login?error=auth_callback_timeout");
     }, 10000);
 
