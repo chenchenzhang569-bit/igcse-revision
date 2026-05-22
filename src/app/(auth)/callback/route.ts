@@ -7,6 +7,9 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/dashboard";
   const type = searchParams.get("type");
 
+  // Create response first so cookies can be set on it
+  let response = NextResponse.redirect(`${origin}${next}`);
+
   if (code) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,9 +19,15 @@ export async function GET(request: NextRequest) {
           getAll() {
             return request.cookies.getAll();
           },
-          setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+          setAll(
+            cookiesToSet: {
+              name: string;
+              value: string;
+              options: Record<string, unknown>;
+            }[]
+          ) {
             cookiesToSet.forEach(({ name, value, options }) =>
-              request.cookies.set(name, value)
+              response.cookies.set(name, value, options)
             );
           },
         },
@@ -30,8 +39,8 @@ export async function GET(request: NextRequest) {
 
   // Password recovery: redirect to update-password page
   if (type === "recovery") {
-    return NextResponse.redirect(`${origin}/update-password`);
+    response = NextResponse.redirect(`${origin}/update-password`);
   }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  return response;
 }
