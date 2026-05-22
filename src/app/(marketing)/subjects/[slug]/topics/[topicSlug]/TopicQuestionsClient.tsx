@@ -136,7 +136,7 @@ function parseSubParts(stem: string): SubPart[] {
 
   // Find all markers
   const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
-  const re = /(?:^|\n)([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
+  const re = /([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
