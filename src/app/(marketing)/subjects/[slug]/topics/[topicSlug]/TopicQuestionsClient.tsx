@@ -128,25 +128,69 @@ function renderStemWithTables(stem: string): string {
 }
 
 // ─── Sub-part parsing ───
-interface SubPart { label: string; text: string; }
+interface SubPart { label: string; text: string; hasChildren: boolean; }
 function parseSubParts(stem: string): SubPart[] {
-  // Match: **(i)**, (i), i), i. — all common sub-question markers at line start
-  // Groups: 1=bold, 2=parenthesized, 3=bare letter+dot/paren
-  const parts: SubPart[] = [];
-  const regex = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])\s*/gim;
-  let lastIdx = 0;
+  if (!stem) return [];
+
+  // Find all markers with indentation (same regex as StructuredQuestion)
+  const allMarkers: { idx: number; label: string; raw: string; indent: number }[] = [];
+  const re = /(?:^|\n)([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
-  while ((m = regex.exec(stem)) !== null) {
-    const label = (m[1] || m[2] || m[3]).trim();
-    if (parts.length > 0) {
-      parts[parts.length - 1].text = stem.slice(lastIdx, m.index).trim();
+  while ((m = re.exec(stem)) !== null) {
+    allMarkers.push({
+      idx: m.index + (m[0].startsWith("\n") ? 1 : 0),
+      label: m[2].replace(/[()]/g, "").trim(),
+      raw: m[0],
+      indent: m[1].length,
+    });
+  }
+
+  // Fallback to old flat matching if no indent-based markers found
+  if (allMarkers.length === 0) {
+    const parts: SubPart[] = [];
+    const regex = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])\s*/gim;
+    let lastIdx = 0;
+    let mm: RegExpExecArray | null;
+    while ((mm = regex.exec(stem)) !== null) {
+      const label = (mm[1] || mm[2] || mm[3]).trim();
+      if (parts.length > 0) {
+        parts[parts.length - 1].text = stem.slice(lastIdx, mm.index).trim();
+      }
+      parts.push({ label, text: "", hasChildren: false });
+      lastIdx = mm.index + mm[0].length;
     }
-    parts.push({ label, text: "" });
-    lastIdx = m.index + m[0].length;
+    if (parts.length > 0) {
+      parts[parts.length - 1].text = stem.slice(lastIdx).trim();
+    }
+    return parts;
   }
-  if (parts.length > 0) {
-    parts[parts.length - 1].text = stem.slice(lastIdx).trim();
+
+  // Detect nesting: a marker has children if the next marker is deeper
+  const parts: SubPart[] = [];
+  for (let i = 0; i < allMarkers.length; i++) {
+    const cur = allMarkers[i];
+    const next = allMarkers[i + 1];
+    const hasChildren = next ? next.indent > cur.indent : false;
+
+    // Extract text: from after marker to next marker at same/shallower level (or end)
+    const textStart = cur.idx + cur.raw.length;
+    let textEnd = stem.length;
+    for (let j = i + 1; j < allMarkers.length; j++) {
+      if (allMarkers[j].indent <= cur.indent) {
+        textEnd = allMarkers[j].idx;
+        break;
+      }
+    }
+    let text = stem.slice(textStart, textEnd).trim();
+
+    // Strip nested markers from text (only show immediate intro text)
+    if (hasChildren && next) {
+      text = stem.slice(textStart, next.idx).trim();
+    }
+
+    parts.push({ label: cur.label, text, hasChildren });
   }
+
   return parts;
 }
 
@@ -330,29 +374,28 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     for (const qq of qs) {
       // Grade sub-questions independently
       const sp = parseSubParts(parseQuestion(qq.question_text).stem);
-      if (sp.length > 1) {
-        for (const sub of sp) {
+      const leafSubs = sp.filter(s => !s.hasChildren);
+      if (leafSubs.length >= 1) {
+        for (const sub of leafSubs) {
           const subKey = `${qq.id}-${sub.label}`;
           const subAns = answers[subKey] || "";
           if (!graded[qq.id] && subAns.trim()) {
             const answerText = qq.clean_answer_text || qq.answer_text || "";
             const subAnsNorm = subAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim();
-            const answers = answerText.split('||').map(a => 
+            const answerParts = answerText.split('||').map(a => 
               a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').replace(/^\([a-z0-9]+\)\s*/i, '').trim()
             );
-            if (answers.includes(subAnsNorm)) {
+            if (answerParts.includes(subAnsNorm)) {
               newSubCorrect[subKey] = true;
-              newSubGraded[subKey] = true;
-            } else {
-              newSubGraded[subKey] = true;
             }
+            newSubGraded[subKey] = true;
           }
         }
-        // Mark parent as graded if all sub-questions attempted
-        const allSubKeys = sp.map(s => `${qq.id}-${s.label}`);
-        if (allSubKeys.some(k => answers[k]?.trim())) {
+        // Mark parent as graded if any leaf sub-question attempted
+        const leafKeys = leafSubs.map(s => `${qq.id}-${s.label}`);
+        if (leafKeys.some(k => answers[k]?.trim())) {
           setGraded((prev) => ({ ...prev, [qq.id]: true }));
-          const allCorrect = allSubKeys.every(k => newSubCorrect[k]);
+          const allCorrect = leafKeys.every(k => newSubCorrect[k]);
           setCorrectMap((prev) => ({ ...prev, [qq.id]: allCorrect }));
         }
       } else {
@@ -378,8 +421,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     const qs = byDifficulty[activeDifficulty] || [];
     return qs.every((qq) => {
       const sp = parseSubParts(parseQuestion(qq.question_text).stem);
-      if (sp.length > 1) {
-        return sp.every(s => (answers[`${qq.id}-${s.label}`] || "").trim());
+      const leafSubs = sp.filter(s => !s.hasChildren);
+      if (leafSubs.length >= 1) {
+        return leafSubs.every(s => (answers[`${qq.id}-${s.label}`] || "").trim());
       }
       return (answers[qq.id] || "").trim();
     });
@@ -522,6 +566,21 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
               {subParts.map((sp) => {
                 const subKey = `${q.id}-${sp.label}`;
                 const subAns = answers[subKey] || "";
+                // Parent with children → show label + text, no input
+                if (sp.hasChildren) {
+                  return (
+                    <div key={sp.label} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                      <p className="text-sm font-semibold text-primary-700 mb-1">
+                        ({sp.label})
+                      </p>
+                      {sp.text && (
+                        <div className="prose prose-sm max-w-none text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
+                      )}
+                    </div>
+                  );
+                }
+                // Leaf → show label + text + input + grading
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">
