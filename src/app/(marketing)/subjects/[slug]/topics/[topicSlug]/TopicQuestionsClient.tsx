@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { renderMath } from "@/lib/math";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface Question {
   id: string;
@@ -256,6 +257,27 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   // submitted groups
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
+
+  // Fetch bookmarked question IDs for "Saved" filter
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) { setBookmarksLoaded(true); return; }
+        const res = await fetch("/api/bookmarks", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setBookmarkedIds(new Set(data.map((b: any) => b.question.id)));
+        }
+      } catch {} 
+      setBookmarksLoaded(true);
+    })();
+  }, [supabase]);
 
   // Load saved answers from localStorage (browser only)
   useEffect(() => {
@@ -334,7 +356,12 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   // All difficulties unlocked immediately
   const unlockedDifficulty: string | null = difficulties[difficulties.length - 1] || null;
 
-  const currentQs = byDifficulty[activeDifficulty] || [];
+  // Saved filter: when active, show all bookmarked questions across all difficulties
+  const savedQs = showSavedOnly
+    ? allQuestions.filter((q) => bookmarkedIds.has(q.id))
+    : [];
+
+  const currentQs = showSavedOnly ? savedQs : (byDifficulty[activeDifficulty] || []);
   const q = currentQs[currentIdx];
 
   // Compute scores
@@ -551,25 +578,64 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
 
   return (
     <div className="mt-6 space-y-4">
-      <DifficultyTabs
-        difficulties={difficulties}
-        active={activeDifficulty}
-        scores={scores}
-        byDifficulty={byDifficulty}
-        submitted={submitted}
-        unlockedDifficulty={unlockedDifficulty}
-        onChange={handleDifficultyChange}
-      />
+      <div className="flex gap-2 items-center flex-wrap">
+        <DifficultyTabs
+          difficulties={difficulties}
+          active={showSavedOnly ? "" : activeDifficulty}
+          scores={scores}
+          byDifficulty={byDifficulty}
+          submitted={submitted}
+          unlockedDifficulty={unlockedDifficulty}
+          onChange={(d) => { setShowSavedOnly(false); handleDifficultyChange(d); }}
+        />
+        {bookmarksLoaded && (
+          <button
+            onClick={() => { setShowSavedOnly(!showSavedOnly); setCurrentIdx(0); }}
+            className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+              showSavedOnly
+                ? "bg-red-50 text-red-600 border-red-300"
+                : "bg-white text-gray-500 border-gray-200 hover:border-red-200 hover:text-red-500"
+            }`}
+          >
+            ♥ Saved ({bookmarkedIds.size})
+          </button>
+        )}
+      </div>
 
       {/* Progress */}
+      {q && (
       <div className="flex items-center justify-between text-sm text-gray-400">
         <span>Question {currentIdx + 1} of {currentQs.length}</span>
         <span>{q.difficulty} · {q.marks} mark{q.marks > 1 ? "s" : ""}</span>
       </div>
+      )}
+      {q && (
       <div className="w-full bg-gray-100 rounded-full h-2">
         <div className="bg-primary-600 h-2 rounded-full transition-all"
           style={{ width: `${((currentIdx + 1) / currentQs.length) * 100}%` }} />
       </div>
+      )}
+
+      {/* Empty state for saved filter */}
+      {showSavedOnly && savedQs.length === 0 ? (
+        <div className="bg-white border rounded-xl p-12 text-center">
+          <p className="text-gray-400 text-5xl mb-3">💾</p>
+          <p className="text-gray-600 font-medium">No saved questions in this subtopic</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Click ♡ on any question card to save it here.
+          </p>
+          <button
+            onClick={() => setShowSavedOnly(false)}
+            className="mt-4 text-primary-600 hover:underline text-sm font-medium"
+          >
+            ← Show all questions
+          </button>
+        </div>
+      ) : !q ? (
+        <div className="bg-white border rounded-xl p-12 text-center">
+          <p className="text-gray-400">No questions available</p>
+        </div>
+      ) : (<>
 
       {/* Question navigator dots */}
       <div className="flex gap-1.5 flex-wrap">
@@ -597,6 +663,16 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
 
       {/* Question card */}
       <div className="bg-white border rounded-xl p-5 sm:p-6">
+        {/* Header: difficulty badge + bookmark */}
+        <div className="flex items-center justify-between mb-4">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
+            (DIFFICULTY_CONFIG[q.difficulty] || DIFFICULTY_CONFIG.medium).color
+          }`}>
+            {(DIFFICULTY_CONFIG[q.difficulty] || DIFFICULTY_CONFIG.medium).icon}{" "}
+            {(DIFFICULTY_CONFIG[q.difficulty] || DIFFICULTY_CONFIG.medium).label}
+          </span>
+          <BookmarkButton questionId={q.id} />
+        </div>
         {!isMcq && hasSubParts ? (
           <>
             {/* Find first sub-question marker position (handles **(i)**, (i), i), i.) */}
@@ -751,8 +827,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           >
             Next →
           </button>
-        </div>
+       </div>
       </div>
+      </>
+      )}
 
       {/* Clear saved progress */}
       <div className="text-right">

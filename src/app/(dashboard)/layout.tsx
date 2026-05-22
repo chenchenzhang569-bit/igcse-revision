@@ -53,6 +53,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           >
             📄 Past Papers
           </Link>
+          <Link
+            href="/dashboard/my-bank"
+            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
+          >
+            💾 My Question Bank
+          </Link>
         </nav>
         <div className="p-4 border-t">
           {user && (
