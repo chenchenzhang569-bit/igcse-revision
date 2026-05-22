@@ -457,20 +457,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     if (Object.keys(newSubCorrect).length > 0) {
       setSubCorrectMap((prev) => ({ ...prev, ...newSubCorrect }));
       setSubGraded((prev) => ({ ...prev, ...newSubGraded }));
-      
-      // Recompute overall correctMap from final subCorrect state
-      for (const qq of qs) {
-        const sp = parseSubParts(parseQuestion(qq.question_text).stem);
-        const leafSubs2 = sp.filter(s => !s.hasChildren);
-        if (leafSubs2.length >= 1) {
-          const leafKeys2 = leafSubs2.map(s => `${qq.id}-${s.label}`);
-          if (leafKeys2.some(k => answers[k]?.trim())) {
-            const allCorrect = leafKeys2.every(k => newSubCorrect[k] === true);
-            setGraded((prev) => ({ ...prev, [qq.id]: true }));
-            setCorrectMap((prev) => ({ ...prev, [qq.id]: allCorrect }));
-          }
-        }
-      }
     }
   };
 
