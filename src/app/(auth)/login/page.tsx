@@ -1,3 +1,4 @@
+// force-redeploy-v30-login-reset
 "use client";
 
 import { useState } from "react";
@@ -94,6 +95,29 @@ export default function LoginPage() {
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
               placeholder="••••••••"
             />
+            <button
+              type="button"
+              onClick={async () => {
+                if (!email) { setError("Enter your email first"); return; }
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/auth/reset-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                  });
+                  const data = await res.json();
+                  if (res.ok) setError("");
+                  alert(data.message || "Check your email for reset link");
+                } catch {
+                  alert("Failed to send reset email");
+                }
+                setLoading(false);
+              }}
+              className="text-sm text-primary-600 hover:underline mt-2 inline-block font-medium"
+            >
+              Forgot password?
+            </button>
           </div>
 
           <button
