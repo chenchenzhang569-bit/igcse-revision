@@ -209,6 +209,34 @@ function parseSubParts(stem: string): SubPart[] {
   return parts;
 }
 
+// Normalize algebraic expression: sort terms so 5+7n and 7n+5 become the same
+function normalizeAlgebraic(expr: string): string {
+  if (!/[a-z]/i.test(expr)) return expr;       // no variables → skip
+  if (!/[+\-]/.test(expr)) return expr;        // no operators → skip
+  
+  let s = expr.replace(/\s+/g, '');
+  if (s[0] !== '+' && s[0] !== '-') s = '+' + s;
+  
+  const terms: string[] = [];
+  const termRe = /[+\-][^+\-]+/g;
+  let m: RegExpExecArray | null;
+  while ((m = termRe.exec(s)) !== null) {
+    terms.push(m[0]);
+  }
+  
+  terms.sort((a, b) => {
+    const aVar = /[a-z]/i.test(a);
+    const bVar = /[a-z]/i.test(b);
+    if (aVar && !bVar) return -1;
+    if (!aVar && bVar) return 1;
+    return a.replace(/[+\-]/, '').trim().localeCompare(b.replace(/[+\-]/, '').trim());
+  });
+  
+  let result = terms.join('');
+  if (result.startsWith('+')) result = result.substring(1);
+  return result;
+}
+
 export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { topicId: string; preloadedQuestions?: any[] }) {
   const supabase = useMemo(() => getSupabaseClient(), []);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
@@ -370,9 +398,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
       correct = userAns === answerText.trim().charAt(0);
     } else {
       // Normalize delimiters: treat ; ； , all as same
-      const userNorm = userAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim();
+      const userNorm = normalizeAlgebraic(userAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim());
       const answers = answerText.split('||').map(a => 
-        a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim()
+        normalizeAlgebraic(a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim())
       );
       correct = answers.includes(userNorm);
     }
