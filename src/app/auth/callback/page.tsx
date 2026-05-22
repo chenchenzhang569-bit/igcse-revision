@@ -2,37 +2,40 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase-client";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const supabase = getSupabaseClient();
+    // Create fresh client INSIDE useEffect — runs ONLY in browser
+    // Singleton getSupabaseClient() was created during SSR = never saw URL hash
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Wait for the session to be detected from URL hash
+    const next = searchParams.get("next") || "/login?reset=true";
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
-          const next = searchParams.get("next") || "/login?reset=true";
           router.replace(next);
         }
       }
     );
 
-    // Also check immediately (session might already be set)
+    // Also check immediate (session may already be set)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        const next = searchParams.get("next") || "/login?reset=true";
         router.replace(next);
       }
     });
 
-    // Timeout fallback — if no session after 5s, something went wrong
     const timeout = setTimeout(() => {
-      router.replace("/login?error=auth_callback_timeout");
-    }, 6000);
+      router.replace("/login?error=auth_callback_failed");
+    }, 8000);
 
     return () => {
       subscription.unsubscribe();
