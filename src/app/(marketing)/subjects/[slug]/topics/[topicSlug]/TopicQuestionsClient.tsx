@@ -435,9 +435,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
               newSubCorrect[subKey] = false;
             } else if (answerParts[leafIdx] === subAnsNorm) {
               newSubCorrect[subKey] = true;
-            } else {
-              // Answer doesn't match — mark wrong
-              newSubCorrect[subKey] = false;
             }
             newSubGraded[subKey] = true;
           }
