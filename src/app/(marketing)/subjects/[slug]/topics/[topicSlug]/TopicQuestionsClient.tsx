@@ -140,7 +140,7 @@ function parseSubParts(stem: string): SubPart[] {
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
-      idx: m.index + (m[0].startsWith("\n") ? 1 : 0),
+      idx: m.index,  // raw position, DON'T skip \n
       label: m[2].replace(/[()]/g, "").trim(),
       raw: m[0],
       end: 0,
