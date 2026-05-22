@@ -430,7 +430,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
             );
             // Positional matching: i-th leaf sub matches i-th answer part
             const leafIdx = leafSubs.indexOf(sub);
-            if (leafIdx < answerParts.length && answerParts[leafIdx] === subAnsNorm) {
+            if (leafIdx >= answerParts.length) continue; // clean_answer missing this part → skip
+            if (answerParts[leafIdx] === subAnsNorm) {
               newSubCorrect[subKey] = true;
             }
             newSubGraded[subKey] = true;
@@ -438,9 +439,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
         }
         // Mark parent as graded if any leaf sub-question attempted
         const leafKeys = leafSubs.map(s => `${qq.id}-${s.label}`);
-        if (leafKeys.some(k => answers[k]?.trim())) {
+        // Only grade sub-parts that have matching answer parts
+        const gradableKeys = leafKeys.filter(k => newSubGraded[k]);
+        if (gradableKeys.length > 0 && gradableKeys.some(k => answers[k]?.trim())) {
           setGraded((prev) => ({ ...prev, [qq.id]: true }));
-          const allCorrect = leafKeys.every(k => newSubCorrect[k]);
+          const allCorrect = gradableKeys.every(k => newSubCorrect[k]);
           setCorrectMap((prev) => ({ ...prev, [qq.id]: allCorrect }));
         }
       } else {
