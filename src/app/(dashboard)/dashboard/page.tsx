@@ -46,6 +46,12 @@ function subjectLabel(slug: string): string {
   return name ? `${name} ${code}` : slug;
 }
 
+// Extract exam board from display name (e.g. "Physics 0625" → "CAIE", "Physics 4PH1" → "Edexcel")
+function subBoard(name: string): string {
+  const code = name.split(" ").pop() || "";
+  return /^[0-9]/.test(code) ? "CAIE" : "EDEXCEL";
+}
+
 const SUBJECT_COLORS: Record<string, string> = {
   Physics: "#001C71",
   Chemistry: "#059669",
@@ -121,7 +127,10 @@ export default function DashboardPage() {
         </h2>
         {s.subjects.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={s.subjects.map(sub => ({ name: subjectLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+            <BarChart data={s.subjects.map(sub => ({ name: subjectLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) })).sort((a, b) => {
+              const boardA = subBoard(a.name); const boardB = subBoard(b.name);
+              return boardA === boardB ? a.name.localeCompare(b.name) : boardA.localeCompare(boardB);
+            })} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
