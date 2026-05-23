@@ -37,7 +37,21 @@ const SUBJECT_LABELS: Record<string, string> = {
   "edexcel-mathematics-4ma1": "Mathematics A 4MA1",
 };
 
-// Fallback: extract code from slug (e.g. "caie-something-1234" → "Something 1234")
+// Sort subjects: CAIE first, then Edexcel — and add board prefix
+function sortGroupedSubjects(subjects: { slug: string; total: number; correct: number; rate: number; used?: number; subtopics?: number }[]) {
+  return [...subjects].sort((a, b) => {
+    const boardA = a.slug.startsWith("edexcel") ? 1 : 0;
+    const boardB = b.slug.startsWith("edexcel") ? 1 : 0;
+    if (boardA !== boardB) return boardA - boardB;
+    return subjectLabel(a.slug).localeCompare(subjectLabel(b.slug));
+  });
+}
+
+function subjectBoardLabel(slug: string): string {
+  const board = slug.startsWith("edexcel") ? "Edexcel" : "CAIE";
+  return `${board}: ${subjectLabel(slug)}`;
+}
+
 function subjectLabel(slug: string): string {
   if (SUBJECT_LABELS[slug]) return SUBJECT_LABELS[slug];
   const parts = slug.split("-");
@@ -121,7 +135,7 @@ export default function DashboardPage() {
         </h2>
         {s.subjects.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={s.subjects.map(sub => ({ name: subjectLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+            <BarChart data={sortGroupedSubjects(s.subjects).map(sub => ({ name: subjectBoardLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
