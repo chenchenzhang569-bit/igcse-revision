@@ -276,7 +276,7 @@ export default async function SubtopicPage({
       {subtopic && (
         <div className="mt-8 pt-6 border-t text-center">
           <Link
-            href={`/dashboard/my-bank?subtopic=${encodeURIComponent(subtopic.displayName)}`}
+            href="/dashboard/my-bank"
             className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 font-medium transition"
           >
             💾 View saved questions for this subtopic →
