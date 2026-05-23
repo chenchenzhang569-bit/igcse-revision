@@ -24,11 +24,27 @@ interface Stats {
 }
 
 const SUBJECT_LABELS: Record<string, string> = {
-  "caie-physics-0625": "Physics",
-  "caie-chemistry-0620": "Chemistry",
-  "caie-biology-0610": "Biology",
-  "caie-mathematics-0580": "Mathematics",
+  "caie-physics-0625": "Physics 0625",
+  "caie-chemistry-0620": "Chemistry 0620",
+  "caie-biology-0610": "Biology 0610",
+  "caie-mathematics-0580": "Mathematics 0580",
+  "caie-economics-0455": "Economics 0455",
+  "caie-computer-science-0478": "Computer Science 0478",
+  "caie-additional-mathematics-0606": "Additional Math 0606",
+  "edexcel-physics-4ph1": "Physics 4PH1",
+  "edexcel-chemistry-4ch1": "Chemistry 4CH1",
+  "edexcel-biology-4bi1": "Biology 4BI1",
+  "edexcel-mathematics-4ma1": "Mathematics A 4MA1",
 };
+
+// Fallback: extract code from slug (e.g. "caie-something-1234" → "Something 1234")
+function subjectLabel(slug: string): string {
+  if (SUBJECT_LABELS[slug]) return SUBJECT_LABELS[slug];
+  const parts = slug.split("-");
+  const code = parts[parts.length - 1]?.toUpperCase() || "";
+  const name = parts.slice(1, -1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+  return name ? `${name} ${code}` : slug;
+}
 
 const SUBJECT_COLORS: Record<string, string> = {
   Physics: "#001C71",
@@ -105,7 +121,7 @@ export default function DashboardPage() {
         </h2>
         {s.subjects.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={s.subjects.map(sub => ({ name: SUBJECT_LABELS[sub.slug] || sub.slug, Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+            <BarChart data={s.subjects.map(sub => ({ name: subjectLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
@@ -174,7 +190,7 @@ export default function DashboardPage() {
         {s.recent.length > 0 ? (
           <div className="space-y-1">
             {s.recent.slice(0, 8).map((a, i) => {
-              const subLabel = SUBJECT_LABELS[a.subject_slug] || a.subject_slug;
+              const subLabel = subjectLabel(a.subject_slug);
               return (
                 <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                   <span className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold ${a.is_correct ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
