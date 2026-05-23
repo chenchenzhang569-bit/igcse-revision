@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 interface Stats {
   total: number;
@@ -156,33 +157,51 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ROW 4: Subject Progress */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
-          <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-          Subject Progress
-        </h2>
-        {s.subjects.length > 0 ? (
-          <div className="space-y-5">
-            {s.subjects.map(sub => {
-              const label = SUBJECT_LABELS[sub.slug] || sub.slug;
-              const color = SUBJECT_COLORS[label] || "#001C71";
-              return (
-                <div key={sub.slug}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="font-bold text-gray-700">{label}</span>
-                    <span className="text-gray-400 text-xs font-semibold">{sub.correct}/{sub.total} · {sub.rate}%</span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${Math.max(sub.rate, 4)}%`, backgroundColor: color }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your progress</p>
-        )}
+      {/* ROW 4: Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Subject Progress — Horizontal Bar Chart */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6">
+          <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
+            <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            Subject Progress
+          </h2>
+          {s.subjects.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={s.subjects.map(sub => ({ name: SUBJECT_LABELS[sub.slug] || sub.slug, Correct: sub.correct, Incorrect: sub.total - sub.correct, rate: sub.rate }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name]} />
+                <Bar dataKey="Correct" fill="#001C71" radius={[0, 4, 4, 0]} barSize={18} />
+                <Bar dataKey="Incorrect" fill="#FCA5A5" radius={[0, 4, 4, 0]} barSize={18} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your progress</p>
+          )}
+        </div>
+
+        {/* Overall Accuracy — Donut Chart */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6">
+          <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
+            <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+            Overall Accuracy
+          </h2>
+          {s.total > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={[{ name: "Correct", value: s.correct }, { name: "Incorrect", value: s.total - s.correct }]} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">
+                  <Cell fill="#001C71" />
+                  <Cell fill="#FCA5A5" />
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
+                <Legend iconType="circle" formatter={(v: string) => <span className="text-sm font-semibold text-gray-700">{v}</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see accuracy</p>
+          )}
+        </div>
       </div>
     </div>
   );
