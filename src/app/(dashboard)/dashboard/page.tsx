@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createBrowserClient } from "@supabase/ssr";
 
 interface Stats {
   total: number;
@@ -46,8 +47,16 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/user-answers/stats", { credentials: "include" })
-      .then(r => r.json())
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const token = session?.access_token;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      return fetch("/api/user-answers/stats", { credentials: "include", headers });
+    }).then(r => r.json())
       .then(data => {
         if (data.error) setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
         else setStats(data);
