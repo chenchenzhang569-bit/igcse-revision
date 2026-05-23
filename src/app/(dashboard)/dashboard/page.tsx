@@ -127,7 +127,7 @@ export default function DashboardPage() {
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name === "Practiced" ? "Subtopic practiced" : "Subtopic remaining"]} />
               <Bar dataKey="Practiced" fill="#001C71" radius={[0, 4, 4, 0]} barSize={18} />
-              <Bar dataKey="Remaining" fill="#E5E7EB" radius={[0, 4, 4, 0]} barSize={18} />
+              <Bar dataKey="Remaining" fill="#C5CDE8" radius={[0, 4, 4, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -147,7 +147,7 @@ export default function DashboardPage() {
               <PieChart>
                 <Pie data={[{ name: "Correct", value: s.correct }, { name: "Incorrect", value: s.total - s.correct }]} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none">
                   <Cell fill="#001C71" />
-                  <Cell fill="#E5E7EB" />
+                  <Cell fill="#C5CDE8" />
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
               </PieChart>
