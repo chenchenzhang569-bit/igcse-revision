@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
 
   const formHtml = createPagePayForm({
     outTradeNo: tradeNo,
-    totalAmount: String(PRICE_PER_SUBJECT),
+    totalAmount: String(PRICE_PER_SUBJECT) + ".00",
     subject: `IGCSE ${subject.display_name}`,
     body: `IGCSE ${subject.display_name} 科目复习资料`,
   });
