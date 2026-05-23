@@ -46,10 +46,10 @@ function subjectLabel(slug: string): string {
   return name ? `${name} ${code}` : slug;
 }
 
-// Extract exam board from display name (e.g. "Physics 0625" → "CAIE", "Physics 4PH1" → "Edexcel")
+// Extract exam board from display name (e.g. "Physics 0625" → "CAIE", "Physics 4PH1" → "EDEXCEL")
 function subBoard(name: string): string {
   const code = name.split(" ").pop() || "";
-  return /^[0-9]/.test(code) ? "CAIE" : "EDEXCEL";
+  return /^\d+$/.test(code) ? "CAIE" : "EDEXCEL";
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
