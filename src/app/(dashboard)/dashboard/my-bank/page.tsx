@@ -37,7 +37,6 @@ export default function MyBankPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [expandedQ, setExpandedQ] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -126,15 +125,6 @@ export default function MyBankPage() {
     });
   };
 
-  const toggleQuestion = (id: string) => {
-    setExpandedQ(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
@@ -192,9 +182,7 @@ export default function MyBankPage() {
             node={board}
             depth={0}
             expanded={expanded}
-            expandedQ={expandedQ}
             onToggle={toggleExpand}
-            onToggleQ={toggleQuestion}
           />
         ))}
       </div>
@@ -206,16 +194,12 @@ function TreeNodeRow({
   node,
   depth,
   expanded,
-  expandedQ,
   onToggle,
-  onToggleQ,
 }: {
   node: TreeNode;
   depth: number;
   expanded: Set<string>;
-  expandedQ: Set<string>;
   onToggle: (key: string) => void;
-  onToggleQ: (id: string) => void;
 }) {
   const key = node.id || node.name;
   const isExpanded = expanded.has(key);
@@ -249,9 +233,7 @@ function TreeNodeRow({
               node={child}
               depth={depth + 1}
               expanded={expanded}
-              expandedQ={expandedQ}
               onToggle={onToggle}
-              onToggleQ={onToggleQ}
             />
           ))}
         </div>
@@ -261,31 +243,20 @@ function TreeNodeRow({
         <div className="border-t border-gray-100">
           {node.bookmarks!.map((bm) => {
             const q = bm.question || {};
-            const qId = bm.bookmark_id;
-            const isQExpanded = expandedQ.has(qId);
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
             return (
-              <div key={qId}>
-                <button
-                  onClick={() => onToggleQ(qId)}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
-                  style={{ paddingLeft: `${16 + (depth + 1) * 20}px` }}
-                >
-                  <span className="text-gray-300 text-xs shrink-0">{isQExpanded ? "▼" : "•"}</span>
-                  <span className="flex-1 min-w-0 text-sm text-gray-700 line-clamp-1">
-                    {stripHtml(q.question_text || "").slice(0, 120)}
-                  </span>
-                  <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${diffStyle}`}>
-                    {q.difficulty || "medium"}
-                  </span>
-                </button>
-                {isQExpanded && (
-                  <div className="px-4 pb-3" style={{ paddingLeft: `${16 + (depth + 2) * 20}px` }}>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
-                      {stripHtml(q.question_text || "")}
-                    </p>
-                  </div>
-                )}
+              <div
+                key={bm.bookmark_id}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                style={{ paddingLeft: `${16 + (depth + 1) * 20}px` }}
+              >
+                <span className="text-gray-300 text-xs">•</span>
+                <span className="flex-1 min-w-0 text-sm text-gray-700 line-clamp-1">
+                  {stripHtml(q.question_text || "").slice(0, 120)}
+                </span>
+                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${diffStyle}`}>
+                  {q.difficulty || "medium"}
+                </span>
               </div>
             );
           })}
