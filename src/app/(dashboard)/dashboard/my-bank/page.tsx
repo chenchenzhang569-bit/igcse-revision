@@ -244,10 +244,6 @@ function TreeNodeRow({
           {node.bookmarks!.map((bm) => {
             const q = bm.question || {};
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
-            // Link to topic page (uses ilike DB lookup, handles mismatched slugs)
-            const link = q.subjectSlug && q.topic?.name
-              ? `/subjects/${q.subjectSlug}/topics/${slugify(q.topic.name)}`
-              : "/subjects";
             return (
               <div
                 key={bm.bookmark_id}
@@ -255,12 +251,9 @@ function TreeNodeRow({
                 style={{ paddingLeft: `${16 + (depth + 1) * 20}px` }}
               >
                 <span className="text-gray-300 text-xs">•</span>
-                <Link
-                  href={link}
-                  className="flex-1 min-w-0 text-sm text-gray-700 hover:text-primary-600 transition-colors line-clamp-1"
-                >
+                <span className="flex-1 min-w-0 text-sm text-gray-700 line-clamp-1">
                   {stripHtml(q.question_text || "").slice(0, 120)}
-                </Link>
+                </span>
                 <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${diffStyle}`}>
                   {q.difficulty || "medium"}
                 </span>
@@ -280,10 +273,6 @@ function formatSubject(slug: string): string {
   const subject = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
   const code = parts.slice(2).join(" ").toUpperCase();
   return `${board} ${subject} (${code})`;
-}
-
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 function stripHtml(html: string): string {
