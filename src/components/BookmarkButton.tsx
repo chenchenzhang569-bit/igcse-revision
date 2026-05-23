@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
 interface BookmarkButtonProps {
@@ -12,23 +12,34 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const sessionRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    checkBookmark();
+    fetchSessionAndCheck();
   }, [questionId]);
 
-  const checkBookmark = async () => {
+  const fetchSession = async (): Promise<string | null> => {
+    if (sessionRef.current) return sessionRef.current;
     try {
       const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
+      sessionRef.current = session?.access_token || null;
+      return sessionRef.current;
+    } catch {
+      return null;
+    }
+  };
 
+  const fetchSessionAndCheck = async () => {
+    const token = await fetchSession();
+    if (!token) return;
+    try {
       const res = await fetch(`/api/bookmarks?question_id=${questionId}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const { bookmarked: b } = await res.json();
@@ -40,33 +51,35 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
   };
 
   const toggle = async () => {
-    try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        alert("Please log in to save questions to your bank.");
-        return;
-      }
+    const token = await fetchSession();
+    if (!token) {
+      alert("Please log in to save questions to your bank.");
+      return;
+    }
 
-      setLoading(true);
-      const method = bookmarked ? "DELETE" : "POST";
+    // Optimistic update: toggle UI immediately
+    const newState = !bookmarked;
+    setBookmarked(newState);
+    setLoading(true);
+
+    try {
+      const method = newState ? "POST" : "DELETE";
       const res = await fetch("/api/bookmarks", {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ question_id: questionId }),
       });
 
-      if (res.ok) {
-        setBookmarked(!bookmarked);
+      if (!res.ok) {
+        // Revert on failure
+        setBookmarked(!newState);
       }
     } catch {
-      // silent fail
+      // Revert on error
+      setBookmarked(!newState);
     } finally {
       setLoading(false);
     }
