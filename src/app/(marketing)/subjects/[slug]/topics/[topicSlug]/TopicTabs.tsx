@@ -1,4 +1,4 @@
-// force-redeploy-v6-remove-ssr-import
+// force-redeploy-v7-supabase-session
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { MixedContent } from "@/components/MixedContent";
 import BookmarkButton from "@/components/BookmarkButton";
+import { createBrowserClient } from "@supabase/ssr";
 
 const markdownComponents = {
   img: (props: any) => (
@@ -138,17 +139,18 @@ export function TopicTabs({
   function handleSubmitLevel(level: string) {
     setSubmittedLevels((prev) => new Set(prev).add(level));
     
-    // Save answers to backend — extract JWT from cookie on client side
-    const getCookieJwt = () => {
-      const match = document.cookie.match(/sb-[^;]+-auth-token=([^;]+)/);
-      if (!match) return null;
+    // Save answers to backend — get JWT via Supabase SDK (works with httpOnly cookies)
+    const getSessionJwt = async (): Promise<string | null> => {
       try {
-        const decoded = decodeURIComponent(match[1]);
-        const parsed = JSON.parse(decoded);
-        return Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { session } } = await supabase.auth.getSession();
+        return session?.access_token || null;
       } catch { return null; }
     };
-    const jwt = getCookieJwt();
+    const jwt = await getSessionJwt();
 
     const answers = (groupedMcqs[level] || []).map(q => ({
       question_id: q.id,
