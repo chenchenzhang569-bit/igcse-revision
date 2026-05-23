@@ -132,8 +132,8 @@ export default function DashboardPage() {
               return boardA === boardB ? a.name.localeCompare(b.name) : boardA.localeCompare(boardB);
             })} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "rgba(255,255,255,0.8)" }} width={90} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name === "Practiced" ? "Subtopic practiced" : "Subtopic remaining"]} />
               <Bar dataKey="Practiced" fill="#FF8C00" radius={[0, 4, 4, 0]} barSize={18} />
               <Bar dataKey="Remaining" fill="#E5E7EB" radius={[0, 4, 4, 0]} barSize={18} />
