@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
     const formHtml = createPagePayForm({
       outTradeNo: tradeNo,
-      totalAmount: String(PRICE_ALL),
+      totalAmount: String(PRICE_ALL) + ".00",
       subject: "IGCSE All Subjects — Lifetime Access",
       body: "CAIE + Edexcel all subjects",
     });
