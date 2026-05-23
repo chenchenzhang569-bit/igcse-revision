@@ -1,7 +1,8 @@
-// step3: add TopicTabs
+// step4: add Tailwind + breadcrumb + fallback
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
+import { FALLBACK_DATA } from "@/lib/fallback-content";
 import { TopicTabs } from "../TopicTabs";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -21,6 +22,13 @@ const TOPIC_SLUG_TO_DB: Record<string, string> = {
   "space-physics": "physics-0625-space-physics",
 };
 
+const TOPIC_DISPLAY: Record<string, string> = {
+  "motion-forces-energy": "Motion, Forces & Energy",
+  "thermal-physics": "Thermal Physics", "waves": "Waves",
+  "electricity-magnetism": "Electricity & Magnetism",
+  "nuclear-physics": "Nuclear Physics", "space-physics": "Space Physics",
+};
+
 export default async function SubtopicPage({
   params,
 }: {
@@ -29,12 +37,15 @@ export default async function SubtopicPage({
   const { slug, topicSlug, subtopicSlug } = await params;
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   const subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
+  const topicDisplay = TOPIC_DISPLAY[topicSlug] || topicSlug;
 
   if (!subtopic) {
     return (
-      <div style={{ padding: 40 }}>
-        <h1>Subtopic not found</h1>
-        <Link href={`/subjects/${slug}/topics/${topicSlug}`}>← Back</Link>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <p className="text-gray-400 text-lg">Subtopic not found</p>
+        <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="text-primary-600 mt-4 inline-block font-semibold">
+          ← Back to Topic
+        </Link>
       </div>
     );
   }
@@ -81,11 +92,37 @@ export default async function SubtopicPage({
     }
   } catch {}
 
+  // Fallback
+  const fallback = FALLBACK_DATA[subjectKey]?.[topicSlug]?.[subtopicSlug];
+  if (fallback && notes.length === 0 && mcqs.length === 0 && structuredQs.length === 0) {
+    notes = fallback.notes?.map((n: any, i: number) => ({
+      id: `fb-${i}`, title: n.title, content: n.content, file_url: n.file_url || null,
+      file_name: n.file_name || null, is_free_preview: n.is_free_preview,
+    })) || [];
+    mcqs = fallback.mcqs?.map((q: any, i: number) => ({
+      id: `fb-${i}`, question_text: q.question_text, answer_text: q.answer_text,
+      options: q.options, correct_answer: q.answer_text, difficulty: q.difficulty,
+      marks: 1, sort_order: i + 1,
+    })) || [];
+    structuredQs = fallback.structured?.map((q: any, i: number) => ({
+      id: `fb-${i}`, question_text: q.question_text, answer_text: q.answer_text,
+      difficulty: q.difficulty, marks: q.marks, sort_order: i + 1,
+    })) || [];
+  }
+
   return (
-    <div style={{ padding: 40, fontFamily: "monospace" }}>
-      <h1 style={{ color: "green" }}>✅ STEP3: TopicTabs renders below</h1>
-      <p>notes: {notes.length} | mcqs: {mcqs.length} | structured: {structuredQs.length}</p>
-      <hr style={{ margin: "20px 0" }} />
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <div className="text-sm text-gray-400 mb-2 space-x-1">
+        <Link href="/" className="hover:text-primary-600">Home</Link>
+        <span>/</span>
+        <Link href={`/subjects/${slug}`} className="hover:text-primary-600">Subject</Link>
+        <span>/</span>
+        <Link href={`/subjects/${slug}/topics/${topicSlug}`} className="hover:text-primary-600">{topicDisplay}</Link>
+      </div>
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">
+        <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
+        {subtopic.displayName}
+      </h1>
       <TopicTabs
         notes={notes}
         mcqs={mcqs}
