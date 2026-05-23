@@ -120,8 +120,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ROW 2: Subject Progress — Bar Chart (full width) */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
+      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
+        <h2 className="text-lg font-extrabold mb-5">
           <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
           Subject Progress
         </h2>
@@ -135,8 +135,8 @@ export default function DashboardPage() {
               <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name === "Practiced" ? "Subtopic practiced" : "Subtopic remaining"]} />
-              <Bar dataKey="Practiced" fill="#001C71" radius={[0, 4, 4, 0]} barSize={18} />
-              <Bar dataKey="Remaining" fill="#C5CDE8" radius={[0, 4, 4, 0]} barSize={18} />
+              <Bar dataKey="Practiced" fill="#FF8C00" radius={[0, 4, 4, 0]} barSize={18} />
+              <Bar dataKey="Remaining" fill="#E5E7EB" radius={[0, 4, 4, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -145,8 +145,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ROW 2.5: Overall Accuracy — Donut */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <h2 className="text-lg font-extrabold mb-4" style={{ color: "#001C71" }}>
+      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
+        <h2 className="text-lg font-extrabold mb-4">
           <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
           Overall Accuracy
         </h2>
@@ -155,19 +155,19 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={[{ name: "Correct", value: s.correct }, { name: "Incorrect", value: s.total - s.correct }]} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none">
-                  <Cell fill="#001C71" />
-                  <Cell fill="#C5CDE8" />
+                  <Cell fill="#FF8C00" />
+                  <Cell fill="rgba(255,255,255,0.15)" />
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-extrabold" style={{ color: "#001C71" }}>{s.rate}%</span>
-              <span className="text-xs text-gray-400 font-medium">{s.correct}/{s.total}</span>
+              <span className="text-3xl font-extrabold" style={{ color: "#FF8C00" }}>{s.rate}%</span>
+              <span className="text-xs text-white/60 font-medium">{s.correct}/{s.total}</span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>
+          <p className="text-sm text-white/50 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>
         )}
       </div>
 
