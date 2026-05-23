@@ -1,8 +1,9 @@
 // force-redeploy-v5-clean-answer-grading
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createBrowserClient } from "@supabase/ssr";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -75,6 +76,34 @@ export function TopicTabs({
   const [tab, setTab] = useState<Tab>("notes");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [submittedLevels, setSubmittedLevels] = useState<Set<string>>(new Set());
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
+
+  // Fetch bookmarked question IDs for this subtopic
+  useEffect(() => {
+    (async () => {
+      try {
+        const ssrClient = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { session } } = await ssrClient.auth.getSession();
+        if (!session?.access_token) { setBookmarksLoaded(true); return; }
+        const res = await fetch("/api/bookmarks", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setBookmarkedIds(new Set(data.map((b: any) => b.question.id)));
+        }
+      } catch {}
+      setBookmarksLoaded(true);
+    })();
+  }, []);
+
+  // Count bookmarks within this subtopic's questions
+  const subtopicBookmarkCount = (mcqs || []).filter(q => bookmarkedIds.has(q.id)).length
+    + (structuredQuestions || []).filter(q => bookmarkedIds.has(q.id)).length;
 
   // Format: PMT_[category]_[code]
   function fmtPmt(category: string): string {
@@ -421,7 +450,7 @@ export function TopicTabs({
             href={`/dashboard/my-bank?subtopic_id=${subtopicId}`}
             className="shrink-0 px-4 py-2 rounded-lg text-sm font-medium border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 transition"
           >
-            ♥ Saved
+            ♥ Saved{subtopicBookmarkCount > 0 ? ` (${subtopicBookmarkCount})` : ""}
           </Link>
         )}
       </div>
