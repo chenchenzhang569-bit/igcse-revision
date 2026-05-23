@@ -244,8 +244,10 @@ function TreeNodeRow({
           {node.bookmarks!.map((bm) => {
             const q = bm.question || {};
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
-            // Link to subject page (with DB fallback in subject page)
-            const link = q.subjectSlug ? `/subjects/${q.subjectSlug}` : "/subjects";
+            // Link to topic page (uses ilike DB lookup, handles mismatched slugs)
+            const link = q.subjectSlug && q.topic?.name
+              ? `/subjects/${q.subjectSlug}/topics/${slugify(q.topic.name)}`
+              : "/subjects";
             return (
               <div
                 key={bm.bookmark_id}
