@@ -46,9 +46,9 @@ export default function MyBankPage() {
 
   const loadBookmarks = async () => {
     try {
-      // Read subtopic_id from URL
+      // Read subtopic filter from URL
       const params = new URLSearchParams(window.location.search);
-      const fid = params.get("subtopic_id") || "";
+      const fid = params.get("subtopic") || "";
       setFilterId(fid);
 
       const supabase = createClient();
@@ -122,13 +122,14 @@ export default function MyBankPage() {
     return boards;
   }, [bookmarks]);
 
-  // Auto-expand to filtered subtopic
+  // Auto-expand to filtered subtopic (match by name)
   useEffect(() => {
     if (!filterId || !tree.length) return;
+    const decoded = decodeURIComponent(filterId);
     for (const board of tree) {
       for (const subj of (board.children || [])) {
         for (const st of (subj.children || [])) {
-          if (st.id === filterId) {
+          if (st.slug === decoded || st.name === decoded) {
             setExpanded(new Set([board.id || board.name, subj.id || subj.name, st.id || st.name]));
             return;
           }
