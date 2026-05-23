@@ -244,16 +244,8 @@ function TreeNodeRow({
           {node.bookmarks!.map((bm) => {
             const q = bm.question || {};
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
-            // Link to subtopic page if available, else topic page, else fallback
-            let link = "#";
-            if (q.subjectSlug && q.topic?.name) {
-              const topicSlug = slugify(q.topic.name);
-              if (q.subtopic?.name) {
-                link = `/subjects/${q.subjectSlug}/topics/${topicSlug}/${slugify(q.subtopic.name)}`;
-              } else {
-                link = `/subjects/${q.subjectSlug}/topics/${topicSlug}`;
-              }
-            }
+            // Link to subject page — topic/subtopic slugs may not match static data
+            const link = q.subjectSlug ? `/subjects/${q.subjectSlug}` : "#";
             return (
               <div
                 key={bm.bookmark_id}
