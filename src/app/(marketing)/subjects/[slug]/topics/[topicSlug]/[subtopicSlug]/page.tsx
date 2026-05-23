@@ -136,11 +136,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <p style={{padding: 10, background: "#e0ffe0", margin: "10px 0"}}>
-        ✅ Breadcrumbs + Title OK — data: {notes.length} notes, {mcqs.length} mcqs, {mcqPairs.length} mcqPairs, {structPairs.length} structPairs, {structuredQs.length} structuredQs
-      </p>
-      {/* Temporarily remove TopicTabs to test */}
-      {/* <TopicTabs
+      <TopicTabs
         notes={notes}
         mcqs={mcqs}
         mcqPairs={mcqPairs as any}
@@ -149,7 +145,7 @@ export default async function SubtopicPage({
         pmtCode={subtopic.pmtCode}
         displayName={subtopic.displayName}
         subtopicId={subtopicId}
-      /> */}
+      />
     </div>
   );
 }
