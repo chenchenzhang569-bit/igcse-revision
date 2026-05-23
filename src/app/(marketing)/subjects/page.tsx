@@ -34,7 +34,8 @@ export default async function SubjectsPage({
   const allSubjects = (dbSubjects || []).map((s: any) => ({
     ...s,
     board: s.slug?.startsWith("edexcel") ? "Edexcel" : "CAIE",
-    price: s.price_cny ? `¥${(s.price_cny / 100).toFixed(0)}` : `¥299`,
+    price: s.price_cny ? `¥${(s.price_cny / 100).toFixed(0)}` : `¥50`,
+    originalPrice: s.price_cny ? `¥${(s.price_cny / 100 * 2).toFixed(0)}` : `¥100`,
   })).filter((s: any) => s.board === activeBoard);
 
   // If DB is empty, use static data filtered by board
@@ -47,7 +48,8 @@ export default async function SubjectsPage({
       board: s.board,
       code: s.code,
       icon: s.icon,
-      price: "¥299",
+      price: "¥50",
+      originalPrice: "¥100",
     }));
 
   const displaySubjects = allSubjects.length > 0 ? allSubjects : staticSubjects;
@@ -98,7 +100,10 @@ export default async function SubjectsPage({
                     {s.display_name}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">{s.name}</p>
-                  <p className="text-accent-500 font-bold mt-3">{s.price}</p>
+                  <div className="flex items-baseline gap-2 mt-3">
+                    <span className="text-accent-500 font-bold text-lg">{s.price}</span>
+                    <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
+                  </div>
                 </div>
               </div>
             </Link>
