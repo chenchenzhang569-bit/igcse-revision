@@ -77,7 +77,8 @@ export default function MyBankPage() {
       const q = bm.question || {};
       const examBoard = (q.subjectSlug || "").startsWith("caie") ? "CAIE" : "Edexcel";
       const subject = q.subjectSlug || "Unknown";
-      const subtopic = q.subtopic?.name || "Other";
+      // Use subtopic if available, fall back to topic name
+      const subtopic = q.subtopic?.name || q.topic?.name || "Uncategorized";
 
       const boardKey = examBoard;
       const subjectKey = `${examBoard}|${subject}`;
@@ -85,7 +86,7 @@ export default function MyBankPage() {
 
       if (!root[boardKey]) root[boardKey] = { name: examBoard, count: 0, children: [], id: boardKey };
       if (!root[subjectKey]) root[subjectKey] = { name: formatSubject(subject), slug: subject, count: 0, children: [], id: subjectKey };
-      if (!root[subtopicKey]) root[subtopicKey] = { name: subtopic, id: q.subtopic?.id, count: 0, bookmarks: [], slug: subtopic };
+      if (!root[subtopicKey]) root[subtopicKey] = { name: subtopic, id: q.subtopic?.id || q.topic?.id, count: 0, bookmarks: [], slug: subtopic };
 
       root[boardKey].count++;
       root[subjectKey].count++;
@@ -243,9 +244,16 @@ function TreeNodeRow({
           {node.bookmarks!.map((bm) => {
             const q = bm.question || {};
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
-            const link = q.subjectSlug && q.topic?.name && q.subtopic?.name
-              ? `/subjects/${q.subjectSlug}/topics/${slugify(q.topic.name)}/${slugify(q.subtopic.name)}`
-              : "#";
+            // Link to subtopic page if available, else topic page, else fallback
+            let link = "#";
+            if (q.subjectSlug && q.topic?.name) {
+              const topicSlug = slugify(q.topic.name);
+              if (q.subtopic?.name) {
+                link = `/subjects/${q.subjectSlug}/topics/${topicSlug}/${slugify(q.subtopic.name)}`;
+              } else {
+                link = `/subjects/${q.subjectSlug}/topics/${topicSlug}`;
+              }
+            }
             return (
               <div
                 key={bm.bookmark_id}
