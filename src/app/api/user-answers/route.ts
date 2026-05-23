@@ -77,9 +77,15 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(row),
       });
 
-      if (res.ok) count++;
+      if (res.ok) {
+        count++;
+      } else {
+        const errText = await res.text();
+        console.log("[user-answers] Supabase insert FAILED:", res.status, errText.slice(0, 200), "question_id:", a.question_id?.slice(0, 16));
+      }
     }
 
+    console.log("[user-answers] Done. Inserted:", count, "/", answers.length);
     return NextResponse.json({ success: true, count });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
