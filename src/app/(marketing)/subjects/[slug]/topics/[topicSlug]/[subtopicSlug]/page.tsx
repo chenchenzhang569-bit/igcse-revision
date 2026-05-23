@@ -1,7 +1,8 @@
-// step2: add DB fetch
+// step3: add TopicTabs
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getSubtopic } from "@/lib/subtopic-data";
+import { TopicTabs } from "../TopicTabs";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -29,52 +30,72 @@ export default async function SubtopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   const subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
 
-  // DB fetch
-  const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
-  let topicId: string | null = null;
-  let dbError: string | null = null;
-  let notesCount = 0;
-  let qCount = 0;
-  let papersCount = 0;
+  if (!subtopic) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h1>Subtopic not found</h1>
+        <Link href={`/subjects/${slug}/topics/${topicSlug}`}>← Back</Link>
+      </div>
+    );
+  }
+
+  let notes: any[] = [];
+  let mcqs: any[] = [];
+  let structuredQs: any[] = [];
+  let mcqPairs: any[] = [];
+  let structPairs: any[] = [];
 
   try {
-    // Find topic
+    const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
+    let topicRow: any = null;
+    
     const tRes = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
-    const topicRow = Array.isArray(tData) && tData.length > 0 ? tData[0] : null;
-    topicId = topicRow?.id || null;
-
-    if (topicId) {
-      // Fetch notes
-      const nRes = await fetch(`${API}/notes?select=id&topic_id=eq.${topicId}&limit=5`, { headers: H, cache: "no-store" });
-      const nData = await nRes.json();
-      notesCount = Array.isArray(nData) ? nData.length : 0;
-
-      // Fetch questions
-      const qRes = await fetch(`${API}/questions?select=id&topic_id=eq.${topicId}&limit=5`, { headers: H, cache: "no-store" });
-      const qData = await qRes.json();
-      qCount = Array.isArray(qData) ? qData.length : 0;
-
-      // Fetch past papers
-      const pRes = await fetch(`${API}/past_papers?select=id&topic_id=eq.${topicId}&limit=5`, { headers: H, cache: "no-store" });
-      const pData = await pRes.json();
-      papersCount = Array.isArray(pData) ? pData.length : 0;
+    topicRow = Array.isArray(tData) && tData.length > 0 ? tData[0] : null;
+    
+    if (!topicRow && dbSlug !== topicSlug) {
+      const tRes2 = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(dbSlug)}&limit=1`, { headers: H, cache: "no-store" });
+      const tData2 = await tRes2.json();
+      topicRow = Array.isArray(tData2) && tData2.length > 0 ? tData2[0] : null;
     }
-  } catch (e: any) {
-    dbError = e.message;
-  }
+
+    if (topicRow) {
+      const nRes = await fetch(`${API}/notes?select=*&topic_id=eq.${topicRow.id}&order=sort_order&limit=20`, { headers: H, cache: "no-store" });
+      notes = await nRes.json();
+      notes = Array.isArray(notes) ? notes : [];
+
+      const qRes = await fetch(`${API}/questions?select=*&topic_id=eq.${topicRow.id}&order=sort_order&limit=100`, { headers: H, cache: "no-store" });
+      const allQs = await qRes.json();
+      if (Array.isArray(allQs)) {
+        for (const q of allQs) {
+          const txt = q.question_text || "";
+          const hasAbcd = /[A-D][.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
+          if (hasAbcd || ansIsLetter) {
+            mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
+          } else {
+            structuredQs.push(q);
+          }
+        }
+      }
+    }
+  } catch {}
 
   return (
     <div style={{ padding: 40, fontFamily: "monospace" }}>
-      <h1 style={{ color: "green" }}>✅ STEP2: DB Fetch OK</h1>
-      <p>slug: {slug}</p>
-      <p>topicSlug: {topicSlug} → dbSlug: {dbSlug}</p>
-      <p>subtopicSlug: {subtopicSlug}</p>
-      <p>subtopic: {subtopic ? `${subtopic.pmtCode} ${subtopic.displayName}` : "NOT FOUND"}</p>
-      <p>topicId: {topicId || "NOT FOUND"}</p>
-      <p>notes: {notesCount} | questions: {qCount} | papers: {papersCount}</p>
-      {dbError && <p style={{ color: "red" }}>DB ERROR: {dbError}</p>}
-      <Link href="/">← Home</Link>
+      <h1 style={{ color: "green" }}>✅ STEP3: TopicTabs renders below</h1>
+      <p>notes: {notes.length} | mcqs: {mcqs.length} | structured: {structuredQs.length}</p>
+      <hr style={{ margin: "20px 0" }} />
+      <TopicTabs
+        notes={notes}
+        mcqs={mcqs}
+        mcqPairs={mcqPairs as any}
+        pairedPapers={structPairs as any}
+        structuredQuestions={structuredQs}
+        pmtCode={subtopic.pmtCode}
+        displayName={subtopic.displayName}
+        subtopicId={null}
+      />
     </div>
   );
 }
