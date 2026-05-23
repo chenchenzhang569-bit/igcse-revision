@@ -188,12 +188,12 @@ export default function DashboardPage() {
 
 function StatCard({ label, value, color, children }: { label: string; value: string | number; color: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
+    <div className="rounded-2xl p-5 hover:shadow-md transition-shadow" style={{ backgroundColor: "#001C71" }}>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</span>
-        <span style={{ color }}>{children}</span>
+        <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{label}</span>
+        <span className="text-white/80">{children}</span>
       </div>
-      <p className="text-3xl font-bold tracking-tight" style={{ color }}>{value}</p>
+      <p className="text-3xl font-bold tracking-tight text-white">{value}</p>
     </div>
   );
 }
