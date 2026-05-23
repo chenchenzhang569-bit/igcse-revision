@@ -160,7 +160,7 @@ export function TopicTabs({
     }));
     fetch("/api/user-answers", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(jwt ? { "X-User-JWT": jwt } : {}) },
+      headers: { "Content-Type": "application/json", ...(jwt ? { "Authorization": `Bearer ${jwt}` } : {}) },
       body: JSON.stringify({ answers, subject_slug: subjectSlug, topic_slug: topicSlug, subtopic_code: pmtCode }),
       credentials: "include",
     }).then(async r => {

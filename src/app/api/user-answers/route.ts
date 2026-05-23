@@ -2,45 +2,94 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+const SR_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-function getJwtFromCookie(cookieHeader: string): { token: string; debug: string } | null {
-  // Supabase cookie: sb-{ref}-auth-token = [{"access_token":"eyJ...","refresh_token":"..."}]
-  const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
-  if (!match) {
-    // Fallback: direct access token cookie
-    const fbMatch = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
-    return fbMatch ? { token: fbMatch[1], debug: "fallback-access-token" } : null;
-  }
-  const raw = match[1].slice(0, 300);
-  // Try URL-decode then JSON
-  try {
-    const decoded = decodeURIComponent(match[1]);
-    const parsed = JSON.parse(decoded);
-    const token = Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
-    if (token) return { token, debug: "ok-url-json" };
-  } catch { /* not URL-encoded JSON */ }
-  // Try base64 decode then JSON
-  try {
-    const buf = Buffer.from(match[1], "base64");
-    const parsed = JSON.parse(buf.toString("utf-8"));
-    const token = Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
-    if (token) return { token, debug: "ok-base64-json" };
-  } catch { /* not base64 JSON */ }
-  // Try raw value as JWT
-  if (match[1].startsWith("eyJ")) {
-    return { token: match[1], debug: "ok-raw-jwt" };
-  }
-  return null;
-}
-
-function getUserIdFromJwt(token: string): { userId: string; exp: number } | null {
+// Extract user ID from a JWT (client-side access_token)
+function getUserIdFromJwt(token: string): string | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
     const decoded = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return decoded.sub ? { userId: decoded.sub, exp: decoded.exp || 0 } : null;
+    return decoded.sub || null;
   } catch {
     return null;
+  }
+}
+
+// GET /api/user-answers/stats — return user's answer stats
+export async function GET(req: NextRequest) {
+  try {
+    // Try Authorization header first, then cookie fallback
+    const authHeader = req.headers.get("authorization") || "";
+    let jwt = "";
+    if (authHeader.startsWith("Bearer ")) {
+      jwt = authHeader.slice(7);
+    } else {
+      const cookieHeader = req.headers.get("cookie") || "";
+      const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
+      if (match) {
+        try {
+          const decoded = decodeURIComponent(match[1]);
+          const parsed = JSON.parse(decoded);
+          jwt = (Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token) || "";
+        } catch {}
+      }
+    }
+
+    const userId = jwt ? getUserIdFromJwt(jwt) : null;
+    if (!userId) {
+      return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
+    }
+
+    const authHeaders = { apikey: ANON_KEY, Authorization: `Bearer ${jwt}` };
+
+    const res = await fetch(
+      `${API}/user_answers?select=is_correct,subject_slug,created_at,question_id,subtopic_code,difficulty,question_text,user_answer,correct_answer&user_id=eq.${userId}&order=created_at.desc&limit=500`,
+      { headers: authHeaders }
+    );
+    const all = await res.json();
+
+    if (!Array.isArray(all)) {
+      return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
+    }
+
+    const total = all.length;
+    const correct = all.filter((a: any) => a.is_correct).length;
+
+    const subjectMap: Record<string, { total: number; correct: number; slug: string }> = {};
+    for (const a of all) {
+      const s = a.subject_slug || "unknown";
+      if (!subjectMap[s]) subjectMap[s] = { total: 0, correct: 0, slug: s };
+      subjectMap[s].total++;
+      if (a.is_correct) subjectMap[s].correct++;
+    }
+
+    const subjects = Object.values(subjectMap).map(s => ({
+      ...s,
+      rate: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
+    }));
+
+    const recent = all.slice(0, 10).map((a: any) => ({
+      question_id: a.question_id,
+      question_text: (a.question_text || "").slice(0, 100),
+      is_correct: a.is_correct,
+      user_answer: a.user_answer,
+      correct_answer: a.correct_answer,
+      subject_slug: a.subject_slug,
+      subtopic_code: a.subtopic_code,
+      difficulty: a.difficulty,
+      created_at: a.created_at,
+    }));
+
+    return NextResponse.json({
+      total,
+      correct,
+      rate: total > 0 ? Math.round((correct / total) * 100) : 0,
+      subjects,
+      recent,
+    });
+  } catch (e: any) {
+    return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
   }
 }
 
@@ -54,18 +103,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No answers provided" }, { status: 400 });
     }
 
-    // Get user from cookie JWT or X-User-JWT header (client-side extraction)
-    const cookieHeader = req.headers.get("cookie") || "";
-    const headerJwt = req.headers.get("x-user-jwt") || "";
-    const jwtSource = headerJwt || cookieHeader;
-    console.log("[user-answers] jwtSource:", jwtSource ? `${jwtSource.slice(0, 30)}... (${headerJwt ? "header" : "cookie"})` : "MISSING");
-    const jwt = getJwtFromCookie(cookieHeader);
+    // 1. Try Authorization: Bearer <token> (primary — browser can read supabase session)
+    const authHeader = req.headers.get("authorization") || "";
+    let jwt = "";
+    if (authHeader.startsWith("Bearer ")) {
+      jwt = authHeader.slice(7);
+    }
+
+    // 2. Fallback: extract from Supabase cookie (may not reach Vercel serverless)
+    if (!jwt) {
+      const cookieHeader = req.headers.get("cookie") || "";
+      const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
+      if (match) {
+        try {
+          const decoded = decodeURIComponent(match[1]);
+          const parsed = JSON.parse(decoded);
+          jwt = (Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token) || "";
+        } catch {}
+      }
+    }
+
     const userId = jwt ? getUserIdFromJwt(jwt) : null;
-    console.log("[user-answers] JWT found:", !!jwt, "userId:", userId);
 
     if (!userId) {
-      console.log("[user-answers] Auth failed — cookie preview:", cookieHeader.slice(0, 200));
-      return NextResponse.json({ error: "Unauthorized — no valid session found", cookieLen: cookieHeader.length, cookiePreview: cookieHeader.slice(0, 300), jwtDebug: jwt?.debug || "null" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized — no valid session found" }, { status: 401 });
     }
 
     // Insert via REST API with user's JWT (RLS: auth.uid() = user_id)
@@ -92,15 +153,9 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(row),
       });
 
-      if (res.ok) {
-        count++;
-      } else {
-        const errText = await res.text();
-        console.log("[user-answers] Supabase insert FAILED:", res.status, errText.slice(0, 200), "question_id:", a.question_id?.slice(0, 16));
-      }
+      if (res.ok) count++;
     }
 
-    console.log("[user-answers] Done. Inserted:", count, "/", answers.length);
     return NextResponse.json({ success: true, count });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
