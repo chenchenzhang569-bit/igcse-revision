@@ -64,7 +64,7 @@ export default function DashboardPage() {
     <div className="space-y-6" style={{ fontFamily: "'Inter', 'Poppins', system-ui, sans-serif" }}>
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "#001C71" }}>Dashboard</h1>
-        <p className="text-gray-500 mt-1 text-sm font-medium">Track your IGCSE revision progress</p>
+        <p className="mt-1 text-base font-semibold" style={{ color: "#001C71" }}>Track your IGCSE revision progress</p>
       </div>
 
       {/* ROW 1: Quick Links */}
