@@ -143,7 +143,42 @@ export default async function SubjectPage({
 }) {
   const { slug } = await params;
   const { tab } = await searchParams;
-  const data = DATA[slug];
+  let data = DATA[slug];
+
+  // If slug not found in static map, try DB lookup to resolve
+  if (!data) {
+    try {
+      const supabase = createClient();
+      // Try matching DB subjects.slug or subject code
+      const parts = slug.split("-");
+      const maybeCode = parts[parts.length - 1]?.toUpperCase();
+      const { data: subjects } = await supabase
+        .from("subjects")
+        .select("slug, code, name")
+        .or(`slug.eq.${slug},code.eq.${maybeCode}`)
+        .limit(5);
+
+      if (subjects && subjects.length > 0) {
+        // Try to build matching key for DATA map
+        for (const subj of subjects) {
+          const { data: boards } = await supabase
+            .from("exam_boards")
+            .select("slug")
+            .eq("id", (subj as any).exam_board_id)
+            .single();
+
+          const boardSlug = boards?.slug || "caie";
+          const fullKey = `${boardSlug}-${subj.slug}-${subj.code}`;
+          if (DATA[fullKey]) { data = DATA[fullKey]; break; }
+          // Try without code
+          const noCodeKey = `${boardSlug}-${subj.slug}`;
+          if (DATA[noCodeKey]) { data = DATA[noCodeKey]; break; }
+        }
+      }
+    } catch (e) {
+      // fall through to "not found"
+    }
+  }
 
   if (!data) {
     return (
