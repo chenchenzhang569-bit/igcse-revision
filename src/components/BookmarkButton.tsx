@@ -6,9 +6,10 @@ import { createBrowserClient } from "@supabase/ssr";
 interface BookmarkButtonProps {
   questionId: string;
   className?: string;
+  source?: "question" | "mock_exam";
 }
 
-export default function BookmarkButton({ questionId, className = "" }: BookmarkButtonProps) {
+export default function BookmarkButton({ questionId, className = "", source = "question" }: BookmarkButtonProps) {
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -38,7 +39,10 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
     const token = await fetchSession();
     if (!token) return;
     try {
-      const res = await fetch(`/api/bookmarks?question_id=${questionId}`, {
+      const idParam = source === "mock_exam" 
+        ? `mock_exam_question_id=${questionId}` 
+        : `question_id=${questionId}`;
+      const res = await fetch(`/api/bookmarks?${idParam}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -64,13 +68,19 @@ export default function BookmarkButton({ questionId, className = "" }: BookmarkB
 
     try {
       const method = newState ? "POST" : "DELETE";
+      const body: Record<string, string> = {};
+      if (source === "mock_exam") {
+        body.mock_exam_question_id = questionId;
+      } else {
+        body.question_id = questionId;
+      }
       const res = await fetch("/api/bookmarks", {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ question_id: questionId }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {

@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { MixedContent } from "@/components/MixedContent";
+import BookmarkButton from "@/components/BookmarkButton";
 
 const markdownComponents = {
   img: (props: any) => (
@@ -238,6 +239,7 @@ export function TopicTabs({
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
               <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
               <span className="text-xs text-gray-400">{q.marks} marks</span>
+              <div className="ml-auto"><BookmarkButton questionId={q.id} /></div>
             </div>
             <MixedContent text={cleanText} className="text-gray-800 prose prose-sm max-w-none" />
           </div>
@@ -333,6 +335,7 @@ export function TopicTabs({
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
             <span className="text-xs text-gray-400">{q.marks} marks</span>
+            <div className="ml-auto"><BookmarkButton questionId={q.id} /></div>
           </div>
           <MixedContent text={stem} className="text-gray-800 prose prose-sm max-w-none" />
           {((q as any).image_url || embeddedImageUrl) && (

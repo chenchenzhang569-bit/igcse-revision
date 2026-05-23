@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import StructuredQuestion from "@/components/StructuredQuestion";
+import BookmarkButton from "@/components/BookmarkButton";
 import "katex/dist/katex.min.css";
 import { fixMathNotationUnicode, renderMath } from "@/lib/math";
 import { getSupabaseClient } from "@/lib/supabase-client";
@@ -369,6 +370,7 @@ export default function MockExamPaperPage() {
                       {diffLabel}
                     </span>
                     <span className="text-xs text-gray-400">{q.marks} mark{q.marks > 1 ? "s" : ""}</span>
+                    <div className="ml-auto"><BookmarkButton questionId={q.id} source="mock_exam" /></div>
                   </div>
                   <div className="text-gray-800 text-sm whitespace-pre-wrap">
                     {parseStem(q.stem).map((part, pi) => renderPart(part, pi))}

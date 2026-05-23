@@ -1,4 +1,3 @@
-// force-redeploy-v1-tree-restructure
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
@@ -8,6 +7,7 @@ import Link from "next/link";
 interface Bookmark {
   bookmark_id: string;
   created_at: string;
+  source?: "question" | "mock_exam";
   question: {
     id: string;
     question_text: string;
@@ -16,6 +16,9 @@ interface Bookmark {
     subtopic: { id: string; name: string } | null;
     topic: { id: string; name: string; slug: string } | null;
     subjectSlug: string;
+    // mock_exam specific
+    paper?: { id: string; type: string; number: string; slug: string; label: string } | null;
+    set?: { id: string; subject: string; board: string; slug: string } | null;
   };
 }
 
@@ -33,6 +36,8 @@ const DIFF_STYLES: Record<string, string> = {
   medium: "bg-amber-50 text-amber-700",
   hard: "bg-rose-50 text-rose-700",
 };
+
+const MOCK_EXAMS_KEY = "__mock_exams__";
 
 export default function MyBankPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -68,24 +73,51 @@ export default function MyBankPage() {
   const tree = useMemo(() => {
     if (!bookmarks.length) return [];
     const root: Record<string, TreeNode> = {};
+
     for (const bm of bookmarks) {
       const q = bm.question || {};
-      const examBoard = (q.subjectSlug || "").startsWith("caie") ? "CAIE" : "Edexcel";
-      const subject = q.subjectSlug || "Unknown";
-      const subtopic = q.subtopic?.name || q.topic?.name || "Uncategorized";
+      const source = bm.source || "question";
 
-      const boardKey = examBoard;
-      const subjectKey = `${examBoard}|${subject}`;
-      const subtopicKey = `${examBoard}|${subject}|${subtopic}`;
+      if (source === "mock_exam") {
+        // Mock exam questions: use paper info to determine subject
+        const paper = q.paper;
+        const set = q.set;
+        if (!paper || !set) continue;
 
-      if (!root[boardKey]) root[boardKey] = { name: examBoard, count: 0, children: [], id: boardKey };
-      if (!root[subjectKey]) root[subjectKey] = { name: formatSubject(subject), slug: subject, count: 0, children: [], id: subjectKey };
-      if (!root[subtopicKey]) root[subtopicKey] = { name: subtopic, id: q.subtopic?.id || q.topic?.id, count: 0, bookmarks: [], slug: subtopic };
+        const examBoard = set.board === "CAIE" ? "CAIE" : "Edexcel";
+        const subjectSlug = q.subjectSlug || "";
 
-      root[boardKey].count++;
-      root[subjectKey].count++;
-      root[subtopicKey].count++;
-      root[subtopicKey].bookmarks = [...(root[subtopicKey].bookmarks || []), bm];
+        const boardKey = examBoard;
+        const subjectKey = `${examBoard}|${subjectSlug}`;
+        const subtopicKey = `${subjectKey}|${MOCK_EXAMS_KEY}`;
+
+        if (!root[boardKey]) root[boardKey] = { name: examBoard, count: 0, children: [], id: boardKey };
+        if (!root[subjectKey]) root[subjectKey] = { name: formatSubject(subjectSlug), slug: subjectSlug, count: 0, children: [], id: subjectKey };
+        if (!root[subtopicKey]) root[subtopicKey] = { name: "Mock Exams", id: MOCK_EXAMS_KEY, count: 0, bookmarks: [], slug: "mock-exams" };
+
+        root[boardKey].count++;
+        root[subjectKey].count++;
+        root[subtopicKey].count++;
+        root[subtopicKey].bookmarks = [...(root[subtopicKey].bookmarks || []), bm];
+      } else {
+        // Regular question
+        const examBoard = (q.subjectSlug || "").startsWith("caie") ? "CAIE" : "Edexcel";
+        const subject = q.subjectSlug || "Unknown";
+        const subtopic = q.subtopic?.name || q.topic?.name || "Uncategorized";
+
+        const boardKey = examBoard;
+        const subjectKey = `${examBoard}|${subject}`;
+        const subtopicKey = `${examBoard}|${subject}|${subtopic}`;
+
+        if (!root[boardKey]) root[boardKey] = { name: examBoard, count: 0, children: [], id: boardKey };
+        if (!root[subjectKey]) root[subjectKey] = { name: formatSubject(subject), slug: subject, count: 0, children: [], id: subjectKey };
+        if (!root[subtopicKey]) root[subtopicKey] = { name: subtopic, id: q.subtopic?.id || q.topic?.id, count: 0, bookmarks: [], slug: subtopic };
+
+        root[boardKey].count++;
+        root[subjectKey].count++;
+        root[subtopicKey].count++;
+        root[subtopicKey].bookmarks = [...(root[subtopicKey].bookmarks || []), bm];
+      }
     }
 
     const boards: TreeNode[] = [];
@@ -95,7 +127,15 @@ export default function MyBankPage() {
       for (const sk of subjects) {
         const subjNode: TreeNode = { ...root[sk], children: [] };
         const subtopics = Object.keys(root).filter(k => k.startsWith(sk + "|") && k.split("|").length === 3);
-        for (const subK of subtopics) subjNode.children!.push(root[subK]);
+
+        // Sort: Mock Exams first, then regular subtopics
+        const sortedSubtopics = [...subtopics].sort((a, b) => {
+          if (a.includes(MOCK_EXAMS_KEY)) return -1;
+          if (b.includes(MOCK_EXAMS_KEY)) return 1;
+          return 0;
+        });
+
+        for (const subK of sortedSubtopics) subjNode.children!.push(root[subK]);
         boardNode.children!.push(subjNode);
       }
       boards.push(boardNode);
@@ -103,7 +143,7 @@ export default function MyBankPage() {
     return boards;
   }, [bookmarks]);
 
-  // Auto-expand to filtered subtopic + scroll to question
+  // Auto-expand
   useEffect(() => {
     if (!tree.length) return;
     const params = new URLSearchParams(window.location.search);
@@ -125,7 +165,6 @@ export default function MyBankPage() {
     }
   }, [tree]);
 
-  // Scroll to highlighted question
   useEffect(() => {
     if (highlightQ && highlightRef.current) {
       setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
@@ -185,13 +224,11 @@ export default function MyBankPage() {
       <div className="bg-white border rounded-xl overflow-hidden">
         {tree.map((board) => (
           <div key={board.name}>
-            {/* Board header — not expandable */}
             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
               <span className="text-base">📋</span>
               <span className="flex-1 font-semibold text-gray-700 text-sm">{board.name}</span>
               <span className="shrink-0 text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full font-medium">{board.count}</span>
             </div>
-            {/* Subjects — expandable tree */}
             {(board.children || []).map((subject) => (
               <TreeNodeRow key={subject.id || subject.name} node={subject} depth={0} expanded={expanded} onToggle={toggleExpand} highlightQ={highlightQ} />
             ))}
@@ -211,7 +248,8 @@ function TreeNodeRow({
   const isExpanded = expanded.has(key);
   const hasChildren = !!(node.children && node.children.length > 0);
   const hasBookmarks = !!(node.bookmarks && node.bookmarks.length > 0);
-  const levelIcons = ["📋", "📐", "📌"];
+  const levelIcons = ["📐", "📌", "📄"];
+  const isMockExams = node.id === MOCK_EXAMS_KEY;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -221,7 +259,7 @@ function TreeNodeRow({
         style={{ paddingLeft: `${16 + depth * 20}px` }}
       >
         <span className={`shrink-0 text-xs text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""} ${!hasChildren && !hasBookmarks ? "invisible" : ""}`}>▶</span>
-        <span className="text-base">{levelIcons[depth] || "📄"}</span>
+        <span className="text-base">{isMockExams ? "📄" : (levelIcons[depth] || "📄")}</span>
         <span className="flex-1 font-medium text-gray-800 text-sm">{node.name}</span>
         <span className="shrink-0 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">{node.count}</span>
       </button>
@@ -241,10 +279,27 @@ function TreeNodeRow({
             const qId = bm.bookmark_id;
             const isHL = highlightQ === qId;
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
-            const topicSlug = q.topic?.slug || "";
-            const href = topicSlug
-              ? `/subjects/${q.subjectSlug}/topics/${topicSlug}?tab=questions&saved=1&q=${q.id}`
-              : "#";
+
+            // Determine link based on source
+            let href = "#";
+            const source = bm.source || "question";
+            if (source === "mock_exam") {
+              const paper = q.paper;
+              if (paper && q.subjectSlug) {
+                href = `/mock-exams/${q.subjectSlug}/${paper.slug || paper.id}`;
+              }
+            } else {
+              const topicSlug = q.topic?.slug || "";
+              if (topicSlug) {
+                href = `/subjects/${q.subjectSlug}/topics/${topicSlug}?tab=questions&saved=1&q=${q.id}`;
+              }
+            }
+
+            // Display text: for mock exams, show paper label
+            const displayText = source === "mock_exam"
+              ? (q.paper?.label || "") + " Q"
+              : stripHtml(q.question_text || "").slice(0, 120);
+
             return (
               <Link
                 key={qId}
@@ -255,8 +310,13 @@ function TreeNodeRow({
               >
                 <span className="text-gray-300 text-xs">•</span>
                 <span className="flex-1 min-w-0 text-sm text-gray-700 line-clamp-1">
-                  {stripHtml(q.question_text || "").slice(0, 120)}
+                  {displayText}
                 </span>
+                {source === "mock_exam" && (
+                  <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600">
+                    Mock
+                  </span>
+                )}
                 <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${diffStyle}`}>
                   {q.difficulty || "medium"}
                 </span>
@@ -270,6 +330,7 @@ function TreeNodeRow({
 }
 
 function formatSubject(slug: string): string {
+  if (!slug) return "Unknown";
   const parts = slug.split("-");
   if (parts.length < 3) return slug;
   const board = parts[0].toUpperCase();
