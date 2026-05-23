@@ -3,10 +3,21 @@ import { NextRequest, NextResponse } from "next/server";
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
-// Extract JWT from cookie
-function getJwtFromCookie(cookieHeader: string): string | null {
+// Extract JWT from Authorization header or cookie
+function getJwt(req: NextRequest): string | null {
+  // 1. Try Authorization: Bearer <token>
+  const authHeader = req.headers.get("authorization") || "";
+  if (authHeader.startsWith("Bearer ")) return authHeader.slice(7);
+
+  // 2. Fallback: extract from Supabase cookie
+  const cookieHeader = req.headers.get("cookie") || "";
   const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
-  return match ? match[1] : null;
+  if (!match) return null;
+  try {
+    const decoded = decodeURIComponent(match[1]);
+    const parsed = JSON.parse(decoded);
+    return (Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token) || null;
+  } catch { return null; }
 }
 
 // Decode JWT payload to get user_id
@@ -24,8 +35,7 @@ function getUserIdFromJwt(token: string): string | null {
 // GET /api/user-answers/stats
 export async function GET(req: NextRequest) {
   try {
-    const cookieHeader = req.headers.get("cookie") || "";
-    const jwt = getJwtFromCookie(cookieHeader);
+    const jwt = getJwt(req);
     const userId = jwt ? getUserIdFromJwt(jwt) : null;
 
     if (!userId) {
