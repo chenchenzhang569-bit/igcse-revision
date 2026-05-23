@@ -4,16 +4,20 @@ const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 function getJwtFromCookie(cookieHeader: string): string | null {
-  // Supabase stores auth token in: sb-{ref}-auth-token = {"access_token":"eyJ...","refresh_token":"..."}
+  // Supabase cookie: sb-{ref}-auth-token = [{"access_token":"eyJ...","refresh_token":"..."}]
+  // Also try sb-{ref}-access-token as fallback for older SDK versions
   const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
-  if (!match) return null;
-  try {
-    const decoded = decodeURIComponent(match[1]);
-    const parsed = JSON.parse(decoded);
-    return parsed.access_token || null;
-  } catch {
-    return null;
+  if (match) {
+    try {
+      const decoded = decodeURIComponent(match[1]);
+      const parsed = JSON.parse(decoded);
+      const token = Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
+      return token || null;
+    } catch { /* fall through */ }
   }
+  // Fallback: direct access token cookie
+  const fbMatch = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
+  return fbMatch ? fbMatch[1] : null;
 }
 
 function getUserIdFromJwt(token: string): string | null {
@@ -39,11 +43,14 @@ export async function POST(req: NextRequest) {
 
     // Get user from cookie JWT
     const cookieHeader = req.headers.get("cookie") || "";
+    console.log("[user-answers] Cookie header length:", cookieHeader.length, "Preview:", cookieHeader.slice(0, 120));
     const jwt = getJwtFromCookie(cookieHeader);
     const userId = jwt ? getUserIdFromJwt(jwt) : null;
+    console.log("[user-answers] JWT found:", !!jwt, "userId:", userId);
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      console.log("[user-answers] Auth failed — cookie preview:", cookieHeader.slice(0, 200));
+      return NextResponse.json({ error: "Unauthorized — no valid session found", cookieLen: cookieHeader.length }, { status: 401 });
     }
 
     // Insert via REST API with user's JWT (RLS: auth.uid() = user_id)

@@ -5,7 +5,7 @@ const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 // Extract JWT from cookie
 function getJwtFromCookie(cookieHeader: string): string | null {
-  const match = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
+  const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
   return match ? match[1] : null;
 }
 
