@@ -1,9 +1,8 @@
-// force-redeploy-v5-clean-answer-grading
+// force-redeploy-v6-remove-ssr-import
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { createBrowserClient } from "@supabase/ssr";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -83,15 +82,7 @@ export function TopicTabs({
   useEffect(() => {
     (async () => {
       try {
-        const ssrClient = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-        const { data: { session } } = await ssrClient.auth.getSession();
-        if (!session?.access_token) { setBookmarksLoaded(true); return; }
-        const res = await fetch("/api/bookmarks", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await fetch("/api/bookmarks", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
           setBookmarkedIds(new Set(data.map((b: any) => b.question.id)));
