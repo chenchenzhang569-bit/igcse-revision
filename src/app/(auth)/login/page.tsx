@@ -12,6 +12,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Get redirect param
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const redirectTo = searchParams?.get("redirect") || "/dashboard";
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -33,7 +37,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.replace("/dashboard");
+      window.location.replace(redirectTo);
     } catch (err: any) {
       setError(
         err.name === "TimeoutError" || err.name === "AbortError"

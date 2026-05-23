@@ -99,11 +99,11 @@ export default function PricingPage() {
       if (!user) { router.push("/login"); return; }
       router.push("/checkout?plan=all");
     } else if (type === "single") {
-      if (!user) { router.push("/login"); return; }
+      if (!user) { router.push("/login?redirect=/pricing"); return; }
       setPickerMode("single");
       setShowSubjectPicker(true);
     } else if (type === "trial") {
-      if (!user) { router.push("/login"); return; }
+      if (!user) { router.push("/login?redirect=/pricing"); return; }
       if (hasTrial) return;
       setPickerMode("trial");
       setShowSubjectPicker(true);
