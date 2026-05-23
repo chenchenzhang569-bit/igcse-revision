@@ -232,6 +232,8 @@ export default async function SubtopicPage({
         pmtCode={subtopic.pmtCode}
         displayName={subtopic.displayName}
         subtopicId={subtopicId}
+        subjectSlug={slug}
+        topicSlug={topicSlug}
       />
     </div>
   );

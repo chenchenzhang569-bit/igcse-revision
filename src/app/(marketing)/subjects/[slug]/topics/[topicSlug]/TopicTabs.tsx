@@ -63,6 +63,8 @@ export function TopicTabs({
   pmtCode = "",
   displayName = "",
   subtopicId = null as string | null,
+  subjectSlug = "",
+  topicSlug = "",
 }: {
   notes: Note[];
   mcqs: Question[];
@@ -72,6 +74,8 @@ export function TopicTabs({
   pmtCode?: string;
   displayName?: string;
   subtopicId?: string | null;
+  subjectSlug?: string;
+  topicSlug?: string;
 }) {
   const [tab, setTab] = useState<Tab>("notes");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
@@ -146,7 +150,7 @@ export function TopicTabs({
     fetch("/api/user-answers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers }),
+      body: JSON.stringify({ answers, subject_slug: subjectSlug, topic_slug: topicSlug, subtopic_code: pmtCode }),
       credentials: "include",
     }).catch(() => {});
   }
