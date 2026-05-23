@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 interface Stats {
   total: number;
@@ -135,53 +135,34 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ROW 2.5: Overall Accuracy */}
+      {/* ROW 2.5: Overall Accuracy — Donut */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <h2 className="text-lg font-extrabold mb-4" style={{ color: "#001C71" }}>
           <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
           Overall Accuracy
         </h2>
         {s.total > 0 ? (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="font-bold text-gray-700">{s.correct} of {s.total} correct</span>
-              <span className="font-extrabold" style={{ color: "#001C71" }}>{s.rate}%</span>
-            </div>
-            <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(s.rate, 2)}%`, background: "linear-gradient(90deg, #001C71, #002a8a)" }} />
+          <div className="relative flex items-center justify-center" style={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={[{ name: "Correct", value: s.correct }, { name: "Incorrect", value: s.total - s.correct }]} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none">
+                  <Cell fill="#001C71" />
+                  <Cell fill="#E5E7EB" />
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-3xl font-extrabold" style={{ color: "#001C71" }}>{s.rate}%</span>
+              <span className="text-xs text-gray-400 font-medium">{s.correct}/{s.total}</span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-400 py-2 text-center font-medium">No data yet — answer questions to see your accuracy</p>
+          <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>
         )}
       </div>
 
-      {/* ROW 3: Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Questions Done</span>
-            <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-          </div>
-          <p className="text-4xl font-extrabold tracking-tight" style={{ color: "#FF8C00" }}>{s.total}</p>
-        </div>
-        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Correct</span>
-            <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </div>
-          <p className="text-4xl font-extrabold tracking-tight" style={{ color: "#FF8C00" }}>{s.correct}</p>
-        </div>
-        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Accuracy</span>
-            <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-          </div>
-          <p className="text-4xl font-extrabold tracking-tight" style={{ color: "#FF8C00" }}>{s.rate}%</p>
-        </div>
-      </div>
-
-      {/* ROW 4: Recent Activity */}
+      {/* ROW 3: Recent Activity */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
           <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
