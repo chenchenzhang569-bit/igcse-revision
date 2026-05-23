@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
-// Use service_role for server-side to bypass RLS for JOIN queries
 const supabase = createClient(
   "https://aondldqwwvttwpervrfq.supabase.co",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
@@ -16,7 +15,6 @@ export async function GET(req: NextRequest) {
     }
     const token = authHeader.slice(7);
 
-    // Verify user
     const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
     if (authErr || !user) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
@@ -26,7 +24,6 @@ export async function GET(req: NextRequest) {
     const questionId = searchParams.get("question_id");
 
     if (questionId) {
-      // Check single bookmark
       const { data, error } = await supabase
         .from("user_bookmarks")
         .select("id")
@@ -40,57 +37,99 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ bookmarked: !!data });
     }
 
-    // Get all bookmarks with full question hierarchy
-    const { data: bookmarks, error } = await supabase
+    // === STEP 1: Get all bookmarks (just IDs) ===
+    const { data: rows, error: bmErr } = await supabase
       .from("user_bookmarks")
-      .select(`
-        id,
-        created_at,
-        question:questions (
-          id, question_text, difficulty, question_type,
-          subtopic:subtopics (id, name),
-          topic:topics (
-            id, name,
-            subject:subjects (
-              id, name, slug, display_name, code,
-              exam_board:exam_boards (id, name, slug)
-            )
-          )
-        )
-      `)
+      .select("id, created_at, question_id")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (bmErr) {
+      return NextResponse.json({ error: bmErr.message }, { status: 500 });
+    }
+    if (!rows || rows.length === 0) {
+      return NextResponse.json([]);
     }
 
-    // Reshape: use actual DB hierarchy, not keyword guessing
-    const enriched = (bookmarks || []).map((b: any) => {
-      const q = b.question;
-      if (!q) return null;
+    // === STEP 2: Get all questions (plain fields, no JOIN) ===
+    const questionIds = [...new Set(rows.map(r => r.question_id))];
+    const { data: questions } = await supabase
+      .from("questions")
+      .select("id, question_text, difficulty, question_type, topic_id, subtopic_id")
+      .in("id", questionIds);
 
-      // Build subjectSlug from actual JOIN data
-      const subject = q.topic?.subject;
-      const examBoard = subject?.exam_board;
-      const subjectSlug = (examBoard && subject)
-        ? `${examBoard.slug}-${subject.slug}-${subject.code}`
+    const qMap: Record<string, any> = {};
+    for (const q of questions || []) qMap[q.id] = q;
+
+    // === STEP 3: Get all topics (plain fields) ===
+    const topicIds = [...new Set((questions || []).map(q => q.topic_id).filter(Boolean))];
+    const { data: topics } = await supabase
+      .from("topics")
+      .select("id, name, subject_id")
+      .in("id", topicIds);
+
+    const tMap: Record<string, any> = {};
+    for (const t of topics || []) tMap[t.id] = t;
+
+    // === STEP 4: Get all subtopics (plain fields) ===
+    const subtopicIds = [...new Set((questions || []).map(q => q.subtopic_id).filter(Boolean))];
+    const { data: subtopics } = await supabase
+      .from("subtopics")
+      .select("id, name")
+      .in("id", subtopicIds);
+
+    const stMap: Record<string, any> = {};
+    for (const s of subtopics || []) stMap[s.id] = s;
+
+    // === STEP 5: Get all subjects (plain fields) ===
+    const subjectIds = [...new Set((topics || []).map(t => t.subject_id).filter(Boolean))];
+    const { data: subjects } = await supabase
+      .from("subjects")
+      .select("id, slug, code, exam_board_id")
+      .in("id", subjectIds);
+
+    const subjMap: Record<string, any> = {};
+    for (const s of subjects || []) subjMap[s.id] = s;
+
+    // === STEP 6: Get all exam boards ===
+    const boardIds = [...new Set((subjects || []).map(s => s.exam_board_id).filter(Boolean))];
+    const { data: boards } = await supabase
+      .from("exam_boards")
+      .select("id, slug")
+      .in("id", boardIds);
+
+    const boardMap: Record<string, any> = {};
+    for (const b of boards || []) boardMap[b.id] = b;
+
+    // === STEP 7: Build enriched response ===
+    const enriched: any[] = [];
+    for (const row of rows) {
+      const q = qMap[row.question_id];
+      if (!q) continue;
+
+      const topic = tMap[q.topic_id] || null;
+      const subtopic = stMap[q.subtopic_id] || null;
+      const subject = topic ? subjMap[topic.subject_id] : null;
+      const board = subject ? boardMap[subject.exam_board_id] : null;
+
+      const subjectSlug = (board && subject)
+        ? `${board.slug}-${subject.slug}-${subject.code}`
         : "";
 
-      return {
-        bookmark_id: b.id,
-        created_at: b.created_at,
+      enriched.push({
+        bookmark_id: row.id,
+        created_at: row.created_at,
         question: {
           id: q.id,
           question_text: q.question_text,
           difficulty: q.difficulty,
           question_type: q.question_type,
-          subtopic: q.subtopic,
-          topic: q.topic,
+          subtopic: subtopic ? { id: subtopic.id, name: subtopic.name } : null,
+          topic: topic ? { id: topic.id, name: topic.name } : null,
           subjectSlug,
         },
-      };
-    }).filter(Boolean);
+      });
+    }
 
     return NextResponse.json(enriched);
   } catch (e: any) {
@@ -124,7 +163,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      // Unique violation = already bookmarked
       if (error.code === "23505") {
         return NextResponse.json({ bookmarked: true, message: "Already saved" }, { status: 200 });
       }
