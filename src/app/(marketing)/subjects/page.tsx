@@ -12,115 +12,105 @@ const STATIC_SUBJECTS: Record<string, { name: string; display_name: string; boar
   "edexcel-mathematics":{ name: "Mathematics", display_name: "Mathematics", board: "Edexcel", code: "4MA1", icon: "📐" },
 };
 
-export default async function SubjectsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ board?: string }>;
-}) {
-  const { board } = await searchParams;
-  const activeBoard = board || "CAIE";
+function groupByBoard(subjects: any[]) {
+  const map = new Map<string, any[]>();
+  subjects.forEach((s) => {
+    const board = s.board || "Other";
+    if (!map.has(board)) map.set(board, []);
+    map.get(board)!.push(s);
+  });
+  // CAIE first, then Edexcel
+  const order = ["CAIE", "Edexcel"];
+  const result: [string, any[]][] = [];
+  order.forEach((b) => { if (map.has(b)) result.push([b, map.get(b)!]); });
+  // Any remaining boards
+  map.forEach((v, k) => { if (!order.includes(k)) result.push([k, v]); });
+  return result;
+}
 
-  // Try DB, fallback to static
+export default async function SubjectsPage() {
   const supabase = createClient();
-  let query = supabase
+  const { data: dbSubjects } = await supabase
     .from("subjects")
     .select("name, display_name, code, slug, icon, price_cny")
     .eq("is_published", true)
     .order("sort_order");
 
-  const { data: dbSubjects } = await query;
-
-  // Extract board from slug and filter by active board
   const allSubjects = (dbSubjects || []).map((s: any) => ({
     ...s,
     board: s.slug?.startsWith("edexcel") ? "Edexcel" : "CAIE",
     price: s.price_cny ? `¥${(s.price_cny / 100).toFixed(0)}` : `¥50`,
     originalPrice: s.price_cny ? `¥${(s.price_cny / 100 * 2).toFixed(0)}` : `¥100`,
-  })).filter((s: any) => s.board === activeBoard);
+  }));
 
-  // If DB is empty, use static data filtered by board
-  const staticSubjects = Object.entries(STATIC_SUBJECTS)
-    .filter(([, v]) => v.board === activeBoard)
-    .map(([slug, s]) => ({
-      slug,
-      display_name: s.display_name,
-      name: s.name,
-      board: s.board,
-      code: s.code,
-      icon: s.icon,
-      price: "¥50",
-      originalPrice: "¥100",
-    }));
+  // Fallback to static if DB empty
+  const staticSubjects = Object.entries(STATIC_SUBJECTS).map(([slug, s]) => ({
+    slug,
+    display_name: s.display_name,
+    name: s.name,
+    board: s.board,
+    code: s.code,
+    icon: s.icon,
+    price: "¥50",
+    originalPrice: "¥100",
+  }));
 
   const displaySubjects = allSubjects.length > 0 ? allSubjects : staticSubjects;
+  const grouped = groupByBoard(displaySubjects);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">All Subjects</h1>
-        <p className="text-gray-500 text-lg">Choose your exam board and subject</p>
+        <p className="text-gray-500 text-lg">CAIE &amp; Edexcel IGCSE</p>
       </div>
 
-      {/* Board tabs */}
-      <div className="flex justify-center gap-4 mb-10">
-        {["CAIE", "Edexcel"].map((b) => (
-          <Link
-            key={b}
-            href={`/subjects?board=${b}`}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              b === activeBoard
-                ? "bg-primary-900 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {b}
-          </Link>
-        ))}
-      </div>
-
-      {/* Subject grid */}
-      {displaySubjects.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {displaySubjects.map((s: any) => (
-            <Link
-              key={s.slug}
-              href={`/subjects/${s.slug}?board=${s.board}`}
-              className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all"
-            >
-              <div className="flex items-start gap-4">
-                <span className="text-3xl">{s.icon || "📚"}</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded font-semibold">
-                      {s.board}
-                    </span>
-                    <span className="text-xs text-gray-400">{s.code}</span>
-                  </div>
-                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary-600 transition">
-                    {s.display_name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">{s.name}</p>
-                  <div className="flex items-baseline gap-2 mt-3">
-                    <span className="text-accent-500 font-bold text-lg">{s.price}</span>
-                    <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
+      {grouped.map(([board, subjects]) => (
+        <div key={board} className="mb-10">
+          <div className="flex items-center gap-3 mb-5">
+            <h2 className="text-lg font-bold text-primary-900">{board}</h2>
+            <span className="h-px flex-1 bg-gray-200" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {subjects.map((s: any) => (
+              <Link
+                key={s.slug}
+                href={`/subjects/${s.slug}?board=${s.board}`}
+                className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <span className="text-3xl">{s.icon || "📚"}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded font-semibold">
+                        {s.board}
+                      </span>
+                      <span className="text-xs text-gray-400">{s.code}</span>
+                    </div>
+                    <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary-600 transition">
+                      {s.display_name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">{s.name}</p>
+                    <div className="flex items-baseline gap-2 mt-3">
+                      <span className="text-accent-500 font-bold text-lg">{s.price}</span>
+                      <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
-      ) : (
-        <p className="text-gray-400 text-center py-12">No {activeBoard} subjects available yet</p>
-      )}
+      ))}
 
       {/* CTA */}
       <div className="text-center mt-16 pt-12 border-t">
         <p className="text-gray-500 mb-4">Covering all CAIE &amp; Edexcel IGCSE subjects</p>
         <Link
-          href="/register"
+          href="/pricing"
           className="inline-block bg-accent-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-accent-600 transition"
         >
-          Sign Up to Unlock All →
+          Get Full Access →
         </Link>
       </div>
     </div>
