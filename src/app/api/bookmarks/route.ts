@@ -49,7 +49,13 @@ export async function GET(req: NextRequest) {
         question:questions (
           id, question_text, difficulty, question_type,
           subtopic:subtopics (id, name),
-          topic:topics (id, name)
+          topic:topics (
+            id, name,
+            subject:subjects (
+              id, name, slug, display_name, code,
+              exam_board:exam_boards (id, name, slug)
+            )
+          )
         )
       `)
       .eq("user_id", user.id)
@@ -59,26 +65,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Reshape: add subject info based on topic name patterns
+    // Reshape: use actual DB hierarchy, not keyword guessing
     const enriched = (bookmarks || []).map((b: any) => {
       const q = b.question;
       if (!q) return null;
 
-      const topicName = q.topic?.name || "";
-      const subtopicName = q.subtopic?.name || "";
-
-      // Infer subject from topic/subtopic context (simplified — can be improved)
-      let subjectSlug = "";
-      const physicsKeywords = ["physics", "motion", "forces", "energy", "thermal", "waves", "electricity", "magnetism", "nuclear", "space"];
-      const chemKeywords = ["chemistry", "atom", "element", "compound", "stoichiometry", "electrochem", "energetic", "reaction", "acid", "base", "periodic", "metal", "organic"];
-      const bioKeywords = ["biology", "organism", "cell", "enzyme", "nutrition", "respiration", "excretion", "disease", "immunity", "inheritance", "biotechnology"];
-      const mathKeywords = ["math", "number", "algebra", "geometry", "statistics", "probability", "inequalities", "equation"];
-
-      const combined = (topicName + " " + subtopicName).toLowerCase();
-      if (physicsKeywords.some(k => combined.includes(k))) subjectSlug = "caie-physics-0625";
-      else if (chemKeywords.some(k => combined.includes(k))) subjectSlug = "caie-chemistry-0620";
-      else if (bioKeywords.some(k => combined.includes(k))) subjectSlug = "caie-biology-0610";
-      else if (mathKeywords.some(k => combined.includes(k))) subjectSlug = "caie-mathematics-0580";
+      // Build subjectSlug from actual JOIN data
+      const subject = q.topic?.subject;
+      const examBoard = subject?.exam_board;
+      const subjectSlug = (examBoard && subject)
+        ? `${examBoard.slug}-${subject.slug}-${subject.code}`
+        : "";
 
       return {
         bookmark_id: b.id,
