@@ -77,22 +77,18 @@ export default function MyBankPage() {
       const q = bm.question || {};
       const examBoard = (q.subjectSlug || "").startsWith("caie") ? "CAIE" : "Edexcel";
       const subject = q.subjectSlug || "Unknown";
-      const topic = q.topic?.name || "Other";
       const subtopic = q.subtopic?.name || "Other";
 
       const boardKey = examBoard;
       const subjectKey = `${examBoard}|${subject}`;
-      const topicKey = `${examBoard}|${subject}|${topic}`;
-      const subtopicKey = `${examBoard}|${subject}|${topic}|${subtopic}`;
+      const subtopicKey = `${examBoard}|${subject}|${subtopic}`;
 
       if (!root[boardKey]) root[boardKey] = { name: examBoard, count: 0, children: [], id: boardKey };
       if (!root[subjectKey]) root[subjectKey] = { name: formatSubject(subject), slug: subject, count: 0, children: [], id: subjectKey };
-      if (!root[topicKey]) root[topicKey] = { name: topic, id: q.topic?.id, count: 0, children: [], slug: topic };
       if (!root[subtopicKey]) root[subtopicKey] = { name: subtopic, id: q.subtopic?.id, count: 0, bookmarks: [], slug: subtopic };
 
       root[boardKey].count++;
       root[subjectKey].count++;
-      root[topicKey].count++;
       root[subtopicKey].count++;
       root[subtopicKey].bookmarks = [...(root[subtopicKey].bookmarks || []), bm];
     }
@@ -105,18 +101,11 @@ export default function MyBankPage() {
       );
       for (const sk of subjects) {
         const subjNode: TreeNode = { ...root[sk], children: [] };
-        const topics = Object.keys(root).filter(k =>
+        const subtopics = Object.keys(root).filter(k =>
           k.startsWith(sk + "|") && k.split("|").length === 3
         );
-        for (const tk of topics) {
-          const topicNode: TreeNode = { ...root[tk], children: [] };
-          const subs = Object.keys(root).filter(k =>
-            k.startsWith(tk + "|") && k.split("|").length === 4
-          );
-          for (const subK of subs) {
-            topicNode.children!.push(root[subK]);
-          }
-          subjNode.children!.push(topicNode);
+        for (const subK of subtopics) {
+          subjNode.children!.push(root[subK]);
         }
         boardNode.children!.push(subjNode);
       }
@@ -216,7 +205,7 @@ function TreeNodeRow({
   const hasChildren = !!(node.children && node.children.length > 0);
   const hasBookmarks = !!(node.bookmarks && node.bookmarks.length > 0);
 
-  const levelIcons = ["📋", "📐", "📂", "📌"];
+  const levelIcons = ["📋", "📐", "📌"];
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
