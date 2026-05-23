@@ -183,7 +183,18 @@ export default function MyBankPage() {
       </div>
       <div className="bg-white border rounded-xl overflow-hidden">
         {tree.map((board) => (
-          <TreeNodeRow key={board.name} node={board} depth={0} expanded={expanded} onToggle={toggleExpand} highlightQ={highlightQ} />
+          <div key={board.name}>
+            {/* Board header — not expandable */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
+              <span className="text-base">📋</span>
+              <span className="flex-1 font-semibold text-gray-700 text-sm">{board.name}</span>
+              <span className="shrink-0 text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full font-medium">{board.count}</span>
+            </div>
+            {/* Subjects — expandable tree */}
+            {(board.children || []).map((subject) => (
+              <TreeNodeRow key={subject.id || subject.name} node={subject} depth={0} expanded={expanded} onToggle={toggleExpand} highlightQ={highlightQ} />
+            ))}
+          </div>
         ))}
       </div>
     </div>
