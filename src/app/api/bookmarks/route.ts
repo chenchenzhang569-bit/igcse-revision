@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     const topicIds = [...new Set((questions || []).map(q => q.topic_id).filter(Boolean))];
     const { data: topics } = await supabase
       .from("topics")
-      .select("id, name, subject_id")
+      .select("id, name, slug, subject_id")
       .in("id", topicIds);
 
     const tMap: Record<string, any> = {};
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
           difficulty: q.difficulty,
           question_type: q.question_type,
           subtopic: subtopic ? { id: subtopic.id, name: subtopic.name } : null,
-          topic: topic ? { id: topic.id, name: topic.name } : null,
+          topic: topic ? { id: topic.id, name: topic.name, slug: topic.slug } : null,
           subjectSlug,
         },
       });

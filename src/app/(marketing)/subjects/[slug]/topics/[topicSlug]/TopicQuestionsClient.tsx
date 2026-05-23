@@ -339,6 +339,39 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
     })();
   }, [topicId, preloadedQuestions]);
 
+  // Handle ?saved=1&q=questionId from my-bank link
+  useEffect(() => {
+    if (loading || !bookmarksLoaded) return;
+    const params = new URLSearchParams(window.location.search);
+    const savedParam = params.get("saved");
+    const qParam = params.get("q");
+
+    if (savedParam === "1") {
+      setShowSavedOnly(true);
+    }
+
+    if (qParam && allQuestions.length > 0 && bookmarkedIds.size > 0) {
+      // Find the question in the saved set
+      if (!bookmarkedIds.has(qParam)) return;
+      // Wait for savedQs to update, then find position
+      const savedList = allQuestions.filter((q) => bookmarkedIds.has(q.id));
+      const idx = savedList.findIndex((q) => q.id === qParam);
+      if (idx >= 0) {
+        setCurrentIdx(idx);
+        // Scroll to question card after render
+        setTimeout(() => {
+          const el = document.querySelector(`[data-qid="${qParam}"]`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 400);
+      }
+      // Clean URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete("saved");
+      url.searchParams.delete("q");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [loading, bookmarksLoaded, allQuestions, bookmarkedIds]);
+
   if (loading) return <p className="text-gray-400 py-8 text-center">Loading questions...</p>;
   if (allQuestions.length === 0) {
     return (
@@ -667,7 +700,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
       </div>
 
       {/* Question card */}
-      <div className="bg-white border rounded-xl p-5 sm:p-6">
+      <div className="bg-white border rounded-xl p-5 sm:p-6" data-qid={q.id}>
         {/* Header: difficulty badge + bookmark */}
         <div className="flex items-center justify-between mb-4">
           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${

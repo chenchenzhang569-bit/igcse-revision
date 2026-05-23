@@ -13,7 +13,7 @@ interface Bookmark {
     difficulty: string;
     question_type: string;
     subtopic: { id: string; name: string } | null;
-    topic: { id: string; name: string } | null;
+    topic: { id: string; name: string; slug: string } | null;
     subjectSlug: string;
   };
 }
@@ -229,11 +229,16 @@ function TreeNodeRow({
             const qId = bm.bookmark_id;
             const isHL = highlightQ === qId;
             const diffStyle = DIFF_STYLES[q.difficulty] || DIFF_STYLES.medium;
+            const topicSlug = q.topic?.slug || "";
+            const href = topicSlug
+              ? `/subjects/${q.subjectSlug}/topics/${topicSlug}?tab=questions&saved=1&q=${q.id}`
+              : "#";
             return (
-              <div
+              <Link
                 key={qId}
+                href={href}
                 ref={isHL ? (el) => { if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 200); } : undefined}
-                className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${isHL ? "bg-primary-50 ring-1 ring-primary-200" : "hover:bg-gray-50"}`}
+                className={`flex items-center gap-3 px-4 py-2.5 transition-colors block ${isHL ? "bg-primary-50 ring-1 ring-primary-200" : "hover:bg-gray-50"}`}
                 style={{ paddingLeft: `${16 + (depth + 1) * 20}px` }}
               >
                 <span className="text-gray-300 text-xs">•</span>
@@ -243,7 +248,7 @@ function TreeNodeRow({
                 <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${diffStyle}`}>
                   {q.difficulty || "medium"}
                 </span>
-              </div>
+              </Link>
             );
           })}
         </div>

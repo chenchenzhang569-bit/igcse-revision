@@ -86,8 +86,8 @@ export default async function TopicPage({
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics";
   const subtopics = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
-  // Math: default to notes tab; others: no tabs, show subtopics directly
-  const activeTab = isMaths ? (tab || "notes") : "subtopics";
+  // Math: default to notes tab; others: default to subtopics, but allow ?tab= override
+  const activeTab = tab || (isMaths ? "notes" : "subtopics");
 
   // Fetch topic ID (needed for notes and questions)
   let topicId: string | null = null;
