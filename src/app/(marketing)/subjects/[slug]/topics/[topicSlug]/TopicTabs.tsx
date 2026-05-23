@@ -136,7 +136,7 @@ export function TopicTabs({
     setUserAnswers((prev) => ({ ...prev, [qId]: answer }));
   }
 
-  function handleSubmitLevel(level: string) {
+  async function handleSubmitLevel(level: string) {
     setSubmittedLevels((prev) => new Set(prev).add(level));
     
     // Save answers to backend — get JWT via Supabase SDK (works with httpOnly cookies)
