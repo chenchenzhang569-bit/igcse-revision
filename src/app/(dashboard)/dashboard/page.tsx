@@ -119,6 +119,27 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* ROW 2.5: Overall Accuracy */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-6">
+        <h2 className="text-lg font-extrabold mb-4" style={{ color: "#001C71" }}>
+          <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+          Overall Accuracy
+        </h2>
+        {s.total > 0 ? (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="font-bold text-gray-700">{s.correct} of {s.total} correct</span>
+              <span className="font-extrabold" style={{ color: "#001C71" }}>{s.rate}%</span>
+            </div>
+            <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(s.rate, 2)}%`, background: "linear-gradient(90deg, #001C71, #002a8a)" }} />
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400 py-2 text-center font-medium">No data yet — answer questions to see your accuracy</p>
+        )}
+      </div>
+
       {/* ROW 3: Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
