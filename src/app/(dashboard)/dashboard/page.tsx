@@ -104,14 +104,14 @@ export default function DashboardPage() {
           Subject Progress
         </h2>
         {s.subjects.length > 0 ? (
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={s.subjects.map(sub => ({ name: SUBJECT_LABELS[sub.slug] || sub.slug, Correct: sub.correct, Incorrect: sub.total - sub.correct }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={s.subjects.map(sub => ({ name: SUBJECT_LABELS[sub.slug] || sub.slug, Correct: sub.correct, Incorrect: sub.total - sub.correct }))} margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} />
+              <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
-              <Bar dataKey="Correct" fill="#001C71" radius={[0, 4, 4, 0]} barSize={18} />
-              <Bar dataKey="Incorrect" fill="#FCA5A5" radius={[0, 4, 4, 0]} barSize={18} />
+              <Bar dataKey="Correct" fill="#001C71" radius={[4, 4, 0, 0]} barSize={32} />
+              <Bar dataKey="Incorrect" fill="#FCA5A5" radius={[4, 4, 0, 0]} barSize={32} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
