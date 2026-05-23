@@ -112,9 +112,8 @@ export async function GET(req: NextRequest) {
       const subject = topic ? subjMap[topic.subject_id] : null;
       const board = subject ? boardMap[subject.exam_board_id] : null;
 
-      const subjectSlug = (board && subject)
-        ? `${board.slug}-${subject.slug}-${subject.code}`
-        : "";
+      // subject.slug is already the full composite slug (e.g. "caie-physics-0625")
+      const subjectSlug = subject ? subject.slug : "";
 
       enriched.push({
         bookmark_id: row.id,
