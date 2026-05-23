@@ -138,7 +138,18 @@ export function TopicTabs({
   function handleSubmitLevel(level: string) {
     setSubmittedLevels((prev) => new Set(prev).add(level));
     
-    // Save answers to backend
+    // Save answers to backend — extract JWT from cookie on client side
+    const getCookieJwt = () => {
+      const match = document.cookie.match(/sb-[^;]+-auth-token=([^;]+)/);
+      if (!match) return null;
+      try {
+        const decoded = decodeURIComponent(match[1]);
+        const parsed = JSON.parse(decoded);
+        return Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
+      } catch { return null; }
+    };
+    const jwt = getCookieJwt();
+
     const answers = (groupedMcqs[level] || []).map(q => ({
       question_id: q.id,
       user_answer: userAnswers[q.id] || "",
@@ -149,11 +160,14 @@ export function TopicTabs({
     }));
     fetch("/api/user-answers", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(jwt ? { "X-User-JWT": jwt } : {}) },
       body: JSON.stringify({ answers, subject_slug: subjectSlug, topic_slug: topicSlug, subtopic_code: pmtCode }),
       credentials: "include",
-    }).then(r => {
-      if (!r.ok) console.error("Save answers failed:", r.status, r.statusText);
+    }).then(async r => {
+      if (!r.ok) {
+        const body = await r.text();
+        console.error("Save answers failed:", r.status, body.slice(0, 200), "jwt:", !!jwt);
+      }
     }).catch(e => console.error("Save answers error:", e));
   }
 

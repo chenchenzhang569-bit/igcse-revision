@@ -3,29 +3,42 @@ import { NextRequest, NextResponse } from "next/server";
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
-function getJwtFromCookie(cookieHeader: string): string | null {
+function getJwtFromCookie(cookieHeader: string): { token: string; debug: string } | null {
   // Supabase cookie: sb-{ref}-auth-token = [{"access_token":"eyJ...","refresh_token":"..."}]
-  // Also try sb-{ref}-access-token as fallback for older SDK versions
   const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
-  if (match) {
-    try {
-      const decoded = decodeURIComponent(match[1]);
-      const parsed = JSON.parse(decoded);
-      const token = Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
-      return token || null;
-    } catch { /* fall through */ }
+  if (!match) {
+    // Fallback: direct access token cookie
+    const fbMatch = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
+    return fbMatch ? { token: fbMatch[1], debug: "fallback-access-token" } : null;
   }
-  // Fallback: direct access token cookie
-  const fbMatch = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
-  return fbMatch ? fbMatch[1] : null;
+  const raw = match[1].slice(0, 300);
+  // Try URL-decode then JSON
+  try {
+    const decoded = decodeURIComponent(match[1]);
+    const parsed = JSON.parse(decoded);
+    const token = Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
+    if (token) return { token, debug: "ok-url-json" };
+  } catch { /* not URL-encoded JSON */ }
+  // Try base64 decode then JSON
+  try {
+    const buf = Buffer.from(match[1], "base64");
+    const parsed = JSON.parse(buf.toString("utf-8"));
+    const token = Array.isArray(parsed) ? parsed[0]?.access_token : parsed?.access_token;
+    if (token) return { token, debug: "ok-base64-json" };
+  } catch { /* not base64 JSON */ }
+  // Try raw value as JWT
+  if (match[1].startsWith("eyJ")) {
+    return { token: match[1], debug: "ok-raw-jwt" };
+  }
+  return null;
 }
 
-function getUserIdFromJwt(token: string): string | null {
+function getUserIdFromJwt(token: string): { userId: string; exp: number } | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
     const decoded = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return decoded.sub || null;
+    return decoded.sub ? { userId: decoded.sub, exp: decoded.exp || 0 } : null;
   } catch {
     return null;
   }
@@ -41,16 +54,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No answers provided" }, { status: 400 });
     }
 
-    // Get user from cookie JWT
+    // Get user from cookie JWT or X-User-JWT header (client-side extraction)
     const cookieHeader = req.headers.get("cookie") || "";
-    console.log("[user-answers] Cookie header length:", cookieHeader.length, "Preview:", cookieHeader.slice(0, 120));
+    const headerJwt = req.headers.get("x-user-jwt") || "";
+    const jwtSource = headerJwt || cookieHeader;
+    console.log("[user-answers] jwtSource:", jwtSource ? `${jwtSource.slice(0, 30)}... (${headerJwt ? "header" : "cookie"})` : "MISSING");
     const jwt = getJwtFromCookie(cookieHeader);
     const userId = jwt ? getUserIdFromJwt(jwt) : null;
     console.log("[user-answers] JWT found:", !!jwt, "userId:", userId);
 
     if (!userId) {
       console.log("[user-answers] Auth failed — cookie preview:", cookieHeader.slice(0, 200));
-      return NextResponse.json({ error: "Unauthorized — no valid session found", cookieLen: cookieHeader.length }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized — no valid session found", cookieLen: cookieHeader.length, cookiePreview: cookieHeader.slice(0, 300), jwtDebug: jwt?.debug || "null" }, { status: 401 });
     }
 
     // Insert via REST API with user's JWT (RLS: auth.uid() = user_id)
