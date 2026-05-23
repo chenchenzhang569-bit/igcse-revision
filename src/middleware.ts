@@ -32,12 +32,14 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 公开路由：无需登录
+  // TEMP: /subjects 开放用于调试 subtopic 500 错误
   const publicPaths = [
     "/", "/login", "/register",
     "/api/auth",
     "/api/payment",
     "/auth/callback",
     "/update-password",
+    "/subjects",
   ];
   const isPublic = publicPaths.some(
     (p) => pathname === p || pathname.startsWith(p + "/")

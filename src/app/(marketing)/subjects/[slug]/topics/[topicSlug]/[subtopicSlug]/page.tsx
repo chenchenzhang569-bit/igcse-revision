@@ -1,18 +1,17 @@
-// force-redeploy-v29-clean-explanation
-// DEBUG: subtopicId={typeof subtopicId} filterCol={filter?.col}
+// force-redeploy-v31-fix-server-client
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { getSubtopic } from "@/lib/subtopic-data";
 import { FALLBACK_DATA } from "@/lib/fallback-content";
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { TopicTabs } from "../TopicTabs";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-);
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+const API_ROOT = `${SUPABASE_URL}/rest/v1`;
 
 const SLUG_TO_KEY: Record<string, string> = {
   "caie-physics-0625": "physics", "physics-0625": "physics",
@@ -115,30 +114,42 @@ export default async function SubtopicPage({
   let structPairs: any[] = [];
 
   try {
+    // All queries use REST API directly to avoid supabase-js cookie/auth issues
+    const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+
     // Find topic in DB
     const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
-    let topicRow = null;
-    let { data } = await supabase.from("topics").select("id").eq("slug", topicSlug).single();
-    topicRow = data;
+    let topicRow: any = null;
+    
+    // Try exact match first
+    const tRes1 = await fetch(
+      `${API_ROOT}/topics?select=id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`,
+      { headers, cache: "no-store" }
+    );
+    const tData1 = await tRes1.json();
+    topicRow = Array.isArray(tData1) && tData1.length > 0 ? tData1[0] : null;
+    
+    // Fallback: try dbSlug
     if (!topicRow && dbSlug !== topicSlug) {
-      const { data: data2 } = await supabase.from("topics").select("id").eq("slug", dbSlug).single();
-      topicRow = data2;
+      const tRes2 = await fetch(
+        `${API_ROOT}/topics?select=id&slug=eq.${encodeURIComponent(dbSlug)}&limit=1`,
+        { headers, cache: "no-store" }
+      );
+      const tData2 = await tRes2.json();
+      topicRow = Array.isArray(tData2) && tData2.length > 0 ? tData2[0] : null;
     }
 
-    const API_ROOT = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
-    const API_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
-
-    // Find subtopic — use REST API for reliability (Supabase SDK chaining can fail silently)
+    // Find subtopic
     let subtopicId: string | null = null;
     if (topicRow && pmtCode) {
       try {
         const subRes = await fetch(
-          `${API_ROOT}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${pmtCode}&limit=1`,
-          { headers: { apikey: API_KEY, Authorization: `Bearer ${API_KEY}` }, cache: "no-store" }
+          `${API_ROOT}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`,
+          { headers, cache: "no-store" }
         );
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
-      } catch { /* fallback to topic-level */ }
+      } catch { /* fallback */ }
     }
 
     // Query with subtopic_id if found, otherwise topic_id
@@ -147,15 +158,18 @@ export default async function SubtopicPage({
       : topicRow ? { col: "topic_id", val: topicRow.id } : null;
 
     if (filter) {
-      // Fetch notes by subtopic_id only (topic-level notes are no longer used)
-      const notesQuery = supabase.from("notes").select("*").order("sort_order").limit(20).eq(filter.col, filter.val);
-      const { data: dbNotes } = await notesQuery;
-      notes = dbNotes || [];
+      // Fetch notes
+      const nRes = await fetch(
+        `${API_ROOT}/notes?select=*&${filter.col}=eq.${filter.val}&order=sort_order&limit=20`,
+        { headers, cache: "no-store" }
+      );
+      const dbNotes = await nRes.json();
+      notes = Array.isArray(dbNotes) ? dbNotes : [];
 
-      // Get ALL questions — SME data uses "structured" type for MCQs
+      // Get ALL questions
       const qRes = await fetch(
         `${API_ROOT}/questions?select=*&${filter.col}=eq.${filter.val}&order=sort_order&limit=100`,
-        { headers: { apikey: API_KEY, Authorization: `Bearer ${API_KEY}` }, cache: "no-store" }
+        { headers, cache: "no-store" }
       );
       const allQs = await qRes.json();
       
@@ -187,12 +201,11 @@ export default async function SubtopicPage({
         }
 
         // Get past papers for this subtopic
-        const { data: papers } = await supabase
-          .from("past_papers")
-          .select("*")
-          .eq(filter.col, filter.val)
-          .order("title")
-          .limit(50);
+        const pRes = await fetch(
+          `${API_ROOT}/past_papers?select=*&${filter.col}=eq.${filter.val}&order=title&limit=50`,
+          { headers, cache: "no-store" }
+        );
+        const papers = await pRes.json();
         
         if (papers) {
           // MCQ papers (MCQ QP/MS) → Multiple Choice tab
