@@ -87,7 +87,42 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* ROW 2: Stats */}
+      {/* ROW 2: Recent Activity */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-6">
+        <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
+          <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Recent Activity
+        </h2>
+        {s.recent.length > 0 ? (
+          <div className="space-y-1">
+            {s.recent.slice(0, 8).map((a, i) => {
+              const subLabel = SUBJECT_LABELS[a.subject_slug] || a.subject_slug;
+              return (
+                <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
+                  <span className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold ${a.is_correct ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+                    {a.is_correct ? "✓" : "✗"}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-800 font-semibold truncate">{a.question_text || `Question ${a.question_id?.slice(0, 8)}`}</p>
+                    <div className="flex gap-2 mt-1">
+                      <span className="text-xs text-gray-500 font-medium">{subLabel}</span>
+                      {a.subtopic_code && <span className="text-xs text-gray-400">· {a.subtopic_code}</span>}
+                      {a.difficulty && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${a.difficulty === "easy" ? "bg-emerald-50 text-emerald-600" : a.difficulty === "medium" ? "bg-amber-50 text-amber-600" : "bg-rose-50 text-rose-600"}`}>{a.difficulty}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-400 shrink-0 font-semibold">{timeAgo(a.created_at)}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400 py-4 text-center font-medium">No activity yet — start answering questions</p>
+        )}
+      </div>
+
+      {/* ROW 3: Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #001C71, #002a8a)" }}>
           <div className="flex items-center justify-between mb-2">
@@ -110,41 +145,6 @@ export default function DashboardPage() {
           </div>
           <p className="text-4xl font-extrabold tracking-tight" style={{ color: "#FF8C00" }}>{s.rate}%</p>
         </div>
-      </div>
-
-      {/* ROW 3: Recent Activity */}
-      <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, #001C71, #001a60)" }}>
-        <h2 className="text-lg font-extrabold mb-5 text-white">
-          <svg className="w-5 h-5 inline mr-2 -mt-0.5 text-[#FF8C00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          Recent Activity
-        </h2>
-        {s.recent.length > 0 ? (
-          <div className="space-y-1">
-            {s.recent.slice(0, 8).map((a, i) => {
-              const subLabel = SUBJECT_LABELS[a.subject_slug] || a.subject_slug;
-              return (
-                <div key={i} className="flex items-center gap-3 py-3 border-b border-white/10 last:border-0">
-                  <span className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold ${a.is_correct ? "bg-emerald-400/20 text-emerald-300" : "bg-rose-400/20 text-rose-300"}`}>
-                    {a.is_correct ? "✓" : "✗"}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/90 font-semibold truncate">{a.question_text || `Question ${a.question_id?.slice(0, 8)}`}</p>
-                    <div className="flex gap-2 mt-1">
-                      <span className="text-xs text-white/50 font-medium">{subLabel}</span>
-                      {a.subtopic_code && <span className="text-xs text-white/30">· {a.subtopic_code}</span>}
-                      {a.difficulty && (
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${a.difficulty === "easy" ? "bg-emerald-400/20 text-emerald-300" : a.difficulty === "medium" ? "bg-amber-400/20 text-amber-300" : "bg-rose-400/20 text-rose-300"}`}>{a.difficulty}</span>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-xs text-white/40 shrink-0 font-semibold">{timeAgo(a.created_at)}</span>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-white/50 py-4 text-center font-medium">No activity yet — start answering questions</p>
-        )}
       </div>
 
       {/* ROW 4: Subject Progress */}
