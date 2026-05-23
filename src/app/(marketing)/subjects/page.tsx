@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const STATIC_SUBJECTS: Record<string, { name: string; display_name: string; board: string; code: string; icon: string }> = {
   "caie-physics":     { name: "Physics",     display_name: "Physics",     board: "CAIE",    code: "0625", icon: "⚛️" },
   "caie-chemistry":   { name: "Chemistry",   display_name: "Chemistry",   board: "CAIE",    code: "0620", icon: "🧪" },

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createPagePayForm, generateTradeNo } from "@/lib/alipay";
 import type { NextRequest } from "next/server";
 
-const PRICE_PER_SUBJECT = 50; // ¥50
+const PRICE_PER_SUBJECT = 50;
 const PRICE_ALL = 250;
 
 function parseJwt(token: string) {
@@ -25,16 +26,10 @@ export async function POST(request: NextRequest) {
   }
 
   if (!userId) {
-    // Fallback to cookie-based auth
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll(); },
-          setAll() {},
-        },
-      }
+      { cookies: { getAll() { return request.cookies.getAll(); }, setAll() {} } }
     );
     const { data: { user } } = await supabase.auth.getUser();
     userId = user?.id || null;
@@ -45,75 +40,44 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { subjectId, plan } = body;
 
-  // All-subjects plan
+  // Admin client for DB writes (bypasses RLS)
+  const admin = createAdminClient();
+
   if (plan === "all") {
     const tradeNo = generateTradeNo();
-
-    // Create single purchase record for "all"
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll(); },
-          setAll() {},
-        },
-      }
-    );
-
-    const { error } = await supabase.from("purchases").insert({
+    const { error } = await admin.from("purchases").insert({
       user_id: userId,
-      subject_id: null, // null = all subjects
-      amount_cny: PRICE_ALL * 100, // store in cents
+      subject_id: null,
+      amount_cny: PRICE_ALL * 100,
       alipay_trade_no: tradeNo,
       status: "pending",
     });
-
     if (error) {
+      console.error("All plan insert error:", error);
       return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
     }
-
     const formHtml = createPagePayForm({
       outTradeNo: tradeNo,
       totalAmount: String(PRICE_ALL),
       subject: "IGCSE All Subjects — Lifetime Access",
       body: "CAIE + Edexcel all subjects",
     });
-
-    return new NextResponse(formHtml, {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
+    return new NextResponse(formHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  // Single subject
-  if (!subjectId) {
-    return NextResponse.json({ error: "缺少科目ID" }, { status: 400 });
-  }
+  if (!subjectId) return NextResponse.json({ error: "缺少科目ID" }, { status: 400 });
 
-  // Use anon key for subject lookup (service role not needed)
-  const anonClient = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll() {},
-      },
-    }
-  );
-
-  const { data: subject } = await anonClient
+  // Lookup subject (anon client is fine for select)
+  const { data: subject } = await admin
     .from("subjects")
     .select("id, display_name, slug")
     .eq("id", subjectId)
     .maybeSingle();
 
-  if (!subject) {
-    return NextResponse.json({ error: "科目不存在" }, { status: 404 });
-  }
+  if (!subject) return NextResponse.json({ error: "科目不存在" }, { status: 404 });
 
   // Check already purchased
-  const { data: existing } = await anonClient
+  const { data: existing } = await admin
     .from("purchases")
     .select("id")
     .eq("user_id", userId)
@@ -121,13 +85,10 @@ export async function POST(request: NextRequest) {
     .in("status", ["paid", "trial"])
     .maybeSingle();
 
-  if (existing) {
-    return NextResponse.json({ error: "您已购买该科目", paid: true }, { status: 409 });
-  }
+  if (existing) return NextResponse.json({ error: "您已购买该科目", paid: true }, { status: 409 });
 
   const tradeNo = generateTradeNo();
-
-  const { error: insertError } = await anonClient.from("purchases").insert({
+  const { error: insertError } = await admin.from("purchases").insert({
     user_id: userId,
     subject_id: subjectId,
     amount_cny: PRICE_PER_SUBJECT * 100,
@@ -136,6 +97,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (insertError) {
+    console.error("Single subject insert error:", insertError);
     return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
   }
 
@@ -146,7 +108,5 @@ export async function POST(request: NextRequest) {
     body: `IGCSE ${subject.display_name} 科目复习资料`,
   });
 
-  return new NextResponse(formHtml, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
+  return new NextResponse(formHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
