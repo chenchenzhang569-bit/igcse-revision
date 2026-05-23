@@ -42,35 +42,27 @@ const DIFF_STYLES: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<Stats>({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/user-answers/stats", { credentials: "include" })
       .then(r => r.json())
       .then(data => {
-        if (data.error) setError(data.error);
-        else setStats(data);
+        if (data.error) {
+          // API error (e.g. no answers yet) — show zeros, not empty state
+          setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
+        } else {
+          setStats(data);
+        }
       })
-      .catch(e => setError(e.message))
+      .catch(() => setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] }))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <DashboardSkeleton />;
-  if (error && !stats) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-6xl mb-4">📊</p>
-        <p className="text-gray-500 text-lg">Start practicing to see your progress</p>
-        <Link href="/subjects" className="mt-4 inline-block bg-primary-900 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-800 transition">
-          Browse Subjects →
-        </Link>
-      </div>
-    );
-  }
 
-  const s = stats!;
+  const s = stats;
 
   return (
     <div className="space-y-8">
