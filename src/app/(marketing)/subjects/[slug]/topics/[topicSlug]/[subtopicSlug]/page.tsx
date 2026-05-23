@@ -135,6 +135,8 @@ export default async function SubtopicPage({
   try {
     const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
     let topicRow: any = null;
+    let subtopicId: string | null = null;
+    const pmtCode = subtopic?.pmtCode || "";
     
     const tRes = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
@@ -146,12 +148,26 @@ export default async function SubtopicPage({
       topicRow = Array.isArray(tData2) && tData2.length > 0 ? tData2[0] : null;
     }
 
-    if (topicRow) {
-      const nRes = await fetch(`${API}/notes?select=*&topic_id=eq.${topicRow.id}&order=sort_order&limit=20`, { headers: H, cache: "no-store" });
+    // Find subtopic ID for precise filtering
+    if (topicRow && pmtCode) {
+      try {
+        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "no-store" });
+        const subData = await subRes.json();
+        if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
+      } catch {}
+    }
+
+    const filterCol = subtopicId ? "subtopic_id" : "topic_id";
+    const filterVal = subtopicId || topicRow?.id;
+
+    if (filterVal) {
+      // Notes
+      const nRes = await fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "no-store" });
       notes = await nRes.json();
       notes = Array.isArray(notes) ? notes : [];
 
-      const qRes = await fetch(`${API}/questions?select=*&topic_id=eq.${topicRow.id}&order=sort_order&limit=100`, { headers: H, cache: "no-store" });
+      // Questions
+      const qRes = await fetch(`${API}/questions?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" });
       const allQs = await qRes.json();
       if (Array.isArray(allQs)) {
         for (const q of allQs) {
@@ -164,6 +180,35 @@ export default async function SubtopicPage({
             structuredQs.push(q);
           }
         }
+      }
+
+      // Past papers
+      const pRes = await fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "no-store" });
+      const papers = await pRes.json();
+      if (Array.isArray(papers) && papers.length > 0) {
+        const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
+        const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
+        const usedMcq = new Set<string>();
+        for (const qp of mcqQps) {
+          const base = qp.title.replace(/\s*QP$/, "").trim();
+          const ms = mcqMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !usedMcq.has(m.id));
+          const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
+          if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; usedMcq.add(ms.id); }
+          mcqPairs.push(pair);
+        }
+        for (const ms of mcqMss) { if (!usedMcq.has(ms.id)) mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } }); }
+
+        const topicQps = papers.filter((p: any) => p.paper_type === "Topic QP");
+        const topicMss = papers.filter((p: any) => p.paper_type === "Topic MS");
+        const usedTopic = new Set<string>();
+        for (const qp of topicQps) {
+          const base = qp.title.replace(/\s*QP$/, "").trim();
+          const ms = topicMss.find((m: any) => m.title.replace(/\s*MS$/, "").trim() === base && !usedTopic.has(m.id));
+          const pair: any = { qp: { id: qp.id, title: qp.title, file_url: qp.file_url, paper_type: qp.paper_type } };
+          if (ms) { pair.ms = { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type }; usedTopic.add(ms.id); }
+          structPairs.push(pair);
+        }
+        for (const ms of topicMss) { if (!usedTopic.has(ms.id)) structPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } }); }
       }
     }
   } catch {}
@@ -207,7 +252,7 @@ export default async function SubtopicPage({
         structuredQuestions={structuredQs}
         pmtCode={subtopic.pmtCode}
         displayName={subtopic.displayName}
-        subtopicId={null}
+        subtopicId={subtopicId}
       />
     </div>
   );
