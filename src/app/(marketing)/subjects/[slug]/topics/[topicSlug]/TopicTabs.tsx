@@ -132,6 +132,22 @@ export function TopicTabs({
 
   function handleSubmitLevel(level: string) {
     setSubmittedLevels((prev) => new Set(prev).add(level));
+    
+    // Save answers to backend
+    const answers = (groupedMcqs[level] || []).map(q => ({
+      question_id: q.id,
+      user_answer: userAnswers[q.id] || "",
+      correct_answer: q.answer_text || (q as any).correct_answer || "",
+      is_correct: userAnswers[q.id] === (q.answer_text || (q as any).correct_answer),
+      question_text: q.question_text,
+      difficulty: q.difficulty,
+    }));
+    fetch("/api/user-answers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers }),
+      credentials: "include",
+    }).catch(() => {});
   }
 
   function handleResetLevel(level: string) {
