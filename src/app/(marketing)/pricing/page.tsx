@@ -62,7 +62,7 @@ const plans = [
 
 export default function PricingPage() {
   const router = useRouter();
-  const [subjects, setSubjects] = useState<{ id: string; display_name: string; slug: string }[]>([]);
+  const [subjects, setSubjects] = useState<{ id: string; display_name: string; slug: string; code: string; board_name: string }[]>([]);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
   const [pickerMode, setPickerMode] = useState<"trial" | "single">("single");
   const [user, setUser] = useState<any>(null);
@@ -190,26 +190,47 @@ export default function PricingPage() {
                 ? "7-day full access to one subject. No credit card needed."
                 : `Pay once — ¥${PRICE_PER_SUBJECT}. Lifetime access.`}
             </p>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {subjects.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    setShowSubjectPicker(false);
-                    if (pickerMode === "trial") {
-                      router.push(`/checkout?subject=${s.id}&trial=true`);
-                    } else {
-                      router.push(`/checkout?subject=${s.id}`);
-                    }
-                  }}
-                  className="w-full text-left px-4 py-3 rounded-xl border hover:border-primary-500 hover:bg-primary-50 transition"
-                >
-                  <span className="text-sm font-medium text-gray-800">{s.display_name}</span>
-                  <span className={`font-semibold float-right ${pickerMode === "trial" ? "text-green-600" : "text-accent-500"}`}>
-                    {pickerMode === "trial" ? "Free" : `¥${PRICE_PER_SUBJECT}`}
-                  </span>
-                </button>
-              ))}
+            <div className="max-h-96 overflow-y-auto">
+              {(() => {
+                // Group subjects by exam board
+                const boards = new Map<string, typeof subjects>();
+                subjects.forEach((s) => {
+                  const key = s.board_name || "Other";
+                  if (!boards.has(key)) boards.set(key, []);
+                  boards.get(key)!.push(s);
+                });
+                const formattedLabel = (s: typeof subjects[0]) =>
+                  `${s.display_name} ${s.code || ""}`.trim();
+
+                return Array.from(boards.entries()).map(([board, items]) => (
+                  <div key={board} className="mb-3">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 mb-1">
+                      {board}
+                    </div>
+                    <div className="space-y-1">
+                      {items.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => {
+                            setShowSubjectPicker(false);
+                            if (pickerMode === "trial") {
+                              router.push(`/checkout?subject=${s.id}&trial=true`);
+                            } else {
+                              router.push(`/checkout?subject=${s.id}`);
+                            }
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg border hover:border-primary-500 hover:bg-primary-50 transition flex justify-between items-center"
+                        >
+                          <span className="text-sm font-medium text-gray-800">{formattedLabel(s)}</span>
+                          <span className={`text-xs font-semibold ml-2 shrink-0 ${pickerMode === "trial" ? "text-green-600" : "text-accent-500"}`}>
+                            {pickerMode === "trial" ? "Free" : `¥${PRICE_PER_SUBJECT}`}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
               {subjects.length === 0 && (
                 <p className="text-gray-400 text-sm text-center py-4">Loading subjects...</p>
               )}
