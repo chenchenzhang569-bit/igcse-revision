@@ -29,73 +29,41 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r hidden md:flex flex-col">
-        <div className="p-6 border-b">
-          <Link href="/">
+    <div className="min-h-screen bg-gray-50">
+      {/* Top header — full width, logo same size as homepage */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-5 h-[60px] flex items-center justify-between">
+          <Link href="/" className="flex items-center shrink-0">
             <Image
               src="/logo.png"
               alt="IGMaster"
-              width={120}
-              height={50}
-              className="h-10 w-auto"
+              width={129}
+              height={54}
+              className="h-11 sm:h-14 w-auto"
+              priority
             />
           </Link>
-        </div>
-        <nav className="flex-1 p-4 space-y-1">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
-          >
-            📊 Dashboard
-          </Link>
-          <Link
-            href="/subjects"
-            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
-          >
-            📚 Browse Subjects
-          </Link>
-          <Link
-            href="/past-papers"
-            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
-          >
-            📄 Past Papers
-          </Link>
-          <Link
-            href="/dashboard/my-bank"
-            className="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
-          >
-            💾 My Question Bank
-          </Link>
-        </nav>
-        <div className="p-4 border-t">
-          {user && (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-sm">
-                {user.email?.charAt(0).toUpperCase()}
-              </div>
-              <div className="text-sm flex-1 min-w-0">
-                <p className="text-gray-700 font-medium truncate">{user.email}</p>
-              </div>
-              <button
-                onClick={signOut}
-                className="text-xs text-gray-400 hover:text-accent-500 transition"
-              >
-                Sign out
-              </button>
-            </div>
-          )}
-        </div>
-      </aside>
 
-      {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-lg font-bold text-primary-900">
-            <Image src="/logo.png" alt="IGMaster" width={100} height={42} className="h-8 w-auto" />
-          </Link>
-          <div className="flex items-center gap-2">
+          {/* Desktop: user info + sign out */}
+          <div className="hidden md:flex items-center gap-3">
+            {user && (
+              <>
+                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-sm">
+                  {user.email?.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm text-gray-600 truncate max-w-[160px]">{user.email}</span>
+                <button
+                  onClick={signOut}
+                  className="text-xs text-gray-400 hover:text-accent-500 transition"
+                >
+                  Sign out
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile: hamburger */}
+          <div className="md:hidden flex items-center gap-2">
             {user && (
               <>
                 <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs">
@@ -123,8 +91,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
+        {/* Mobile nav dropdown */}
         {mobileMenuOpen && (
-          <nav className="px-4 pb-3 space-y-1 border-t bg-white">
+          <nav className="md:hidden px-4 pb-3 space-y-1 border-t bg-white">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -137,10 +106,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
         )}
-      </div>
+      </header>
 
-      {/* Main content */}
-      <main className="flex-1 p-6 md:p-8 mt-14 md:mt-0">{children}</main>
+      {/* Main content — full width, no sidebar */}
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-5 py-6 sm:py-8">
+        {children}
+      </main>
     </div>
   );
 }

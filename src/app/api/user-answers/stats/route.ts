@@ -3,17 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
-// Decode JWT without API call (no service key needed)
-function getUserIdFromCookie(cookieHeader: string): string | null {
+// Extract JWT from cookie
+function getJwtFromCookie(cookieHeader: string): string | null {
   const match = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
-  if (!match) return null;
-  const token = match[1];
+  return match ? match[1] : null;
+}
+
+// Decode JWT payload to get user_id
+function getUserIdFromJwt(token: string): string | null {
   try {
-    // JWT payload is the second base64 segment
     const payload = token.split(".")[1];
     if (!payload) return null;
     const decoded = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return decoded.sub || null; // "sub" is the user UUID
+    return decoded.sub || null;
   } catch {
     return null;
   }
@@ -22,19 +24,20 @@ function getUserIdFromCookie(cookieHeader: string): string | null {
 // GET /api/user-answers/stats
 export async function GET(req: NextRequest) {
   try {
-    // Extract user_id from cookie JWT — no service key needed
     const cookieHeader = req.headers.get("cookie") || "";
-    const userId = getUserIdFromCookie(cookieHeader);
+    const jwt = getJwtFromCookie(cookieHeader);
+    const userId = jwt ? getUserIdFromJwt(jwt) : null;
 
     if (!userId) {
-      // Return zeros instead of error — new users should see the dashboard
       return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
     }
 
-    // Query user_answers via REST API (anon key)
+    // Use user's JWT as auth header so RLS correctly identifies the user
+    const authHeaders = { apikey: ANON_KEY, Authorization: `Bearer ${jwt}` };
+
     const res = await fetch(
       `${API}/user_answers?select=is_correct,subject_slug,created_at,question_id,subtopic_code,difficulty,question_text,user_answer,correct_answer&user_id=eq.${userId}&order=created_at.desc&limit=500`,
-      { headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` } }
+      { headers: authHeaders }
     );
     const all = await res.json();
 
