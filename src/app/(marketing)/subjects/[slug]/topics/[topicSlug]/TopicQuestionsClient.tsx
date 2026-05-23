@@ -635,7 +635,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
                 : "bg-white text-gray-500 border-gray-200 hover:border-red-200 hover:text-red-500"
             }`}
           >
-            ♥ Saved ({bookmarkedIds.size})
+            ♥ Saved ({allQuestions.filter((q) => bookmarkedIds.has(q.id)).length})
           </button>
         )}
       </div>
