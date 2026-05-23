@@ -272,6 +272,7 @@ export default async function SubtopicPage({
         notes={notes} mcqs={mcqs} mcqPairs={mcqPairs as any}
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
         pmtCode={subtopic.pmtCode} displayName={subtopic.displayName}
+        subtopicId={subtopicId}
       />
     </div>
   );

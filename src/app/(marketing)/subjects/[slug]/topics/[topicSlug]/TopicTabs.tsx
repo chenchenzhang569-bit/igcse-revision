@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -60,6 +61,7 @@ export function TopicTabs({
   structuredQuestions = [],
   pmtCode = "",
   displayName = "",
+  subtopicId = null as string | null,
 }: {
   notes: Note[];
   mcqs: Question[];
@@ -68,6 +70,7 @@ export function TopicTabs({
   structuredQuestions?: Question[];
   pmtCode?: string;
   displayName?: string;
+  subtopicId?: string | null;
 }) {
   const [tab, setTab] = useState<Tab>("notes");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
@@ -402,15 +405,25 @@ export function TopicTabs({
   return (
     <div>
       {/* Tabs */}
-      <div className="flex border-b mb-6">
-        {tabs.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-6 py-3 font-medium text-sm transition border-b-2 ${
-              activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
-            }`}>
-            {t.label} ({t.count})
-          </button>
-        ))}
+      <div className="flex border-b mb-6 items-center justify-between">
+        <div className="flex">
+          {tabs.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`px-6 py-3 font-medium text-sm transition border-b-2 ${
+                activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}>
+              {t.label} ({t.count})
+            </button>
+          ))}
+        </div>
+        {subtopicId && (
+          <Link
+            href={`/dashboard/my-bank?subtopic_id=${subtopicId}`}
+            className="shrink-0 px-4 py-2 rounded-lg text-sm font-medium border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 transition"
+          >
+            ♥ Saved
+          </Link>
+        )}
       </div>
 
       {/* NOTES */}
