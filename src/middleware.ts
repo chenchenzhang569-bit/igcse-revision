@@ -30,15 +30,12 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-
   // 公开路由
   const publicPaths = [
     "/", "/login", "/register",
     "/api/auth", "/api/payment",
     "/auth/callback", "/update-password",
-    "/subjects", // TEMP DEBUG: 放开看 subtopic 页面实际内容
   ];
-  const isPublic = publicPaths.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
 
