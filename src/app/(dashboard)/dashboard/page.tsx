@@ -135,10 +135,10 @@ export default function DashboardPage() {
         </h2>
         {s.subjects.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={sortGroupedSubjects(s.subjects).map(sub => ({ name: subjectBoardLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+            <BarChart data={sortGroupedSubjects(s.subjects).map(sub => ({ name: subjectLabel(sub.slug), Practiced: sub.used || 0, Remaining: (sub.subtopics || 0) - (sub.used || 0) }))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={130} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name === "Practiced" ? "Subtopic practiced" : "Subtopic remaining"]} />
               <Bar dataKey="Practiced" fill="#001C71" radius={[0, 4, 4, 0]} barSize={18} />
               <Bar dataKey="Remaining" fill="#FF8C00" radius={[0, 4, 4, 0]} barSize={18} />
