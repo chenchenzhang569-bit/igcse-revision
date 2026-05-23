@@ -148,12 +148,10 @@ export default async function SubtopicPage({
       topicRow = Array.isArray(tData2) && tData2.length > 0 ? tData2[0] : null;
     }
 
-    // Find subtopic ID for precise filtering (subtopics table has RLS - use service key)
+    // Find subtopic ID for precise filtering
     if (topicRow && pmtCode) {
       try {
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-        const sHeaders = serviceKey ? { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } : H;
-        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: sHeaders, cache: "no-store" });
+        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "no-store" });
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
       } catch {}
