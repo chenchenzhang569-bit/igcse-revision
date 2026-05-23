@@ -38,6 +38,7 @@ export default function MyBankPage() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
+  const [filterId, setFilterId] = useState("");
 
   useEffect(() => {
     loadBookmarks();
@@ -45,6 +46,11 @@ export default function MyBankPage() {
 
   const loadBookmarks = async () => {
     try {
+      // Read subtopic_id from URL
+      const params = new URLSearchParams(window.location.search);
+      const fid = params.get("subtopic_id") || "";
+      setFilterId(fid);
+
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -115,6 +121,21 @@ export default function MyBankPage() {
 
     return boards;
   }, [bookmarks]);
+
+  // Auto-expand to filtered subtopic
+  useEffect(() => {
+    if (!filterId || !tree.length) return;
+    for (const board of tree) {
+      for (const subj of (board.children || [])) {
+        for (const st of (subj.children || [])) {
+          if (st.id === filterId) {
+            setExpanded(new Set([board.id || board.name, subj.id || subj.name, st.id || st.name]));
+            return;
+          }
+        }
+      }
+    }
+  }, [filterId, tree]);
 
   const toggleExpand = (key: string) => {
     setExpanded(prev => {

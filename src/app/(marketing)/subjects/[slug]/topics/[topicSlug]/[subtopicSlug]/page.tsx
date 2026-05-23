@@ -273,6 +273,16 @@ export default async function SubtopicPage({
         pairedPapers={structPairs as any} structuredQuestions={structuredQuestions}
         pmtCode={subtopic.pmtCode} displayName={subtopic.displayName}
       />
+      {subtopicId && (
+        <div className="mt-8 pt-6 border-t text-center">
+          <Link
+            href={`/dashboard/my-bank?subtopic_id=${subtopicId}`}
+            className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 font-medium transition"
+          >
+            💾 View saved questions for this subtopic →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
