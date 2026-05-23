@@ -4,8 +4,16 @@ const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 
 function getJwtFromCookie(cookieHeader: string): string | null {
-  const match = cookieHeader.match(/sb-[^;]+-access-token=([^;]+)/);
-  return match ? match[1] : null;
+  // Supabase stores auth token in: sb-{ref}-auth-token = {"access_token":"eyJ...","refresh_token":"..."}
+  const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
+  if (!match) return null;
+  try {
+    const decoded = decodeURIComponent(match[1]);
+    const parsed = JSON.parse(decoded);
+    return parsed.access_token || null;
+  } catch {
+    return null;
+  }
 }
 
 function getUserIdFromJwt(token: string): string | null {

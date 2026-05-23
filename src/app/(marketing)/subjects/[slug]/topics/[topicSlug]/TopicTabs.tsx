@@ -152,7 +152,9 @@ export function TopicTabs({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answers, subject_slug: subjectSlug, topic_slug: topicSlug, subtopic_code: pmtCode }),
       credentials: "include",
-    }).catch(() => {});
+    }).then(r => {
+      if (!r.ok) console.error("Save answers failed:", r.status, r.statusText);
+    }).catch(e => console.error("Save answers error:", e));
   }
 
   function handleResetLevel(level: string) {
