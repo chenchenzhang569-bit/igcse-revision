@@ -1,3 +1,4 @@
+// force-redeploy-v1-anon-fix
 // step4: add Tailwind + breadcrumb + fallback
 export const dynamic = "force-dynamic";
 import Link from "next/link";
