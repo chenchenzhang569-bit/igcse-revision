@@ -76,10 +76,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {isAdmin && (
               <Link
                 href="/admin"
-                className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-accent-500 transition mr-2"
+                className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-accent-500 transition mr-2"
               >
                 <span className="text-base">⚙️</span>
-                <span>Admin</span>
+                <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
             {user && (
