@@ -30,7 +30,7 @@ const plans = [
     name: "Single Subject",
     price: `¥${PRICE_PER_SUBJECT}`,
     original: `¥${ORIGINAL_PER}`,
-    period: "One-time payment. Lifetime access.",
+    period: "One-time payment. 12 months access.",
     features: [
       "Complete topic notes",
       "Practice questions with answers",
@@ -46,7 +46,7 @@ const plans = [
     name: "All Subjects",
     price: `¥${PRICE_ALL}`,
     original: `¥${ORIGINAL_ALL}`,
-    period: "All exam boards. All subjects. Lifetime access.",
+    period: "All exam boards. All subjects. 12 months access.",
     features: [
       "Every subject across all exam boards",
       "CAIE + Edexcel included",
@@ -68,6 +68,9 @@ export default function PricingPage() {
   const [user, setUser] = useState<any>(null);
   const [hasTrial, setHasTrial] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [upgradePrice, setUpgradePrice] = useState<number | null>(null);
+  const [purchasedCount, setPurchasedCount] = useState(0);
+  const [hasAllSubject, setHasAllSubject] = useState(false);
 
   useEffect(() => {
     fetch("/api/subjects")
@@ -88,6 +91,15 @@ export default function PricingPage() {
           .then((r) => r.json())
           .then((d) => setHasTrial(d.hasTrial))
           .finally(() => setLoading(false));
+        // Fetch purchases for upgrade pricing
+        fetch("/api/payment/purchases")
+          .then((r) => r.json())
+          .then((d) => {
+            setUpgradePrice(d.hasAllSubject ? null : d.upgradePrice);
+            setPurchasedCount(d.purchases?.length || 0);
+            setHasAllSubject(d.hasAllSubject || false);
+          })
+          .catch(() => {});
       } else {
         setLoading(false);
       }
@@ -144,11 +156,23 @@ export default function PricingPage() {
             <h3 className="text-lg font-bold text-primary-900 mb-1">{plan.name}</h3>
             <p className="text-xs text-gray-400 mb-4 min-h-[32px]">{plan.period}</p>
             <div className="flex items-baseline gap-2 mb-6">
-              <span className={`text-3xl font-bold ${plan.type === "trial" ? "text-green-600" : "text-accent-500"}`}>
-                {plan.price}
-              </span>
-              {plan.original && (
-                <span className="text-base text-gray-400 line-through">{plan.original}</span>
+              {plan.type === "all" && upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? (
+                <>
+                  <span className="text-3xl font-bold text-accent-500">¥{upgradePrice / 100}</span>
+                  <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold">
+                    升级仅需
+                  </span>
+                  <span className="text-base text-gray-400 line-through">¥{PRICE_ALL}</span>
+                </>
+              ) : (
+                <>
+                  <span className={`text-3xl font-bold ${plan.type === "trial" ? "text-green-600" : "text-accent-500"}`}>
+                    {plan.price}
+                  </span>
+                  {plan.original && (
+                    <span className="text-base text-gray-400 line-through">{plan.original}</span>
+                  )}
+                </>
               )}
             </div>
             <ul className="space-y-2 mb-8 text-sm">
@@ -172,7 +196,9 @@ export default function PricingPage() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {plan.type === "trial" && hasTrial ? "Trial Used" : plan.cta} →
+              {plan.type === "trial" && hasTrial ? "Trial Used" :
+               plan.type === "all" && upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? `Upgrade ¥${upgradePrice / 100}` :
+               plan.cta} →
             </button>
           </div>
         ))}
@@ -188,7 +214,7 @@ export default function PricingPage() {
             <p className="text-sm text-gray-500 mb-4">
               {pickerMode === "trial"
                 ? "7-day full access to one subject. No credit card needed."
-                : `Pay once — ¥${PRICE_PER_SUBJECT}. Lifetime access.`}
+                : `Pay once — ¥${PRICE_PER_SUBJECT}. 12 months access.`}
             </p>
             <div className="max-h-96 overflow-y-auto">
               {(() => {

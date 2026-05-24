@@ -147,7 +147,7 @@ function CheckoutContent() {
       <div className="max-w-md mx-auto px-4 py-16">
         <div className="bg-white border rounded-2xl p-8 text-center">
           <h1 className="text-2xl font-bold text-primary-900 mb-2">All Subjects</h1>
-          <p className="text-gray-500 mb-8">CAIE + Edexcel — every subject, lifetime access</p>
+          <p className="text-gray-500 mb-8">CAIE + Edexcel — every subject, 12 months access</p>
           <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>
           <p className="text-sm text-gray-400 line-through mb-8">¥500</p>
 
@@ -204,7 +204,7 @@ function CheckoutContent() {
         )}
 
         <p className="text-sm text-gray-500 text-center mb-8">
-          {isTrial ? "Expires in 7 days" : "One-time payment. Lifetime access."}
+          {isTrial ? "Expires in 7 days" : "One-time payment. 12 months access."}
         </p>
 
         {status === "error" && (

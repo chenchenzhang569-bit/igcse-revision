@@ -73,9 +73,23 @@ const DIFF_BADGE: Record<string, string> = {
   hard: "bg-rose-50 text-rose-600",
 };
 
+interface Purchase {
+  subject_id: string;
+  subject_name: string;
+  subject_code: string;
+  board: string;
+  status: string;
+  expires_at: string;
+  days_left: number | null;
+  expired: boolean;
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
   const [loading, setLoading] = useState(true);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [upgradePrice, setUpgradePrice] = useState<number | null>(null);
+  const [hasAllSubject, setHasAllSubject] = useState(false);
 
   useEffect(() => {
     const supabase = createBrowserClient(
@@ -94,6 +108,16 @@ export default function DashboardPage() {
       })
       .catch(() => setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] }))
       .finally(() => setLoading(false));
+
+    // Fetch subscriptions
+    fetch("/api/payment/purchases")
+      .then(r => r.json())
+      .then(d => {
+        setPurchases(d.purchases || []);
+        setUpgradePrice(d.hasAllSubject ? null : d.upgradePrice);
+        setHasAllSubject(d.hasAllSubject || false);
+      })
+      .catch(() => {});
   }, []);
 
   if (loading) return <DashboardSkeleton />;
@@ -125,6 +149,56 @@ export default function DashboardPage() {
           <p className="text-sm font-extrabold text-white">Mock Exams</p>
         </Link>
       </div>
+
+      {/* Subscriptions card */}
+      {purchases.length > 0 && (
+        <div className={`border rounded-2xl p-5 ${
+          purchases.every(p => p.expired)
+            ? "bg-red-50/60 border-red-200"
+            : purchases.some(p => p.days_left !== null && p.days_left <= 14 && p.days_left > 0)
+            ? "bg-amber-50/60 border-amber-200"
+            : "bg-emerald-50/60 border-emerald-200"
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">
+              {purchases.every(p => p.expired)
+                ? "❌"
+                : purchases.some(p => p.days_left !== null && p.days_left <= 14 && p.days_left > 0)
+                ? "⚠️"
+                : "✅"}
+            </span>
+            <h2 className="text-base font-extrabold" style={{ color: "#001C71" }}>My Subscriptions</h2>
+            <span className="text-xs text-gray-500 ml-auto">
+              {(() => {
+                const activePurchase = purchases.find(p => !p.expired && p.days_left !== null);
+                if (activePurchase) {
+                  if (activePurchase.days_left! <= 14) {
+                    return <span className="text-amber-600 font-semibold">{activePurchase.days_left} days remaining</span>;
+                  }
+                  return <span className="text-emerald-600 font-semibold">{activePurchase.days_left} days remaining</span>;
+                }
+                return <span className="text-red-500 font-semibold">All expired</span>;
+              })()}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {purchases.map(p => (
+              <span key={p.subject_id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border shadow-sm">
+                <span className="text-gray-500">{p.subject_code}</span>
+                <span className="text-gray-800">{p.subject_name}</span>
+              </span>
+            ))}
+          </div>
+          {!hasAllSubject && upgradePrice != null && (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1 text-xs font-bold text-white bg-accent-500 hover:bg-accent-600 px-4 py-1.5 rounded-lg transition"
+            >
+              Upgrade to All Subjects ¥{upgradePrice / 100} →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* ROW 2: Subject Progress — Bar Chart (full width) */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6">

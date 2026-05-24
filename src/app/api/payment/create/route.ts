@@ -49,11 +49,29 @@ export async function POST(request: NextRequest) {
   const admin = createAdminClient();
 
   if (plan === "all") {
+    // 计算升级差价：已付单科总额
+    let upgradeAmount = PRICE_ALL * 100; // ¥250 in fen
+    const { data: previousPaid } = await admin
+      .from("purchases")
+      .select("subject_id, amount_cny")
+      .eq("user_id", userId)
+      .eq("status", "paid");
+    if (previousPaid && previousPaid.length > 0) {
+      // 同 subject_id 只计一次最大值
+      const maxPerSubject: Record<string, number> = {};
+      for (const p of previousPaid) {
+        if (!p.subject_id) continue;
+        maxPerSubject[p.subject_id] = Math.max(maxPerSubject[p.subject_id] || 0, p.amount_cny || 0);
+      }
+      const totalPaid = Object.values(maxPerSubject).reduce((a, b) => a + b, 0);
+      upgradeAmount = Math.max(100, PRICE_ALL * 100 - totalPaid); // 最低 ¥1
+    }
+
     const tradeNo = generateTradeNo();
     const { error } = await admin.from("purchases").insert({
       user_id: userId,
       subject_id: null,
-      amount_cny: PRICE_ALL * 100,
+      amount_cny: upgradeAmount,
       alipay_trade_no: tradeNo,
       status: "pending",
     });
@@ -62,11 +80,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
     }
     let url: string;
+    const amountYuan = (upgradeAmount / 100).toFixed(2);
     try {
       url = createPagePayUrl({
         outTradeNo: tradeNo,
-        totalAmount: String(PRICE_ALL) + ".00",
-        subject: "IGCSE All Subjects - Lifetime Access",
+        totalAmount: amountYuan,
+        subject: "IGCSE All Subjects - 12 Months Access",
         body: "CAIE + Edexcel all subjects",
       });
     } catch (e: any) {

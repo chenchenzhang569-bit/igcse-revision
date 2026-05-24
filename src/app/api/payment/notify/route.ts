@@ -34,9 +34,16 @@ export async function POST(request: NextRequest) {
   const supabase = createAdminClient();
 
   if (tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") {
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     await supabase
       .from("purchases")
-      .update({ status: "paid", paid_at: new Date().toISOString() })
+      .update({
+        status: "paid",
+        paid_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+      })
       .eq("alipay_trade_no", tradeNo)
       .eq("status", "pending");
   }
