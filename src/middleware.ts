@@ -49,8 +49,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 已登录 → 不允许访问登录/注册页，首页跳转到 dashboard
-  if (user && (pathname === "/login" || pathname === "/register" || pathname === "/")) {
+  // 已登录 → 不允许访问登录/注册页
+  if (user && (pathname === "/login" || pathname === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

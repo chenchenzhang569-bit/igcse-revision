@@ -225,8 +225,8 @@ export default function MyBankPage() {
         {tree.map((board) => (
           <div key={board.name}>
             <div className="flex items-center gap-3 px-4 py-3 rounded-t-lg" style={{ background: "#001C71" }}>
-              <span className="text-base">🎓</span>
-              <span className="flex-1 font-bold text-base" style={{ color: "#FF8C00" }}>{board.name}</span>
+              <span className="text-base">🏛️</span>
+              <span className="flex-1 font-bold text-lg" style={{ color: "#FF8C00" }}>{board.name}</span>
               <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(255,140,0,0.2)", color: "#FF8C00" }}>{board.count}</span>
             </div>
             {(board.children || []).map((subject) => (
@@ -248,7 +248,7 @@ function TreeNodeRow({
   const isExpanded = expanded.has(key);
   const hasChildren = !!(node.children && node.children.length > 0);
   const hasBookmarks = !!(node.bookmarks && node.bookmarks.length > 0);
-  const levelIcons = ["📚", "📖", "🔖"];
+  const levelIcons = ["📘", "📌", "📄"];
   const isMockExams = node.id === MOCK_EXAMS_KEY;
 
   return (
@@ -259,7 +259,7 @@ function TreeNodeRow({
         style={{ paddingLeft: `${16 + depth * 20}px` }}
       >
         <span className={`shrink-0 text-xs text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""} ${!hasChildren && !hasBookmarks ? "invisible" : ""}`}>▶</span>
-        <span className="text-base">{isMockExams ? "📝" : (levelIcons[depth] || "📄")}</span>
+        <span className="text-base">{isMockExams ? "✍️" : (levelIcons[depth] || "📄")}</span>
         <span className="flex-1 font-medium text-gray-800 text-sm">{node.name}</span>
         <span className="shrink-0 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">{node.count}</span>
       </button>
