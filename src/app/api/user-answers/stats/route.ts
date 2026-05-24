@@ -108,6 +108,8 @@ export async function GET(req: NextRequest) {
     // Group: none / single / all
     // - none & all: only show practiced (already built above)
     // - single: also show purchased but unpracticed subjects
+    let isAllPlan = false;
+    let hasNoPurchases = true; // assume none until proven
     try {
       const resPurchases = await fetch(
         `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
@@ -115,7 +117,8 @@ export async function GET(req: NextRequest) {
       );
       const purchases = await resPurchases.json();
       if (Array.isArray(purchases) && purchases.length > 0) {
-        const isAllPlan = purchases.some((p: any) => p.subject_id === null);
+        hasNoPurchases = false;
+        isAllPlan = purchases.some((p: any) => p.subject_id === null);
         if (!isAllPlan) {
           // Single-subject purchases: add unpracticed ones
           const purchasedIds = purchases.filter((p: any) => p.subject_id).map((p: any) => p.subject_id);
@@ -141,6 +144,23 @@ export async function GET(req: NextRequest) {
       }
     } catch {
       // purchase query failed → just show practiced (no harm)
+    }
+
+    // === Step 3: Default — if no subjects yet for all-plan / no-purchase, show first 3 ===
+    if (Object.keys(subjectMap).length === 0 && (isAllPlan || hasNoPurchases)) {
+      const resTop3 = await fetch(
+        `${API}/subjects?select=slug&limit=3`,
+        { headers: publicHeaders }
+      );
+      const top3 = await resTop3.json();
+      if (Array.isArray(top3)) {
+        for (const s of top3) {
+          subjectMap[s.slug] = {
+            total: 0, correct: 0, slug: s.slug,
+            used: 0, subtopics: subTotalBySubject[s.slug] || 0,
+          };
+        }
+      }
     }
     const total = all.length;
     const correct = all.filter((a: any) => a.is_correct).length;
