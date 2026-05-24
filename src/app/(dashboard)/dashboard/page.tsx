@@ -168,24 +168,20 @@ export default function DashboardPage() {
                 : "✅"}
             </span>
             <h2 className="text-base font-extrabold" style={{ color: "#001C71" }}>My Subscriptions</h2>
-            <span className="text-xs text-gray-500 ml-auto">
-              {(() => {
-                const activePurchase = purchases.find(p => !p.expired && p.days_left !== null);
-                if (activePurchase) {
-                  if (activePurchase.days_left! <= 14) {
-                    return <span className="text-amber-600 font-semibold">{activePurchase.days_left} days remaining</span>;
-                  }
-                  return <span className="text-emerald-600 font-semibold">{activePurchase.days_left} days remaining</span>;
-                }
-                return <span className="text-red-500 font-semibold">All expired</span>;
-              })()}
-            </span>
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
             {purchases.map(p => (
-              <span key={p.subject_id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border shadow-sm">
+              <span key={p.subject_id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border shadow-sm">
                 <span className="text-gray-500">{p.subject_code}</span>
                 <span className="text-gray-800">{p.subject_name}</span>
+                <span className="text-gray-300 mx-0.5">·</span>
+                {p.expired ? (
+                  <span className="text-red-500">Expired</span>
+                ) : p.days_left != null && p.days_left <= 14 ? (
+                  <span className="text-amber-600 font-bold">⚠ {p.days_left}d</span>
+                ) : (
+                  <span className="text-gray-400">{p.days_left}d</span>
+                )}
               </span>
             ))}
           </div>
