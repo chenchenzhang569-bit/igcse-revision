@@ -33,7 +33,8 @@ export async function middleware(request: NextRequest) {
   // 公开路由
   const publicPaths = [
     "/", "/login", "/register",
-    "/api/auth", "/api/payment",
+    "/pricing", "/checkout",
+    "/api/auth", "/api/payment", "/api/subjects", "/api/pricing",
     "/auth/callback", "/update-password",
   ];
   const isPublic = publicPaths.some(
