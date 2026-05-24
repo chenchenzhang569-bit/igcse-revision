@@ -5,16 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
-const contentTabs = [
-  { id: "subjects", label: "📚 科目管理", tab: "subjects" },
-  { id: "topics", label: "📂 主题管理", tab: "topics" },
-  { id: "notes", label: "📝 笔记管理", tab: "notes" },
-  { id: "questions", label: "❓ 题库管理", tab: "questions" },
-];
-
-const toolsLinks = [
-  { href: "/admin/past-papers", label: "📄 历年真题" },
-  { href: "/admin/mock-exams", label: "📋 模拟试卷" },
+const menuItems = [
+  { href: "/admin", label: "📊 Dashboard", icon: "📊" },
+  { href: "/admin/upload", label: "📤 文档上传", icon: "📤" },
+  { href: "/admin/users", label: "👤 用户管理", icon: "👤" },
+  { href: "/admin/errors", label: "🐛 错误报告", icon: "🐛" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +17,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   useEffect(() => {
     const check = async () => {
@@ -59,50 +57,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!isAdmin) return null; // redirect already triggered
+  if (!isAdmin) return null;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6 border-b border-gray-800">
+      {/* ---- Sidebar (desktop) ---- */}
+      <aside className="w-56 bg-gray-900 text-white flex-col hidden md:flex">
+        <div className="p-5 border-b border-gray-800">
           <Link href="/admin" className="text-lg font-bold">
             ⚙️ 管理后台
           </Link>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
-          <p className="text-xs text-gray-500 uppercase tracking-wider px-3 mb-1">内容管理</p>
-          {contentTabs.map((item) => {
-            const active = pathname === "/admin";
-            return (
-              <button
-                key={item.id}
-                onClick={() => router.push(`/admin?tab=${item.tab}`)}
-                className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  active
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800"
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-
-          <p className="text-xs text-gray-500 uppercase tracking-wider px-3 mb-1 mt-4">资源管理</p>
-          {toolsLinks.map((item) => {
-            const active = pathname.startsWith(item.href);
+        <nav className="flex-1 p-3 space-y-1">
+          {menuItems.map((item) => {
+            const active = pathname === item.href
+              || (item.href !== "/admin" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
                   active
                     ? "bg-gray-800 text-white"
                     : "text-gray-400 hover:text-white hover:bg-gray-800"
                 }`}
               >
-                {item.label}
+                <span className="text-base">{item.icon}</span>
+                <span>{item.label.replace(/^.\s/, "")}</span>
               </Link>
             );
           })}
@@ -117,8 +98,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 p-8">{children}</main>
+      {/* ---- Mobile top bar ---- */}
+      <div className="md:hidden fixed top-0 inset-x-0 h-12 bg-gray-900 flex items-center px-3 z-50">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white text-xl">
+          ☰
+        </button>
+        <span className="ml-3 text-white font-bold text-sm">⚙️ 管理后台</span>
+      </div>
+
+      {/* ---- Mobile overlay + sidebar ---- */}
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 bg-black/40 z-40"
+            onClick={closeMobileMenu}
+          />
+          <aside className="md:hidden fixed top-0 left-0 bottom-0 w-64 bg-gray-900 text-white z-50 pt-12">
+            <nav className="p-3 space-y-1">
+              {menuItems.map((item) => {
+                const active = pathname === item.href
+                  || (item.href !== "/admin" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition ${
+                      active
+                        ? "bg-gray-800 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-gray-800"
+                    }`}
+                  >
+                    <span className="text-base">{item.icon}</span>
+                    <span>{item.label.replace(/^.\s/, "")}</span>
+                  </Link>
+                );
+              })}
+              <hr className="border-gray-800 my-2" />
+              <Link
+                href="/dashboard"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-2 px-3 py-3 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition"
+              >
+                ← 返回前台
+              </Link>
+            </nav>
+          </aside>
+        </>
+      )}
+
+      {/* ---- Main content ---- */}
+      <main className="flex-1 p-4 sm:p-6 md:p-8 pt-16 md:pt-8">{children}</main>
     </div>
   );
 }
