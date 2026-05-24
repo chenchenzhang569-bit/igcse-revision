@@ -146,15 +146,18 @@ export async function GET(req: NextRequest) {
       // purchase query failed → just show practiced (no harm)
     }
 
-    // === Step 3: Default — if no subjects yet for all-plan / no-purchase, show first 3 ===
-    if (Object.keys(subjectMap).length === 0 && (isAllPlan || hasNoPurchases)) {
-      const resTop3 = await fetch(
-        `${API}/subjects?select=slug&limit=3`,
+    // === Step 3: Pad to at least 3 subjects — fill with default top subjects ===
+    if (Object.keys(subjectMap).length < 3 && (isAllPlan || hasNoPurchases)) {
+      const existingSlugs = Object.keys(subjectMap);
+      const resTop = await fetch(
+        `${API}/subjects?select=slug&limit=10`,
         { headers: publicHeaders }
       );
-      const top3 = await resTop3.json();
-      if (Array.isArray(top3)) {
-        for (const s of top3) {
+      const topList = await resTop.json();
+      if (Array.isArray(topList)) {
+        for (const s of topList) {
+          if (Object.keys(subjectMap).length >= 3) break;
+          if (existingSlugs.includes(s.slug)) continue;
           subjectMap[s.slug] = {
             total: 0, correct: 0, slug: s.slug,
             used: 0, subtopics: subTotalBySubject[s.slug] || 0,
