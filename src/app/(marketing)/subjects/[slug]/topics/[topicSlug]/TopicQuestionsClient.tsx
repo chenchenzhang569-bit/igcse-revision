@@ -717,15 +717,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </span>
           <div className="flex items-center gap-1">
             <BookmarkButton questionId={q.id} />
-            {bugContext && (
-              <button
-                onClick={() => setBugModalOpen(true)}
-                className="text-gray-400 hover:text-amber-500 transition"
-                title="Report issue"
-              >
-                🐛
-              </button>
-            )}
+            <button
+              onClick={() => setBugModalOpen(true)}
+              className="text-gray-400 hover:text-amber-500 transition"
+              title="Report issue"
+            >
+              🐛
+            </button>
           </div>
         </div>
         {!isMcq && hasSubParts ? (
@@ -895,19 +893,17 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         </button>
       </div>
     {/* Bug report modal */}
-    {bugContext && (
-      <ReportBugModal
-        open={bugModalOpen}
-        onClose={() => setBugModalOpen(false)}
-        context={{
-          board: bugContext.board,
-          subject: bugContext.subject,
-          code: bugContext.code,
-          subtopic: bugContext.topicName,
-          questionNo: `Q${currentIdx + 1}`,
-        }}
-      />
-    )}
+    <ReportBugModal
+      open={bugModalOpen}
+      onClose={() => setBugModalOpen(false)}
+      context={bugContext ? {
+        board: bugContext.board,
+        subject: bugContext.subject,
+        code: bugContext.code,
+        subtopic: bugContext.topicName,
+        questionNo: `Q${currentIdx + 1}`,
+      } : undefined}
+    />
     </div>
   );
 }

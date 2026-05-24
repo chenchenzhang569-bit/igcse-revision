@@ -16,12 +16,13 @@ export interface BugContext {
 interface Props {
   open: boolean;
   onClose: () => void;
-  context: BugContext;
+  context?: BugContext;
 }
 
 const ERROR_TYPES = ["Wrong Question", "Wrong Answer", "Wrong Grading", "Missing Diagram", "Other"] as const;
 
-function buildContextLabel(c: BugContext): string {
+function buildContextLabel(c?: BugContext): string {
+  if (!c) return "Report from Topic Page";
   const parts = [`${c.board} ${c.subject} ${c.code}`];
   if (c.set) {
     parts.push(`Mock Exam · ${c.set}`);
