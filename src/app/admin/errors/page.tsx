@@ -99,6 +99,30 @@ export default function AdminErrorsPage() {
     <div>
       <h1 className="text-2xl font-extrabold text-primary-900 mb-6">🐛 错误报告</h1>
 
+      {/* 测试按钮 */}
+      <button
+        onClick={async () => {
+          try {
+            const res = await fetch("/api/errors/report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: `Test error triggered manually at ${new Date().toISOString()}`,
+                url: location.pathname,
+                userAgent: navigator.userAgent,
+              }),
+            });
+            const d = await res.json();
+            alert(d.success ? "✅ Error reported! Refresh to see it." : "❌ Failed: " + (d.error || "unknown"));
+          } catch (e: any) {
+            alert("Network error: " + e.message);
+          }
+        }}
+        className="mb-6 text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+      >
+        🧪 Trigger Test Error
+      </button>
+
       {/* 状态筛选 */}
       <div className="flex gap-2 mb-6 overflow-x-auto">
         {STATUS_TABS.map((tab) => (

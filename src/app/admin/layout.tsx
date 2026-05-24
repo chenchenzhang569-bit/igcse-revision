@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import ErrorReporter from "@/components/ErrorReporter";
 
 const menuItems = [
   { href: "/admin", label: "📊 Dashboard", icon: "📊" },
@@ -61,6 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <ErrorReporter />
       {/* ---- Sidebar (desktop) ---- */}
       <aside className="w-56 bg-gray-900 text-white flex-col hidden md:flex">
         <div className="p-5 border-b border-gray-800">
