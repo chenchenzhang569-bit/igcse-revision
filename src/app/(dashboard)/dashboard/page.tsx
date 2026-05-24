@@ -155,6 +155,11 @@ export default function DashboardPage() {
           Overall Accuracy
         </h2>
         {(() => {
+          const DEFAULT_SLUGS = [
+            "caie-physics-0625",
+            "caie-chemistry-0620",
+            "caie-biology-0610",
+          ];
           // 1. Recently practiced subjects (from recent activity)
           const practicedSlugs: string[] = [];
           for (const r of s.recent) {
@@ -164,17 +169,21 @@ export default function DashboardPage() {
           const unpracticedSlugs = s.subjects
             .filter(sub => sub.total === 0 && !practicedSlugs.includes(sub.slug))
             .map(sub => sub.slug);
-          // 3. Fill: remaining (default top 3)
+          // 3. Fill: remaining from subjects array
           const remainingSlugs = s.subjects
             .filter(sub => !practicedSlugs.includes(sub.slug) && !unpracticedSlugs.includes(sub.slug))
             .map(sub => sub.slug);
-          
-          const selectedSlugs = [...practicedSlugs, ...unpracticedSlugs, ...remainingSlugs].slice(0, 3);
-          
+          // 4. Fill: hardcoded defaults (Physics, Chemistry, Biology)
+          const defaultSlugs = DEFAULT_SLUGS.filter(
+            slug => !practicedSlugs.includes(slug) && !unpracticedSlugs.includes(slug) && !remainingSlugs.includes(slug)
+          );
+
+          const selectedSlugs = [...practicedSlugs, ...unpracticedSlugs, ...remainingSlugs, ...defaultSlugs].slice(0, 3);
+
           if (selectedSlugs.length === 0) {
             return <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>;
           }
-          
+
           const DONUT_COLORS = ["#FF8C00", "#001C71", "#059669"];
           return (
             <div className="grid grid-cols-3 gap-4">
@@ -182,13 +191,13 @@ export default function DashboardPage() {
                 const sub = s.subjects.find(x => x.slug === slug);
                 const correct = sub?.correct || 0;
                 const total = sub?.total || 0;
-                const rate = sub?.rate || 0;
+                const rate = total > 0 ? (sub?.rate || 0) : 100;
                 const hasData = total > 0;
                 const pieData = hasData
                   ? [{ name: "Correct", value: correct }, { name: "Incorrect", value: total - correct }]
-                  : [{ name: "No data", value: 1 }];
+                  : [{ name: "Ready", value: 1 }];
                 return (
-                  <div key={slug} className="relative flex flex-col items-center" style={{ height: 200 }}>
+                  <div key={slug} className="relative flex flex-col items-center" style={{ height: 210 }}>
                     <ResponsiveContainer width="100%" height={160}>
                       <PieChart>
                         <Pie
@@ -205,22 +214,20 @@ export default function DashboardPage() {
                               <Cell fill="#001C71" />
                             </>
                           ) : (
-                            <Cell fill="#E5E7EB" />
+                            <Cell fill="#FF8C00" />
                           )}
                         </Pie>
+                        <Tooltip
+                          contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }}
+                          formatter={(v: number, name: string) => [v, name === "Correct" ? "Correct" : name === "Incorrect" ? "Incorrect" : "Ready"]}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, height: 160 }}>
-                      {hasData ? (
-                        <>
-                          <span className="text-2xl font-extrabold" style={{ color: DONUT_COLORS[idx] }}>{rate}%</span>
-                          <span className="text-xs text-gray-400 font-medium">{correct}/{total}</span>
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-400 font-medium">N/A</span>
-                      )}
+                      <span className="text-2xl font-extrabold" style={{ color: DONUT_COLORS[idx] }}>{rate}%</span>
+                      <span className="text-xs text-gray-400 font-medium">{hasData ? `${correct}/${total}` : "0/0"}</span>
                     </div>
-                    <p className="text-sm font-semibold text-center mt-2 px-1 leading-tight" style={{ color: DONUT_COLORS[idx] }}>
+                    <p className="text-xs font-semibold text-center mt-2 px-1 leading-tight" style={{ color: DONUT_COLORS[idx] }}>
                       {subjectLabel(slug)}
                     </p>
                   </div>

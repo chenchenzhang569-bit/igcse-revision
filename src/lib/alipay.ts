@@ -18,11 +18,16 @@ function getAlipay(): AlipaySdk {
 
     _alipay = new AlipaySdk({
       appId,
+      privateKey: (() => {
+        const raw = process.env.ALIPAY_PRIVATE_KEY!;
+        console.log("[ALIPAY DEBUG] raw key starts:", raw.substring(0, 50));
+        console.log("[ALIPAY DEBUG] has BEGIN:", raw.includes("-----BEGIN"));
+    _alipay = new AlipaySdk({
+      appId,
       privateKey: process.env.ALIPAY_PRIVATE_KEY!,
       alipayPublicKey: ensurePem(process.env.ALIPAY_PUBLIC_KEY!, "PUBLIC"),
       gateway: process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do",
       signType: "RSA2",
-      keyType: "PKCS8",
     });
   }
   return _alipay;
