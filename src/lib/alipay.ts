@@ -33,9 +33,17 @@ function sign(params: Record<string, string>): string {
     .map((k) => `${k}=${params[k]}`)
     .join("&");
 
-  const signer = crypto.createSign("RSA-SHA256");
-  signer.update(sorted, "utf8");
-  return signer.sign(getPrivateKey(), "base64");
+  // Parse key explicitly as PKCS#8
+  const pemKey = getPrivateKey();
+  let keyObj: crypto.KeyObject;
+  try {
+    keyObj = crypto.createPrivateKey({ key: pemKey, format: "pem", type: "pkcs8" });
+  } catch {
+    // fallback: try without explicit type
+    keyObj = crypto.createPrivateKey({ key: pemKey, format: "pem" });
+  }
+
+  return crypto.sign("RSA-SHA256", Buffer.from(sorted, "utf8"), keyObj).toString("base64");
 }
 
 export function createPagePayForm(params: {
