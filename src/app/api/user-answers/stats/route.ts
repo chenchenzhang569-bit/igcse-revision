@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
-const SR_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88";
 
-// Extract JWT from Authorization header or cookie
 function getJwt(req: NextRequest): string | null {
-  // 1. Try Authorization: Bearer <token>
   const authHeader = req.headers.get("authorization") || "";
   if (authHeader.startsWith("Bearer ")) return authHeader.slice(7);
 
-  // 2. Fallback: extract from Supabase cookie
   const cookieHeader = req.headers.get("cookie") || "";
   const match = cookieHeader.match(/sb-[^;]+-auth-token=([^;]+)/);
   if (!match) return null;
@@ -21,19 +17,14 @@ function getJwt(req: NextRequest): string | null {
   } catch { return null; }
 }
 
-// Decode JWT payload to get user_id
 function getUserIdFromJwt(token: string): string | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
-    const decoded = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return decoded.sub || null;
-  } catch {
-    return null;
-  }
+    return JSON.parse(Buffer.from(payload, "base64url").toString()).sub || null;
+  } catch { return null; }
 }
 
-// GET /api/user-answers/stats
 export async function GET(req: NextRequest) {
   try {
     const jwt = getJwt(req);
@@ -46,49 +37,6 @@ export async function GET(req: NextRequest) {
     const authHeaders = { apikey: ANON_KEY, Authorization: `Bearer ${jwt}` };
     const publicHeaders = { apikey: ANON_KEY };
 
-    // 0. Get user's purchased subjects (with fallback)
-    let hasAllPlan = false;
-    let purchasedSlugs: string[] = [];
-    try {
-      const resPurchases = await fetch(
-        `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
-        { headers: { apikey: ANON_KEY, Authorization: `Bearer ${SR_KEY}` } }
-      );
-      const purchases = await resPurchases.json();
-      hasAllPlan = Array.isArray(purchases) && purchases.some((p: any) => p.subject_id === null);
-      const purchasedSubjectIds: string[] = Array.isArray(purchases)
-        ? purchases.filter((p: any) => p.subject_id).map((p: any) => p.subject_id)
-        : [];
-
-      // Get subjects slug → id mapping
-      const resAllSubjects = await fetch(
-        `${API}/subjects?select=id,slug,display_name`,
-        { headers: publicHeaders }
-      );
-      const allSubjectsRaw = await resAllSubjects.json();
-      const subjectIdToSlug: Record<string, string> = {};
-      const allSubjectSlugs: string[] = [];
-      if (Array.isArray(allSubjectsRaw)) {
-        for (const s of allSubjectsRaw) {
-          subjectIdToSlug[s.id] = s.slug;
-          allSubjectSlugs.push(s.slug);
-        }
-      }
-
-      if (hasAllPlan) {
-        purchasedSlugs = allSubjectSlugs;
-      } else if (purchasedSubjectIds.length > 0) {
-        purchasedSlugs = purchasedSubjectIds.map(id => subjectIdToSlug[id]).filter(Boolean);
-      }
-    } catch (e) {
-      console.error("Purchase filter failed, falling back to all subjects:", e);
-      // Fallback: show all subjects (old behavior)
-      purchasedSlugs = []; // empty means no filter
-    }
-
-    const purchasedSet = new Set(purchasedSlugs);
-    const filterByPurchases = purchasedSlugs.length > 0;
-
     // 1. Get user answers
     const res1 = await fetch(
       `${API}/user_answers?select=is_correct,subject_slug,created_at,question_id,subtopic_code,difficulty,question_text,user_answer,correct_answer&user_id=eq.${userId}&order=created_at.desc&limit=500`,
@@ -100,8 +48,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [], subtopicProgress: [] });
     }
 
-    // 2. Get topics → subject mapping (topic.id → subject.slug)
-    // Supabase lets us expand: topics(*, subjects(slug))
+    // 2. Get topics → subject mapping
     const resTopics = await fetch(
       `${API}/topics?select=id,subjects(slug)`,
       { headers: publicHeaders }
@@ -142,17 +89,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Also include practiced subjects in the allowed set
-    // (so user sees both purchased and practiced subjects)
-    for (const slug of Object.keys(practicedBySubject)) {
-      purchasedSet.add(slug);
-    }
-
-    // 5. Per-subject stats (total/correct)
+    // 5. Per-subject stats
     const subjectMap: Record<string, { total: number; correct: number; slug: string; used: number; subtopics: number }> = {};
     for (const a of all) {
       const s = a.subject_slug || "unknown";
-      if (filterByPurchases && !purchasedSet.has(s)) continue; // skip non-purchased
       if (!subjectMap[s]) {
         subjectMap[s] = {
           total: 0, correct: 0, slug: s,
@@ -164,20 +104,10 @@ export async function GET(req: NextRequest) {
       if (a.is_correct) subjectMap[s].correct++;
     }
 
-    // For specific purchases: add purchased but unpracticed subjects
-    // For all-plan: only show practiced subjects
-    if (!hasAllPlan) {
-      for (const slug of purchasedSlugs) {
-        if (!subjectMap[slug]) {
-          subjectMap[slug] = { total: 0, correct: 0, slug, used: 0, subtopics: subTotalBySubject[slug] || 0 };
-        }
-      }
-    }
-
     const total = all.length;
     const correct = all.filter((a: any) => a.is_correct).length;
 
-    let subjects = Object.values(subjectMap).map(s => ({
+    const subjects = Object.values(subjectMap).map(s => ({
       slug: s.slug,
       total: s.total,
       correct: s.correct,
@@ -186,18 +116,6 @@ export async function GET(req: NextRequest) {
       subtopics: s.subtopics,
     }));
 
-    // Default: if all-plan and no practice yet, show first 3 subjects
-    if (subjects.length === 0 && hasAllPlan && purchasedSlugs.length > 0) {
-      const defaults = purchasedSlugs.slice(0, 3);
-      subjects = defaults.map(slug => ({
-        slug,
-        total: 0, correct: 0, rate: 0,
-        used: 0,
-        subtopics: subTotalBySubject[slug] || 0,
-      }));
-    }
-
-    // Subtopic progress: practiced / total
     const subtopicProgress = Object.entries(subTotalBySubject).map(([slug, total]) => ({
       slug,
       practiced: practicedBySubject[slug]?.size || 0,
@@ -217,7 +135,6 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json({
-      _v: 2,
       total,
       correct,
       rate: total > 0 ? Math.round((correct / total) * 100) : 0,
