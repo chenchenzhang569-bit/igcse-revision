@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function DashboardLayout({
   children,
@@ -14,12 +15,31 @@ export default function DashboardLayout({
     <AuthProvider>
       <DashboardContent>{children}</DashboardContent>
     </AuthProvider>
-  );
 }
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut, warning } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      try {
+        const res = await fetch("/api/admin/check-role", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const d = await res.json();
+        if (d.isAdmin) setIsAdmin(true);
+      } catch {}
+    };
+    check();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,8 +70,17 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             Dashboard
           </span>
 
-          {/* Right: user info + sign out (always visible, no hamburger) */}
+          {/* Right: admin link + user info + sign out */}
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-accent-500 transition mr-2"
+              >
+                <span className="text-base">⚙️</span>
+                <span>Admin</span>
+              </Link>
+            )}
             {user && (
               <>
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs sm:text-sm">
