@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 
 const contentTabs = [
   { id: "subjects", label: "📚 科目管理", tab: "subjects" },
@@ -18,6 +20,46 @@ const toolsLinks = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.replace("/login?redirect=admin");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/admin/check-role", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const { isAdmin: ok } = await res.json();
+          if (ok) { setIsAdmin(true); setChecking(false); return; }
+        }
+      } catch {}
+
+      router.replace("/dashboard");
+    };
+    check();
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p className="text-gray-400">Checking permissions...</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null; // redirect already triggered
 
   return (
     <div className="flex min-h-screen bg-gray-50">

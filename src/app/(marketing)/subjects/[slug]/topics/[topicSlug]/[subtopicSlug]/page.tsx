@@ -250,12 +250,12 @@ export default async function SubtopicPage({
             {prevSub ? (
               <Link
                 href={`/subjects/${slug}/topics/${topicSlug}/${prevSub.slug}`}
-                className="flex items-center gap-3 text-gray-600 hover:text-primary-900 transition group flex-1"
+                className="flex items-center gap-3 bg-accent-500 hover:bg-accent-600 text-white rounded-xl px-5 py-3 transition group flex-1"
               >
                 <span className="text-xl group-hover:-translate-x-1 transition-transform">←</span>
                 <div>
-                  <div className="text-xs text-gray-400 mb-0.5">Previous</div>
-                  <div className="text-sm font-medium">{prevSub.pmtCode} {prevSub.displayName}</div>
+                  <div className="text-xs text-orange-100 mb-0.5">Previous</div>
+                  <div className="text-sm font-semibold">{prevSub.pmtCode} {prevSub.displayName}</div>
                 </div>
               </Link>
             ) : <div className="flex-1" />}
@@ -263,11 +263,11 @@ export default async function SubtopicPage({
             {nextSub ? (
               <Link
                 href={`/subjects/${slug}/topics/${topicSlug}/${nextSub.slug}`}
-                className="flex items-center justify-end gap-3 text-gray-600 hover:text-primary-900 transition group flex-1 text-right"
+                className="flex items-center justify-end gap-3 bg-accent-500 hover:bg-accent-600 text-white rounded-xl px-5 py-3 transition group flex-1 text-right"
               >
                 <div>
-                  <div className="text-xs text-gray-400 mb-0.5">Next</div>
-                  <div className="text-sm font-medium">{nextSub.pmtCode} {nextSub.displayName}</div>
+                  <div className="text-xs text-orange-100 mb-0.5">Next</div>
+                  <div className="text-sm font-semibold">{nextSub.pmtCode} {nextSub.displayName}</div>
                 </div>
                 <span className="text-xl group-hover:translate-x-1 transition-transform">→</span>
               </Link>
