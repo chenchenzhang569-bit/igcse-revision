@@ -3,6 +3,12 @@ import * as crypto from "crypto";
 
 let _alipay: AlipaySdk | null = null;
 
+function ensurePem(key: string, type: "PRIVATE" | "PUBLIC"): string {
+  if (key.includes("-----BEGIN")) return key;
+  // Auto-wrap raw base64 with PEM headers
+  return `-----BEGIN ${type} KEY-----\n${key}\n-----END ${type} KEY-----`;
+}
+
 function getAlipay(): AlipaySdk {
   if (!_alipay) {
     const appId = process.env.ALIPAY_APP_ID;
@@ -10,8 +16,8 @@ function getAlipay(): AlipaySdk {
 
     _alipay = new AlipaySdk({
       appId,
-      privateKey: process.env.ALIPAY_PRIVATE_KEY!,
-      alipayPublicKey: process.env.ALIPAY_PUBLIC_KEY!,
+      privateKey: ensurePem(process.env.ALIPAY_PRIVATE_KEY!, "PRIVATE"),
+      alipayPublicKey: ensurePem(process.env.ALIPAY_PUBLIC_KEY!, "PUBLIC"),
       gateway: process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do",
       signType: "RSA2",
     });

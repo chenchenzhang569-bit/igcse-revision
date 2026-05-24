@@ -226,7 +226,7 @@ export default function MyBankPage() {
           <div key={board.name}>
             <div className="flex items-center gap-3 px-4 py-3 rounded-t-lg" style={{ background: "#001C71" }}>
               <span className="text-base">🎓</span>
-              <span className="flex-1 font-semibold text-sm" style={{ color: "#FF8C00" }}>{board.name}</span>
+              <span className="flex-1 font-bold text-base" style={{ color: "#FF8C00" }}>{board.name}</span>
               <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(255,140,0,0.2)", color: "#FF8C00" }}>{board.count}</span>
             </div>
             {(board.children || []).map((subject) => (
