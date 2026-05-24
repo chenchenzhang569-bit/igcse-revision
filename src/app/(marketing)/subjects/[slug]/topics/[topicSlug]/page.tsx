@@ -219,7 +219,16 @@ export default async function TopicPage({
 
       {/* Questions tab */}
       {activeTab === "questions" && topicId && (
-        <TopicQuestionsClient topicId={topicId} preloadedQuestions={questions} />
+        <TopicQuestionsClient
+          topicId={topicId}
+          preloadedQuestions={questions}
+          bugContext={{
+            board: slug.startsWith("edexcel") ? "Edexcel" : "CAIE",
+            subject: (() => { const parts = slug.split("-"); const idx = parts.findIndex((p: string) => p === "physics" || p === "chemistry" || p === "biology" || p === "mathematics"); return idx >= 0 ? parts[idx].charAt(0).toUpperCase() + parts[idx].slice(1) : "Unknown"; })(),
+            code: (() => { const p = slug.split("-"); const last = p[p.length-1]; return /^\\d/.test(last) ? last : ""; })(),
+            topicName: displayName,
+          }}
+        />
       )}
       {activeTab === "questions" && !topicId && (
         <div className="mt-6 text-center py-20 text-gray-400">

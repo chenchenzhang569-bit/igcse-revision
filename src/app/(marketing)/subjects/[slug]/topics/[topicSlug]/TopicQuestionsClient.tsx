@@ -6,6 +6,7 @@ import { getSupabaseClient } from "@/lib/supabase-client";
 import { createBrowserClient } from "@supabase/ssr";
 import { renderMath } from "@/lib/math";
 import BookmarkButton from "@/components/BookmarkButton";
+import ReportBugModal, { type BugContext } from "@/components/ReportBugModal";
 
 interface Question {
   id: string;
@@ -239,7 +240,11 @@ function normalizeAlgebraic(expr: string): string {
   return result;
 }
 
-export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { topicId: string; preloadedQuestions?: any[] }) {
+export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugContext }: {
+  topicId: string;
+  preloadedQuestions?: any[];
+  bugContext?: { board: string; subject: string; code: string; topicName: string };
+}) {
   const supabase = useMemo(() => getSupabaseClient(), []);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -261,6 +266,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
+  const [bugModalOpen, setBugModalOpen] = useState(false);
 
   // Fetch bookmarked question IDs for "Saved" filter
   useEffect(() => {
@@ -710,6 +716,15 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
             {(DIFFICULTY_CONFIG[q.difficulty] || DIFFICULTY_CONFIG.medium).label}
           </span>
           <BookmarkButton questionId={q.id} />
+          {bugContext && (
+            <button
+              onClick={() => setBugModalOpen(true)}
+              className="text-gray-400 hover:text-amber-500 transition ml-2"
+              title="Report issue"
+            >
+              🐛
+            </button>
+          )}
         </div>
         {!isMcq && hasSubParts ? (
           <>
@@ -877,6 +892,20 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions }: { 
           Clear all progress
         </button>
       </div>
+    {/* Bug report modal */}
+    {bugContext && (
+      <ReportBugModal
+        open={bugModalOpen}
+        onClose={() => setBugModalOpen(false)}
+        context={{
+          board: bugContext.board,
+          subject: bugContext.subject,
+          code: bugContext.code,
+          subtopic: bugContext.topicName,
+          questionNo: `Q${currentIdx + 1}`,
+        }}
+      />
+    )}
     </div>
   );
 }
