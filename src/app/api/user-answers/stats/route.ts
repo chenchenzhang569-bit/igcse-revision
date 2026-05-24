@@ -79,9 +79,6 @@ export async function GET(req: NextRequest) {
       } else if (purchasedSubjectIds.length > 0) {
         purchasedSlugs = purchasedSubjectIds.map(id => subjectIdToSlug[id]).filter(Boolean);
       }
-      if (!hasAllPlan && purchasedSlugs.length === 0) {
-        return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [], subtopicProgress: [] });
-      }
     } catch (e) {
       console.error("Purchase filter failed, falling back to all subjects:", e);
       // Fallback: show all subjects (old behavior)
