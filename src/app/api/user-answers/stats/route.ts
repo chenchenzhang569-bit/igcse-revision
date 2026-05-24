@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+const SR_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88";
 
 // Extract JWT from Authorization header or cookie
 function getJwt(req: NextRequest): string | null {
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
     try {
       const resPurchases = await fetch(
         `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
-        { headers: authHeaders }
+        { headers: { apikey: ANON_KEY, Authorization: `Bearer ${SR_KEY}` } }
       );
       const purchases = await resPurchases.json();
       hasAllPlan = Array.isArray(purchases) && purchases.some((p: any) => p.subject_id === null);
@@ -179,15 +180,15 @@ export async function GET(req: NextRequest) {
       subtopics: s.subtopics,
     }));
 
-    // Default: if all-plan and no practice yet, show first purchased subject
+    // Default: if all-plan and no practice yet, show first 3 subjects
     if (subjects.length === 0 && hasAllPlan && purchasedSlugs.length > 0) {
-      const firstSlug = purchasedSlugs[0];
-      subjects = [{
-        slug: firstSlug,
+      const defaults = purchasedSlugs.slice(0, 3);
+      subjects = defaults.map(slug => ({
+        slug,
         total: 0, correct: 0, rate: 0,
         used: 0,
-        subtopics: subTotalBySubject[firstSlug] || 0,
-      }];
+        subtopics: subTotalBySubject[slug] || 0,
+      }));
     }
 
     // Subtopic progress: practiced / total
@@ -210,6 +211,7 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json({
+      _v: 2,
       total,
       correct,
       rate: total > 0 ? Math.round((correct / total) * 100) : 0,
