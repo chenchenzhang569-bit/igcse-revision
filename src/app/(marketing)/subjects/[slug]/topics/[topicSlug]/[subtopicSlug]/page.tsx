@@ -1,7 +1,7 @@
 // fix: anon-key subtopic filtering + all subjects
 export const dynamic = "force-dynamic";
 import Link from "next/link";
-import { getSubtopic } from "@/lib/subtopic-data";
+import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -235,6 +235,46 @@ export default async function SubtopicPage({
         subjectSlug={slug}
         topicSlug={topicSlug}
       />
+
+      {/* Back/Next Navigation — within same Topic */}
+      {(() => {
+        const allSubs = getSubtopics(subjectKey, topicSlug);
+        const currentIdx = allSubs.findIndex(s => s.slug === subtopicSlug);
+        const prevSub = currentIdx > 0 ? allSubs[currentIdx - 1] : null;
+        const nextSub = currentIdx < allSubs.length - 1 ? allSubs[currentIdx + 1] : null;
+
+        if (!prevSub && !nextSub) return null;
+
+        return (
+          <div className="mt-10 flex justify-between items-start gap-4">
+            {prevSub ? (
+              <Link
+                href={`/subjects/${slug}/topics/${topicSlug}/${prevSub.slug}`}
+                className="flex items-center gap-3 text-gray-600 hover:text-primary-900 transition group flex-1"
+              >
+                <span className="text-xl group-hover:-translate-x-1 transition-transform">←</span>
+                <div>
+                  <div className="text-xs text-gray-400 mb-0.5">Previous</div>
+                  <div className="text-sm font-medium">{prevSub.pmtCode} {prevSub.displayName}</div>
+                </div>
+              </Link>
+            ) : <div className="flex-1" />}
+
+            {nextSub ? (
+              <Link
+                href={`/subjects/${slug}/topics/${topicSlug}/${nextSub.slug}`}
+                className="flex items-center justify-end gap-3 text-gray-600 hover:text-primary-900 transition group flex-1 text-right"
+              >
+                <div>
+                  <div className="text-xs text-gray-400 mb-0.5">Next</div>
+                  <div className="text-sm font-medium">{nextSub.pmtCode} {nextSub.displayName}</div>
+                </div>
+                <span className="text-xl group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+            ) : <div className="flex-1" />}
+          </div>
+        );
+      })()}
     </div>
   );
 }
