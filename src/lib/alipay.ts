@@ -18,7 +18,7 @@ function getAlipay(): AlipaySdk {
 
     _alipay = new AlipaySdk({
       appId,
-      privateKey: ensurePem(process.env.ALIPAY_PRIVATE_KEY!, "PRIVATE"),
+      privateKey: process.env.ALIPAY_PRIVATE_KEY!,
       alipayPublicKey: ensurePem(process.env.ALIPAY_PUBLIC_KEY!, "PUBLIC"),
       gateway: process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do",
       signType: "RSA2",
