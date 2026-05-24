@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createPagePayForm, generateTradeNo } from "@/lib/alipay";
+import { createPagePayUrl, generateTradeNo } from "@/lib/alipay";
 import type { NextRequest } from "next/server";
 
 const PRICE_PER_SUBJECT = 50;
@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
       console.error("All plan insert error:", error);
       return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
     }
-    let formHtml: string;
+    let url: string;
     try {
-      formHtml = createPagePayForm({
+      url = createPagePayUrl({
         outTradeNo: tradeNo,
         totalAmount: String(PRICE_ALL) + ".00",
         subject: "IGCSE All Subjects - Lifetime Access",
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       console.error("Alipay form error:", e.message, e.stack);
       return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
     }
-    return new NextResponse(formHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    return NextResponse.redirect(url);
   }
 
   if (!subjectId) return NextResponse.json({ error: "缺少科目ID" }, { status: 400 });
@@ -112,9 +112,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
   }
 
-  let formHtml: string;
+  let url: string;
   try {
-    formHtml = createPagePayForm({
+    url = createPagePayUrl({
       outTradeNo: tradeNo,
       totalAmount: String(PRICE_PER_SUBJECT) + ".00",
       subject: `IGCSE ${subject.display_name}`,
@@ -125,6 +125,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
   }
 
-  return new NextResponse(formHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  return NextResponse.redirect(url);
 }
 // deploy trigger 1779554954

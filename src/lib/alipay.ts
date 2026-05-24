@@ -33,20 +33,18 @@ function sign(params: Record<string, string>): string {
     .map((k) => `${k}=${params[k]}`)
     .join("&");
 
-  // Parse key explicitly as PKCS#8
   const pemKey = getPrivateKey();
   let keyObj: crypto.KeyObject;
   try {
     keyObj = crypto.createPrivateKey({ key: pemKey, format: "pem", type: "pkcs8" });
   } catch {
-    // fallback: try without explicit type
     keyObj = crypto.createPrivateKey({ key: pemKey, format: "pem" });
   }
 
   return crypto.sign("RSA-SHA256", Buffer.from(sorted, "utf8"), keyObj).toString("base64");
 }
 
-export function createPagePayForm(params: {
+export function createPagePayUrl(params: {
   outTradeNo: string;
   totalAmount: string;
   subject: string;
@@ -77,21 +75,11 @@ export function createPagePayForm(params: {
 
   const gateway = process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do";
 
-  const formFields = Object.entries(signParams)
-    .map(([k, v]) => `<input type="hidden" name="${k}" value="${escapeHtml(v)}" />`)
-    .join("\n");
+  const query = Object.entries(signParams)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
 
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Redirecting to Alipay...</title></head>
-<body>
-<form id="alipay" action="${gateway}" method="GET">
-${formFields}
-<input type="hidden" name="sign" value="${escapeHtml(signature)}" />
-</form>
-<script>document.getElementById("alipay").submit();</script>
-</body>
-</html>`;
+  return `${gateway}?${query}&sign=${encodeURIComponent(signature)}`;
 }
 
 export function verifyNotify(params: Record<string, string>): boolean {
@@ -115,8 +103,4 @@ export function generateTradeNo(): string {
   const now = Date.now();
   const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `IGCSE${now}${rand}`;
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
