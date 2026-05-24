@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import { createBrowserClient } from "@supabase/ssr";
+import ErrorReporter from "@/components/ErrorReporter";
 
 export default function DashboardLayout({
   children,
@@ -44,6 +45,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Global error catcher */}
+      <ErrorReporter />
       {/* Security Warning Banner */}
       {warning && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
