@@ -73,8 +73,16 @@ function CheckoutContent() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        setError(err.error || "Payment failed");
+        let errText = "Payment failed";
+        try {
+          const err = await res.json();
+          errText = err.error || "Payment failed";
+        } catch {
+          // response is not JSON (e.g. HTML error page)
+          const text = await res.clone().text();
+          errText = text.slice(0, 200) || `HTTP ${res.status}`;
+        }
+        setError(errText);
         setStatus("error");
         return;
       }
@@ -105,8 +113,15 @@ function CheckoutContent() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        setError(err.error || "Trial failed");
+        let errText = "Trial failed";
+        try {
+          const err = await res.json();
+          errText = err.error || "Trial failed";
+        } catch {
+          const text = await res.clone().text();
+          errText = text.slice(0, 200) || `HTTP ${res.status}`;
+        }
+        setError(errText);
         setStatus("error");
         return;
       }
