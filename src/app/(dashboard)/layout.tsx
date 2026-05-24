@@ -39,7 +39,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Center: Dashboard label */}
-          <span className="text-sm font-semibold text-primary-900 hidden sm:block">
+          <span className="text-xl font-extrabold tracking-tight text-primary-900 hidden sm:block">
             Dashboard
           </span>
 

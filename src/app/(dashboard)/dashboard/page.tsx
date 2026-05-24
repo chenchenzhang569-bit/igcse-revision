@@ -103,8 +103,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6" style={{ fontFamily: "'Inter', 'Poppins', system-ui, sans-serif" }}>
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "#001C71" }}>Dashboard</h1>
-        <p className="mt-1 text-base font-semibold" style={{ color: "#001C71" }}>Track your IGCSE revision progress</p>
+        <p className="text-xl font-extrabold tracking-tight" style={{ color: "#001C71" }}>Track your IGCSE revision progress</p>
       </div>
 
       {/* ROW 1: Quick Links */}
@@ -149,31 +148,87 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ROW 2.5: Overall Accuracy — Donut */}
+      {/* ROW 2.5: Overall Accuracy — Per-Subject Donuts */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <h2 className="text-lg font-extrabold mb-4" style={{ color: "#001C71" }}>
+        <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
           <svg className="w-5 h-5 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
           Overall Accuracy
         </h2>
-        {s.total > 0 ? (
-          <div className="relative flex items-center justify-center" style={{ height: 220 }}>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={[{ name: "Correct", value: s.correct }, { name: "Incorrect", value: s.total - s.correct }]} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none">
-                  <Cell fill="#FF8C00" />
-                  <Cell fill="#001C71" />
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-extrabold" style={{ color: "#001C71" }}>{s.rate}%</span>
-              <span className="text-xs text-gray-400 font-medium">{s.correct}/{s.total}</span>
+        {(() => {
+          // 1. Recently practiced subjects (from recent activity)
+          const practicedSlugs: string[] = [];
+          for (const r of s.recent) {
+            if (!practicedSlugs.includes(r.subject_slug)) practicedSlugs.push(r.subject_slug);
+          }
+          // 2. Fill: purchased but not practiced
+          const unpracticedSlugs = s.subjects
+            .filter(sub => sub.total === 0 && !practicedSlugs.includes(sub.slug))
+            .map(sub => sub.slug);
+          // 3. Fill: remaining (default top 3)
+          const remainingSlugs = s.subjects
+            .filter(sub => !practicedSlugs.includes(sub.slug) && !unpracticedSlugs.includes(sub.slug))
+            .map(sub => sub.slug);
+          
+          const selectedSlugs = [...practicedSlugs, ...unpracticedSlugs, ...remainingSlugs].slice(0, 3);
+          
+          if (selectedSlugs.length === 0) {
+            return <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>;
+          }
+          
+          const DONUT_COLORS = ["#FF8C00", "#001C71", "#059669"];
+          return (
+            <div className="grid grid-cols-3 gap-4">
+              {selectedSlugs.map((slug, idx) => {
+                const sub = s.subjects.find(x => x.slug === slug);
+                const correct = sub?.correct || 0;
+                const total = sub?.total || 0;
+                const rate = sub?.rate || 0;
+                const hasData = total > 0;
+                const pieData = hasData
+                  ? [{ name: "Correct", value: correct }, { name: "Incorrect", value: total - correct }]
+                  : [{ name: "No data", value: 1 }];
+                return (
+                  <div key={slug} className="relative flex flex-col items-center" style={{ height: 200 }}>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="50%" cy="50%"
+                          innerRadius={45} outerRadius={65}
+                          paddingAngle={3}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {hasData ? (
+                            <>
+                              <Cell fill="#FF8C00" />
+                              <Cell fill="#001C71" />
+                            </>
+                          ) : (
+                            <Cell fill="#E5E7EB" />
+                          )}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, height: 160 }}>
+                      {hasData ? (
+                        <>
+                          <span className="text-2xl font-extrabold" style={{ color: DONUT_COLORS[idx] }}>{rate}%</span>
+                          <span className="text-xs text-gray-400 font-medium">{correct}/{total}</span>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-400 font-medium">N/A</span>
+                      )}
+                    </div>
+                    <p className="text-xs font-semibold text-center mt-2 px-1 leading-tight" style={{ color: DONUT_COLORS[idx] }}>
+                      {subjectLabel(slug)}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
-          </div>
-        ) : (
-          <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>
-        )}
+          );
+        })()}
       </div>
 
       {/* ROW 3: Recent Activity */}
