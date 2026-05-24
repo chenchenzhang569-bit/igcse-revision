@@ -93,13 +93,8 @@ function CheckoutContent() {
         return;
       }
 
-      // Open in new window (bypass WeChat/iframe restrictions)
-      const w = window.open(data.url, "_blank");
-      if (!w) {
-        // Fallback: show link for user to click
-        setError(`<a href="${data.url}" target="_blank" class="underline">Click here to pay</a>`);
-        setStatus("error");
-      }
+      // Redirect browser to Alipay
+      window.location.href = data.url;
     } catch (e: any) {
       setError(e.message || "Network error");
       setStatus("error");
