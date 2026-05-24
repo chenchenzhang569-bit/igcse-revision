@@ -72,16 +72,34 @@ function CheckoutContent() {
         body: JSON.stringify(body),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || "Payment failed");
+        let errText = "Payment failed";
+        try {
+          const errData = await res.json();
+          errText = errData.error || "Payment failed";
+        } catch {
+          const text = await res.clone().text().slice(0, 200);
+          errText = text || `HTTP ${res.status}`;
+        }
+        setError(errText);
         setStatus("error");
         return;
       }
 
-      // Redirect to Alipay
-      window.location.href = data.url;
+      const data = await res.json();
+      if (!data.url) {
+        setError("No payment URL returned");
+        setStatus("error");
+        return;
+      }
+
+      // Open in new window (bypass WeChat/iframe restrictions)
+      const w = window.open(data.url, "_blank");
+      if (!w) {
+        // Fallback: show link for user to click
+        setError(`<a href="${data.url}" target="_blank" class="underline">Click here to pay</a>`);
+        setStatus("error");
+      }
     } catch (e: any) {
       setError(e.message || "Network error");
       setStatus("error");
@@ -138,7 +156,7 @@ function CheckoutContent() {
           <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>
           <p className="text-sm text-gray-400 line-through mb-8">¥500</p>
 
-          {status === "error" && <p className="text-red-500 text-sm mb-4">{error}</p>}
+          {status === "error" && <p className="text-red-500 text-sm mb-4" dangerouslySetInnerHTML={{ __html: error }} />}
 
           <button
             onClick={handlePay}
@@ -195,7 +213,7 @@ function CheckoutContent() {
         </p>
 
         {status === "error" && (
-          <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg">{error}</p>
+          <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg" dangerouslySetInnerHTML={{ __html: error }} />
         )}
 
         <button
