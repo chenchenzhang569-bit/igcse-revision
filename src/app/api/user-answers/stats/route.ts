@@ -104,6 +104,44 @@ export async function GET(req: NextRequest) {
       if (a.is_correct) subjectMap[s].correct++;
     }
 
+    // === Step 2: Purchase grouping — supplement unpracticed subjects ===
+    // Group: none / single / all
+    // - none & all: only show practiced (already built above)
+    // - single: also show purchased but unpracticed subjects
+    try {
+      const resPurchases = await fetch(
+        `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
+        { headers: authHeaders }
+      );
+      const purchases = await resPurchases.json();
+      if (Array.isArray(purchases) && purchases.length > 0) {
+        const isAllPlan = purchases.some((p: any) => p.subject_id === null);
+        if (!isAllPlan) {
+          // Single-subject purchases: add unpracticed ones
+          const purchasedIds = purchases.filter((p: any) => p.subject_id).map((p: any) => p.subject_id);
+          if (purchasedIds.length > 0) {
+            const resSubjects = await fetch(
+              `${API}/subjects?select=id,slug&id=in.(${purchasedIds.join(",")})`,
+              { headers: publicHeaders }
+            );
+            const purchasedSubjects = await resSubjects.json();
+            if (Array.isArray(purchasedSubjects)) {
+              for (const ps of purchasedSubjects) {
+                if (!subjectMap[ps.slug]) {
+                  subjectMap[ps.slug] = {
+                    total: 0, correct: 0, slug: ps.slug,
+                    used: practicedBySubject[ps.slug]?.size || 0,
+                    subtopics: subTotalBySubject[ps.slug] || 0,
+                  };
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // purchase query failed → just show practiced (no harm)
+    }
     const total = all.length;
     const correct = all.filter((a: any) => a.is_correct).length;
 
