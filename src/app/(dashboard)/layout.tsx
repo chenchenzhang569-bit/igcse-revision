@@ -15,6 +15,7 @@ export default function DashboardLayout({
     <AuthProvider>
       <DashboardContent>{children}</DashboardContent>
     </AuthProvider>
+  );
 }
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
