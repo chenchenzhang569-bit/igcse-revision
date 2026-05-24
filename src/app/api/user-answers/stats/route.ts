@@ -45,45 +45,51 @@ export async function GET(req: NextRequest) {
     const authHeaders = { apikey: ANON_KEY, Authorization: `Bearer ${jwt}` };
     const publicHeaders = { apikey: ANON_KEY };
 
-    // 0. Get user's purchased subjects
-    const resPurchases = await fetch(
-      `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
-      { headers: authHeaders }
-    );
-    const purchases = await resPurchases.json();
-    const hasAllPlan = Array.isArray(purchases) && purchases.some((p: any) => p.subject_id === null);
-    const purchasedSubjectIds: string[] = Array.isArray(purchases)
-      ? purchases.filter((p: any) => p.subject_id).map((p: any) => p.subject_id)
-      : [];
-
-    // Get subjects slug → id mapping for purchase filtering
-    const resAllSubjects = await fetch(
-      `${API}/subjects?select=id,slug,display_name`,
-      { headers: publicHeaders }
-    );
-    const allSubjectsRaw = await resAllSubjects.json();
-    const subjectIdToSlug: Record<string, string> = {};
-    const allSubjectSlugs: string[] = [];
-    if (Array.isArray(allSubjectsRaw)) {
-      for (const s of allSubjectsRaw) {
-        subjectIdToSlug[s.id] = s.slug;
-        allSubjectSlugs.push(s.slug);
-      }
-    }
-
-    // Determine which subject slugs are purchased
+    // 0. Get user's purchased subjects (with fallback)
+    let hasAllPlan = false;
     let purchasedSlugs: string[] = [];
-    if (hasAllPlan) {
-      purchasedSlugs = allSubjectSlugs; // all subjects
-    } else if (purchasedSubjectIds.length > 0) {
-      purchasedSlugs = purchasedSubjectIds.map(id => subjectIdToSlug[id]).filter(Boolean);
-    }
-    // If no purchases at all, return empty
-    if (!hasAllPlan && purchasedSlugs.length === 0) {
-      return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [], subtopicProgress: [] });
+    try {
+      const resPurchases = await fetch(
+        `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
+        { headers: authHeaders }
+      );
+      const purchases = await resPurchases.json();
+      hasAllPlan = Array.isArray(purchases) && purchases.some((p: any) => p.subject_id === null);
+      const purchasedSubjectIds: string[] = Array.isArray(purchases)
+        ? purchases.filter((p: any) => p.subject_id).map((p: any) => p.subject_id)
+        : [];
+
+      // Get subjects slug → id mapping
+      const resAllSubjects = await fetch(
+        `${API}/subjects?select=id,slug,display_name`,
+        { headers: publicHeaders }
+      );
+      const allSubjectsRaw = await resAllSubjects.json();
+      const subjectIdToSlug: Record<string, string> = {};
+      const allSubjectSlugs: string[] = [];
+      if (Array.isArray(allSubjectsRaw)) {
+        for (const s of allSubjectsRaw) {
+          subjectIdToSlug[s.id] = s.slug;
+          allSubjectSlugs.push(s.slug);
+        }
+      }
+
+      if (hasAllPlan) {
+        purchasedSlugs = allSubjectSlugs;
+      } else if (purchasedSubjectIds.length > 0) {
+        purchasedSlugs = purchasedSubjectIds.map(id => subjectIdToSlug[id]).filter(Boolean);
+      }
+      if (!hasAllPlan && purchasedSlugs.length === 0) {
+        return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [], subtopicProgress: [] });
+      }
+    } catch (e) {
+      console.error("Purchase filter failed, falling back to all subjects:", e);
+      // Fallback: show all subjects (old behavior)
+      purchasedSlugs = []; // empty means no filter
     }
 
-    const purchasedSet = new Set(purchasedSlugs); // for public tables
+    const purchasedSet = new Set(purchasedSlugs);
+    const filterByPurchases = purchasedSlugs.length > 0;
 
     // 1. Get user answers
     const res1 = await fetch(
@@ -142,7 +148,7 @@ export async function GET(req: NextRequest) {
     const subjectMap: Record<string, { total: number; correct: number; slug: string; used: number; subtopics: number }> = {};
     for (const a of all) {
       const s = a.subject_slug || "unknown";
-      if (!purchasedSet.has(s)) continue; // skip non-purchased
+      if (filterByPurchases && !purchasedSet.has(s)) continue; // skip non-purchased
       if (!subjectMap[s]) {
         subjectMap[s] = {
           total: 0, correct: 0, slug: s,
@@ -163,6 +169,9 @@ export async function GET(req: NextRequest) {
         }
       }
     }
+
+    const total = all.length;
+    const correct = all.filter((a: any) => a.is_correct).length;
 
     let subjects = Object.values(subjectMap).map(s => ({
       slug: s.slug,
