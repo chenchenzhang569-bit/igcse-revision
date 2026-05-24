@@ -72,29 +72,16 @@ function CheckoutContent() {
         body: JSON.stringify(body),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        let errText = "Payment failed";
-        try {
-          const err = await res.json();
-          errText = err.error || "Payment failed";
-        } catch {
-          // response is not JSON (e.g. HTML error page)
-          const text = await res.clone().text();
-          errText = text.slice(0, 200) || `HTTP ${res.status}`;
-        }
-        setError(errText);
+        setError(data.error || "Payment failed");
         setStatus("error");
         return;
       }
 
-      const html = await res.text();
-      setStatus("done");
-
-      // Write the Alipay auto-submit form to the document
-      // This will redirect the user to Alipay
-      document.open();
-      document.write(html);
-      document.close();
+      // Redirect to Alipay
+      window.location.href = data.url;
     } catch (e: any) {
       setError(e.message || "Network error");
       setStatus("error");

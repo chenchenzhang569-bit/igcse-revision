@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       console.error("Alipay form error:", e.message, e.stack);
       return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
     }
-    return NextResponse.redirect(url);
+    return NextResponse.json({ url });
   }
 
   if (!subjectId) return NextResponse.json({ error: "缺少科目ID" }, { status: 400 });
@@ -125,6 +125,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
   }
 
-  return NextResponse.redirect(url);
+    return NextResponse.json({ url });
 }
 // deploy trigger 1779554954
