@@ -5,8 +5,7 @@ let _alipay: AlipaySdk | null = null;
 
 function ensurePem(key: string, type: "PRIVATE" | "PUBLIC"): string {
   if (key.includes("-----BEGIN")) return key;
-  // Auto-wrap raw base64 with PEM headers + 64-char line breaks
-  const body = key.replace(/\s/g, ""); // remove any whitespace
+  const body = key.replace(/\s/g, "");
   const lines = body.match(/.{1,64}/g) || [body];
   return `-----BEGIN ${type} KEY-----\n${lines.join("\n")}\n-----END ${type} KEY-----`;
 }
@@ -18,24 +17,16 @@ function getAlipay(): AlipaySdk {
 
     _alipay = new AlipaySdk({
       appId,
-      privateKey: (() => {
-        const raw = process.env.ALIPAY_PRIVATE_KEY!;
-        console.log("[ALIPAY DEBUG] raw key starts:", raw.substring(0, 50));
-        console.log("[ALIPAY DEBUG] has BEGIN:", raw.includes("-----BEGIN"));
-    _alipay = new AlipaySdk({
-      appId,
       privateKey: process.env.ALIPAY_PRIVATE_KEY!,
       alipayPublicKey: ensurePem(process.env.ALIPAY_PUBLIC_KEY!, "PUBLIC"),
       gateway: process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do",
       signType: "RSA2",
+      keyType: "PKCS8",
     });
   }
   return _alipay;
 }
 
-/**
- * 生成电脑网站支付表单 HTML
- */
 export function createPagePayForm(params: {
   outTradeNo: string;
   totalAmount: string;
@@ -61,9 +52,6 @@ export function createPagePayForm(params: {
   });
 }
 
-/**
- * 验签支付宝异步通知
- */
 export function verifyNotify(params: Record<string, string>): boolean {
   const publicKey = process.env.ALIPAY_PUBLIC_KEY;
   if (!publicKey) throw new Error("ALIPAY_PUBLIC_KEY not configured");
@@ -82,9 +70,6 @@ export function verifyNotify(params: Record<string, string>): boolean {
   return verify.verify(publicKey, sign, "base64");
 }
 
-/**
- * 生成唯一订单号
- */
 export function generateTradeNo(): string {
   const now = Date.now();
   const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
