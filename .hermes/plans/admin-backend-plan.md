@@ -19,7 +19,7 @@
 curl -s -X POST "https://api.vercel.com/v1/integrations/deploy/prj_y6URO31ghKrn3UACTEC6NQUs1qlI/P6ROfumGJQ"
 
 # 或 Vercel CLI（需 token）
-vercel deploy --prod --token vcp_5qQZ7yh59PeT20QvXv1K7yxQSKiZSt51IJ675DUxNmU4wDzUaf1DY3HA
+vercel deploy --prod --token $VERCEL_TOKEN
 ```
 
 **涉及文件**：
@@ -210,5 +210,5 @@ CREATE TABLE error_reports (
 - **Vercel 项目**：`igcse-revision-cdgy`
 - **部署分支**：`main`
 - **Supabase**：`aondldqwwvttwpervrfq.supabase.co`
-- **Vercel Token**：`vcp_5qQZ7yh59PeT20QvXv1K7yxQSKiZSt51IJ675DUxNmU4wDzUaf1DY3HA`
+- **Vercel Token**：`$VERCEL_TOKEN`（存于 `.env.local`）
 - **Deploy Hook**：`https://api.vercel.com/v1/integrations/deploy/prj_y6URO31ghKrn3UACTEC6NQUs1qlI/P6ROfumGJQ`
