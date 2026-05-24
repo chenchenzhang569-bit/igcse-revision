@@ -142,7 +142,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 5. Per-subject stats (total/correct) — only purchased
+    // Also include practiced subjects in the allowed set
+    // (so user sees both purchased and practiced subjects)
+    for (const slug of Object.keys(practicedBySubject)) {
+      purchasedSet.add(slug);
+    }
+
+    // 5. Per-subject stats (total/correct)
     const subjectMap: Record<string, { total: number; correct: number; slug: string; used: number; subtopics: number }> = {};
     for (const a of all) {
       const s = a.subject_slug || "unknown";
