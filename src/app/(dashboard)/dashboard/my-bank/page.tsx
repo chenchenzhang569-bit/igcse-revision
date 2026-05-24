@@ -248,7 +248,7 @@ function TreeNodeRow({
   const isExpanded = expanded.has(key);
   const hasChildren = !!(node.children && node.children.length > 0);
   const hasBookmarks = !!(node.bookmarks && node.bookmarks.length > 0);
-  const levelIcons = ["📘", "📌", "📄"];
+  const levelIcons = ["📘", "📋", "📌"];
   const isMockExams = node.id === MOCK_EXAMS_KEY;
 
   return (
@@ -259,7 +259,7 @@ function TreeNodeRow({
         style={{ paddingLeft: `${16 + depth * 20}px` }}
       >
         <span className={`shrink-0 text-xs text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""} ${!hasChildren && !hasBookmarks ? "invisible" : ""}`}>▶</span>
-        <span className="text-base">{isMockExams ? "✍️" : (levelIcons[depth] || "📄")}</span>
+        <span className="text-base">{isMockExams ? "✍️" : (levelIcons[depth] || "📌")}</span>
         <span className="flex-1 font-medium text-gray-800 text-sm">{node.name}</span>
         <span className="shrink-0 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">{node.count}</span>
       </button>

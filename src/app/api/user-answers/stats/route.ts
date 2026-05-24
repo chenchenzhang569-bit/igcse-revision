@@ -43,7 +43,47 @@ export async function GET(req: NextRequest) {
     }
 
     const authHeaders = { apikey: ANON_KEY, Authorization: `Bearer ${jwt}` };
-    const publicHeaders = { apikey: ANON_KEY }; // for public tables
+    const publicHeaders = { apikey: ANON_KEY };
+
+    // 0. Get user's purchased subjects
+    const resPurchases = await fetch(
+      `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
+      { headers: authHeaders }
+    );
+    const purchases = await resPurchases.json();
+    const hasAllPlan = Array.isArray(purchases) && purchases.some((p: any) => p.subject_id === null);
+    const purchasedSubjectIds: string[] = Array.isArray(purchases)
+      ? purchases.filter((p: any) => p.subject_id).map((p: any) => p.subject_id)
+      : [];
+
+    // Get subjects slug → id mapping for purchase filtering
+    const resAllSubjects = await fetch(
+      `${API}/subjects?select=id,slug,display_name`,
+      { headers: publicHeaders }
+    );
+    const allSubjectsRaw = await resAllSubjects.json();
+    const subjectIdToSlug: Record<string, string> = {};
+    const allSubjectSlugs: string[] = [];
+    if (Array.isArray(allSubjectsRaw)) {
+      for (const s of allSubjectsRaw) {
+        subjectIdToSlug[s.id] = s.slug;
+        allSubjectSlugs.push(s.slug);
+      }
+    }
+
+    // Determine which subject slugs are purchased
+    let purchasedSlugs: string[] = [];
+    if (hasAllPlan) {
+      purchasedSlugs = allSubjectSlugs; // all subjects
+    } else if (purchasedSubjectIds.length > 0) {
+      purchasedSlugs = purchasedSubjectIds.map(id => subjectIdToSlug[id]).filter(Boolean);
+    }
+    // If no purchases at all, return empty
+    if (!hasAllPlan && purchasedSlugs.length === 0) {
+      return NextResponse.json({ total: 0, correct: 0, rate: 0, subjects: [], recent: [], subtopicProgress: [] });
+    }
+
+    const purchasedSet = new Set(purchasedSlugs); // for public tables
 
     // 1. Get user answers
     const res1 = await fetch(
@@ -98,10 +138,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 5. Per-subject stats (total/correct)
+    // 5. Per-subject stats (total/correct) — only purchased
     const subjectMap: Record<string, { total: number; correct: number; slug: string; used: number; subtopics: number }> = {};
     for (const a of all) {
       const s = a.subject_slug || "unknown";
+      if (!purchasedSet.has(s)) continue; // skip non-purchased
       if (!subjectMap[s]) {
         subjectMap[s] = {
           total: 0, correct: 0, slug: s,
@@ -113,17 +154,17 @@ export async function GET(req: NextRequest) {
       if (a.is_correct) subjectMap[s].correct++;
     }
 
-    // Also include subjects with subtopics but no answers yet
-    for (const s of Object.keys(subTotalBySubject)) {
-      if (!subjectMap[s]) {
-        subjectMap[s] = { total: 0, correct: 0, slug: s, used: 0, subtopics: subTotalBySubject[s] };
+    // For specific purchases: add purchased but unpracticed subjects
+    // For all-plan: only show practiced subjects
+    if (!hasAllPlan) {
+      for (const slug of purchasedSlugs) {
+        if (!subjectMap[slug]) {
+          subjectMap[slug] = { total: 0, correct: 0, slug, used: 0, subtopics: subTotalBySubject[slug] || 0 };
+        }
       }
     }
 
-    const total = all.length;
-    const correct = all.filter((a: any) => a.is_correct).length;
-
-    const subjects = Object.values(subjectMap).map(s => ({
+    let subjects = Object.values(subjectMap).map(s => ({
       slug: s.slug,
       total: s.total,
       correct: s.correct,
@@ -131,6 +172,17 @@ export async function GET(req: NextRequest) {
       used: s.used,
       subtopics: s.subtopics,
     }));
+
+    // Default: if all-plan and no practice yet, show first purchased subject
+    if (subjects.length === 0 && hasAllPlan && purchasedSlugs.length > 0) {
+      const firstSlug = purchasedSlugs[0];
+      subjects = [{
+        slug: firstSlug,
+        total: 0, correct: 0, rate: 0,
+        used: 0,
+        subtopics: subTotalBySubject[firstSlug] || 0,
+      }];
+    }
 
     // Subtopic progress: practiced / total
     const subtopicProgress = Object.entries(subTotalBySubject).map(([slug, total]) => ({
