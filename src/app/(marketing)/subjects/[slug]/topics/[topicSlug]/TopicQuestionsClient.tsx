@@ -715,16 +715,18 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
             {(DIFFICULTY_CONFIG[q.difficulty] || DIFFICULTY_CONFIG.medium).icon}{" "}
             {(DIFFICULTY_CONFIG[q.difficulty] || DIFFICULTY_CONFIG.medium).label}
           </span>
-          <BookmarkButton questionId={q.id} />
-          {bugContext && (
-            <button
-              onClick={() => setBugModalOpen(true)}
-              className="text-gray-400 hover:text-amber-500 transition ml-2"
-              title="Report issue"
-            >
-              🐛
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            <BookmarkButton questionId={q.id} />
+            {bugContext && (
+              <button
+                onClick={() => setBugModalOpen(true)}
+                className="text-gray-400 hover:text-amber-500 transition"
+                title="Report issue"
+              >
+                🐛
+              </button>
+            )}
+          </div>
         </div>
         {!isMcq && hasSubParts ? (
           <>
