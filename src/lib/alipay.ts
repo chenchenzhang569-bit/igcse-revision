@@ -5,8 +5,10 @@ let _alipay: AlipaySdk | null = null;
 
 function ensurePem(key: string, type: "PRIVATE" | "PUBLIC"): string {
   if (key.includes("-----BEGIN")) return key;
-  // Auto-wrap raw base64 with PEM headers
-  return `-----BEGIN ${type} KEY-----\n${key}\n-----END ${type} KEY-----`;
+  // Auto-wrap raw base64 with PEM headers + 64-char line breaks
+  const body = key.replace(/\s/g, ""); // remove any whitespace
+  const lines = body.match(/.{1,64}/g) || [body];
+  return `-----BEGIN ${type} KEY-----\n${lines.join("\n")}\n-----END ${type} KEY-----`;
 }
 
 function getAlipay(): AlipaySdk {
@@ -20,6 +22,7 @@ function getAlipay(): AlipaySdk {
       alipayPublicKey: ensurePem(process.env.ALIPAY_PUBLIC_KEY!, "PUBLIC"),
       gateway: process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do",
       signType: "RSA2",
+      keyType: "PKCS8",
     });
   }
   return _alipay;
