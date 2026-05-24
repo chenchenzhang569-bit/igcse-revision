@@ -37,6 +37,11 @@ export async function POST(request: NextRequest) {
 
   if (!userId) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
+  // Check Alipay env vars
+  if (!process.env.ALIPAY_APP_ID) return NextResponse.json({ error: "ALIPAY_APP_ID 未配置" }, { status: 500 });
+  if (!process.env.ALIPAY_PRIVATE_KEY) return NextResponse.json({ error: "ALIPAY_PRIVATE_KEY 未配置" }, { status: 500 });
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY 未配置" }, { status: 500 });
+
   const body = await request.json();
   const { subjectId, plan } = body;
 
@@ -56,12 +61,18 @@ export async function POST(request: NextRequest) {
       console.error("All plan insert error:", error);
       return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
     }
-    const formHtml = createPagePayForm({
-      outTradeNo: tradeNo,
-      totalAmount: String(PRICE_ALL) + ".00",
-      subject: "IGCSE All Subjects — Lifetime Access",
-      body: "CAIE + Edexcel all subjects",
-    });
+    let formHtml: string;
+    try {
+      formHtml = createPagePayForm({
+        outTradeNo: tradeNo,
+        totalAmount: String(PRICE_ALL) + ".00",
+        subject: "IGCSE All Subjects - Lifetime Access",
+        body: "CAIE + Edexcel all subjects",
+      });
+    } catch (e: any) {
+      console.error("Alipay form error:", e.message, e.stack);
+      return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
+    }
     return new NextResponse(formHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
@@ -101,12 +112,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
   }
 
-  const formHtml = createPagePayForm({
-    outTradeNo: tradeNo,
-    totalAmount: String(PRICE_PER_SUBJECT) + ".00",
-    subject: `IGCSE ${subject.display_name}`,
-    body: `IGCSE ${subject.display_name} 科目复习资料`,
-  });
+  let formHtml: string;
+  try {
+    formHtml = createPagePayForm({
+      outTradeNo: tradeNo,
+      totalAmount: String(PRICE_PER_SUBJECT) + ".00",
+      subject: `IGCSE ${subject.display_name}`,
+      body: `IGCSE ${subject.display_name} 科目复习资料`,
+    });
+  } catch (e: any) {
+    console.error("Alipay form error:", e.message, e.stack);
+    return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
+  }
 
   return new NextResponse(formHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
