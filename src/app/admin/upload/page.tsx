@@ -51,8 +51,12 @@ export default function AdminUploadPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [uploadType, setUploadType] = useState<"past_paper" | "notes">("past_paper");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadAnswerFile, setUploadAnswerFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadYear, setUploadYear] = useState(new Date().getFullYear());
+  const [uploadSeason, setUploadSeason] = useState("May/Jun");
+  const [uploadPaperNum, setUploadPaperNum] = useState(1);
 
   // Edit modal
   const [showEdit, setShowEdit] = useState(false);
@@ -131,10 +135,16 @@ export default function AdminUploadPage() {
     try {
       const formData = new FormData();
       formData.append("file", uploadFile);
+      if (uploadAnswerFile) formData.append("answer_file", uploadAnswerFile);
       formData.append("subject_id", selSubject);
 
       if (uploadType === "notes" && selSubtopic) {
         formData.append("topic_id", selSubtopic);
+      }
+      if (uploadType === "past_paper") {
+        formData.append("year", String(uploadYear));
+        formData.append("season", uploadSeason);
+        formData.append("paper_number", String(uploadPaperNum));
       }
       if (uploadTitle) formData.append("title", uploadTitle);
 
@@ -436,6 +446,30 @@ export default function AdminUploadPage() {
               placeholder={uploadFile?.name || "文件名"}
               className="w-full px-3 py-2 border rounded-xl text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary-900/20"
             />
+
+            {uploadType === "past_paper" && (
+              <div className="flex gap-2 mb-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">年份</label>
+                  <input type="number" value={uploadYear} onChange={(e) => setUploadYear(Number(e.target.value))}
+                    className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">季节</label>
+                  <select value={uploadSeason} onChange={(e) => setUploadSeason(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20">
+                    <option>May/Jun</option>
+                    <option>Oct/Nov</option>
+                    <option>Feb/Mar</option>
+                  </select>
+                </div>
+                <div className="w-16">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">No.</label>
+                  <input type="number" value={uploadPaperNum} onChange={(e) => setUploadPaperNum(Number(e.target.value))}
+                    className="w-full px-2 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20" />
+                </div>
+              </div>
+            )}
 
             <label className="block text-xs font-semibold text-gray-500 mb-1">PDF 文件</label>
             <input
