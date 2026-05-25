@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ purchases: [], upgradePrice: 250 }, { status: 200 });
+  if (!user) return NextResponse.json({ purchases: [], upgradePrice: 25000 }, { status: 200 });
 
   const admin = createAdminClient();
 
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("Purchases fetch error:", error);
-    return NextResponse.json({ purchases: [], upgradePrice: 250 }, { status: 200 });
+    return NextResponse.json({ purchases: [], upgradePrice: 25000 }, { status: 200 });
   }
 
   if (!purchases || purchases.length === 0) {
-    return NextResponse.json({ purchases: [], upgradePrice: 250 });
+    return NextResponse.json({ purchases: [], upgradePrice: 25000 });
   }
 
   const now = new Date();
