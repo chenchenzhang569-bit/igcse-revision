@@ -1,7 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SUBTOPIC_DATA } from "@/lib/subtopic-data";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+
+// Map subject slug (caie-mathematics-0580) to subtopic-data key (mathematics)
+function slugToSubjectKey(slug: string): string {
+  const m = slug.match(/caie|edexcel/);
+  const board = m?.[0] || "";
+  const rest = slug.replace(/^(caie|edexcel)-/, "");
+  const parts = rest.split("-");
+  // Drop the last part if it's a numeric code (e.g. "0580", "0625")
+  const codeIdx = parts.findIndex(p => /^\d/.test(p));
+  if (codeIdx >= 0) parts.splice(codeIdx);
+  return parts.join("-") || slug;
+}
+
+function countSubtopicsFromStatic(slug: string): number {
+  const key = slugToSubjectKey(slug);
+  const topics = SUBTOPIC_DATA[key];
+  if (!topics) return 0;
+  let total = 0;
+  for (const arr of Object.values(topics)) {
+    total += arr.length;
+  }
+  return total;
+}
 
 function getJwt(req: NextRequest): string | null {
   const authHeader = req.headers.get("authorization") || "";
@@ -89,6 +113,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Helper: subtopic count with static fallback
+    const getSubtopicCount = (slug: string) => subTotalBySubject[slug] || countSubtopicsFromStatic(slug);
+
     // 5. Per-subject stats
     const subjectMap: Record<string, { total: number; correct: number; slug: string; used: number; subtopics: number }> = {};
     for (const a of all) {
@@ -97,7 +124,7 @@ export async function GET(req: NextRequest) {
         subjectMap[s] = {
           total: 0, correct: 0, slug: s,
           used: practicedBySubject[s]?.size || 0,
-          subtopics: subTotalBySubject[s] || 0,
+          subtopics: getSubtopicCount(s),
         };
       }
       subjectMap[s].total++;
@@ -134,7 +161,7 @@ export async function GET(req: NextRequest) {
                   subjectMap[ps.slug] = {
                     total: 0, correct: 0, slug: ps.slug,
                     used: practicedBySubject[ps.slug]?.size || 0,
-                    subtopics: subTotalBySubject[ps.slug] || 0,
+                    subtopics: getSubtopicCount(ps.slug),
                   };
                 }
               }
@@ -160,7 +187,7 @@ export async function GET(req: NextRequest) {
           if (existingSlugs.includes(s.slug)) continue;
           subjectMap[s.slug] = {
             total: 0, correct: 0, slug: s.slug,
-            used: 0, subtopics: subTotalBySubject[s.slug] || 0,
+            used: 0, subtopics: getSubtopicCount(s.slug),
           };
         }
       }
