@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: false });
 
   if (subtopicId) {
-    query = query.eq("subtopic_id", subtopicId);
+    query = query.eq("topic_id", subtopicId);
   }
 
   const { data, error, count } = await query.range((page - 1) * limit, page * limit - 1);
