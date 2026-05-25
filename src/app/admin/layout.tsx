@@ -7,10 +7,10 @@ import { createBrowserClient } from "@supabase/ssr";
 import ErrorReporter from "@/components/ErrorReporter";
 
 const menuItems = [
-  { href: "/admin", label: "📊 Dashboard", icon: "📊" },
-  { href: "/admin/upload", label: "📤 文档上传", icon: "📤" },
-  { href: "/admin/users", label: "👤 用户管理", icon: "👤" },
-  { href: "/admin/errors", label: "🐛 错误报告", icon: "🐛" },
+  { href: "/admin", label: "Dashboard", icon: "📊" },
+  { href: "/admin/upload", label: "文档上传", icon: "📤" },
+  { href: "/admin/users", label: "用户管理", icon: "👤" },
+  { href: "/admin/errors", label: "错误报告", icon: "🐛" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -85,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }`}
               >
                 <span className="text-base">{item.icon}</span>
-                <span>{item.label.replace(/^.\s/, "")}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
@@ -132,7 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     }`}
                   >
                     <span className="text-base">{item.icon}</span>
-                    <span>{item.label.replace(/^.\s/, "")}</span>
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}

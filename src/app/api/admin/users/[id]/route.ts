@@ -127,7 +127,6 @@ export async function PATCH(
   if (amount_cny !== undefined) update.amount_cny = amount_cny;
   if (expires_at !== undefined) update.expires_at = expires_at;
   if (status !== undefined) update.status = status;
-  update.updated_at = new Date().toISOString();
 
   const { error } = await admin
     .from("purchases")
