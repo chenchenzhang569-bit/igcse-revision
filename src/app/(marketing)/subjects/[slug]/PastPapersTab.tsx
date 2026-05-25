@@ -36,6 +36,7 @@ export function PastPapersTab({
           .from("past_papers")
           .select("year, season")
           .eq("subject_id", subjectId)
+          .neq("year", 0)
           .limit(5000);
 
         if (qerr) { setError(qerr.message); setLoading(false); return; }
