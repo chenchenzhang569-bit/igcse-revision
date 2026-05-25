@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { MixedContent } from "@/components/MixedContent";
 import BookmarkButton from "@/components/BookmarkButton";
+import ReportBugModal from "@/components/ReportBugModal";
 import { createBrowserClient } from "@supabase/ssr";
 
 const markdownComponents = {
@@ -83,6 +84,7 @@ export function TopicTabs({
   const [submittedLevels, setSubmittedLevels] = useState<Set<string>>(new Set());
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
+  const [bugModalOpen, setBugModalOpen] = useState(false);
 
   // Fetch bookmarked question IDs for this subtopic
   useEffect(() => {
@@ -261,7 +263,10 @@ export function TopicTabs({
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
               <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
               <span className="text-xs text-gray-400">{q.marks} marks</span>
-              <div className="ml-auto"><BookmarkButton questionId={q.id} /></div>
+              <div className="ml-auto flex items-center gap-1">
+                <BookmarkButton questionId={q.id} />
+                <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-amber-500 transition" title="Report issue">🐛</button>
+              </div>
             </div>
             <MixedContent text={cleanText} className="text-gray-800 prose prose-sm max-w-none" />
           </div>
@@ -357,7 +362,10 @@ export function TopicTabs({
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
             <span className="text-xs text-gray-400">{q.marks} marks</span>
-            <div className="ml-auto"><BookmarkButton questionId={q.id} /></div>
+            <div className="ml-auto flex items-center gap-1">
+              <BookmarkButton questionId={q.id} />
+              <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-amber-500 transition" title="Report issue">🐛</button>
+            </div>
           </div>
           <MixedContent text={stem} className="text-gray-800 prose prose-sm max-w-none" />
           {((q as any).image_url || embeddedImageUrl) && (
@@ -670,6 +678,10 @@ export function TopicTabs({
           </div>
         )
       )}
+      <ReportBugModal
+        open={bugModalOpen}
+        onClose={() => setBugModalOpen(false)}
+      />
     </div>
   );
 }
