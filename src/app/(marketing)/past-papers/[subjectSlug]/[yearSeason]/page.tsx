@@ -24,8 +24,9 @@ type PastPaper = { id: string; title: string; year: number; season: string; pape
 function getSeasonFromSlug(slug: string): string {
   const map: Record<string, string> = {
     march: "Mar", mar: "Mar", "feb-march": "Feb/Mar", "feb-mar": "Feb/Mar",
-    "may-june": "May/Jun", "may-jun": "May/Jun", jun: "Jun",
+    "may-june": "May/Jun", "may-jun": "May/Jun", jun: "Jun", summer: "Summer",
     "oct-nov": "Oct/Nov", nov: "Nov",
+    "n-a": "N/A", topic: "Topic",
   };
   return map[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -75,8 +76,9 @@ export default async function PastPapersSeasonPage({
           const n = p.paper_number;
           if (!pairMap.has(n)) pairMap.set(n, { qp: null, ms: null });
           const entry = pairMap.get(n)!;
-          if (p.paper_type?.toLowerCase().includes("question")) entry.qp = p;
-          else if (p.paper_type?.toLowerCase().includes("mark")) entry.ms = p;
+          const pt = (p.paper_type || "").toLowerCase();
+          if (pt.includes("question") || pt.endsWith("qp")) entry.qp = p;
+          else if (pt.includes("mark") || pt.endsWith("ms")) entry.ms = p;
           else entry.qp = p;
         }
         pairs = [...pairMap.entries()]
