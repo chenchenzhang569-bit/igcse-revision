@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
     if (Object.keys(subjectMap).length < 3 && (isAllPlan || hasNoPurchases)) {
       const existingSlugs = Object.keys(subjectMap);
       const resTop = await fetch(
-        `${API}/subjects?select=slug&limit=10`,
+        `${API}/subjects?select=slug&order=code.asc&limit=10`,
         { headers: publicHeaders }
       );
       const topList = await resTop.json();

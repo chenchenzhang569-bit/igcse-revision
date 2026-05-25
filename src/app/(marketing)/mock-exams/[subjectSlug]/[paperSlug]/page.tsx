@@ -375,7 +375,7 @@ export default function MockExamPaperPage() {
                     <span className="text-xs text-gray-400">{q.marks} mark{q.marks > 1 ? "s" : ""}</span>
                     <div className="ml-auto flex items-center gap-1">
                       <BookmarkButton questionId={q.id} source="mock_exam" />
-                      <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-primary-600 transition" title="Report issue">🔧</button>
+                      <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-[#001C71] transition" title="Report issue">🔧</button>
                     </div>
                   </div>
                   <div className="text-gray-800 text-sm whitespace-pre-wrap">

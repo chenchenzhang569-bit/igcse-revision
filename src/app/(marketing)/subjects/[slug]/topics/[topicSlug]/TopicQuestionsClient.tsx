@@ -249,7 +249,20 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDifficulty, setActiveDifficulty] = useState<string>("easy");
-  const storageKey = `topic-answers-${topicId}`;
+  const [userId, setUserId] = useState<string | null>(null);
+  const storageKey = userId ? `topic-answers-${userId}-${topicId}` : `topic-answers-${topicId}`;
+
+  // Fetch userId for user-specific localStorage key
+  useEffect(() => {
+    (async () => {
+      const ssrClient = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { session } } = await ssrClient.auth.getSession();
+      setUserId(session?.user?.id || null);
+    })();
+  }, []);
 
   // answers[questionId] = user's answer string
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -292,7 +305,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
 
   // Load saved answers from localStorage (browser only)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !userId) return;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -310,7 +323,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
 
   // Save to localStorage on changes (browser only)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !userId) return;
     if (Object.keys(answers).length === 0) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify({
@@ -719,7 +732,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
             <BookmarkButton questionId={q.id} />
             <button
               onClick={() => setBugModalOpen(true)}
-              className="text-gray-400 hover:text-primary-600 transition"
+              className="text-gray-400 hover:text-[#001C71] transition"
               title="Report issue"
             >
               🔧

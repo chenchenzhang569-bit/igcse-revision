@@ -605,7 +605,7 @@ export default function StructuredQuestion({
           <div className="ml-auto flex items-center gap-1">
             <BookmarkButton questionId={question.id} source="mock_exam" />
             {onBugReport && (
-              <button onClick={onBugReport} className="text-gray-400 hover:text-primary-600 transition" title="Report issue">🔧</button>
+              <button onClick={onBugReport} className="text-gray-400 hover:text-[#001C71] transition" title="Report issue">🔧</button>
             )}
           </div>
         </div>

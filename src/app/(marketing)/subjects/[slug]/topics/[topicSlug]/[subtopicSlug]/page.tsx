@@ -248,30 +248,30 @@ export default async function SubtopicPage({
         return (
           <div className="mt-10 flex justify-between items-start gap-4">
             {prevSub ? (
-              <Link
-                href={`/subjects/${slug}/topics/${topicSlug}/${prevSub.slug}`}
-                className="flex items-center gap-3 bg-accent-500 hover:bg-accent-600 text-white rounded-xl px-5 py-3 transition group flex-1"
-              >
-                <span className="text-xl group-hover:-translate-x-1 transition-transform">←</span>
-                <div>
-                  <div className="text-xs text-orange-100 mb-0.5">Previous</div>
-                  <div className="text-sm font-semibold">{prevSub.pmtCode} {prevSub.displayName}</div>
-                </div>
-              </Link>
-            ) : <div className="flex-1" />}
+              <div className="flex flex-col items-start gap-1.5">
+                <Link
+                  href={`/subjects/${slug}/topics/${topicSlug}/${prevSub.slug}`}
+                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-4 py-2 transition group"
+                >
+                  <span className="group-hover:-translate-x-1 transition-transform">←</span>
+                  <span className="text-sm font-bold">Previous</span>
+                </Link>
+                <span className="text-xs font-medium text-[#001C71]">{prevSub.pmtCode} {prevSub.displayName}</span>
+              </div>
+            ) : <div />}
 
             {nextSub ? (
-              <Link
-                href={`/subjects/${slug}/topics/${topicSlug}/${nextSub.slug}`}
-                className="flex items-center justify-end gap-3 bg-accent-500 hover:bg-accent-600 text-white rounded-xl px-5 py-3 transition group flex-1 text-right"
-              >
-                <div>
-                  <div className="text-xs text-orange-100 mb-0.5">Next</div>
-                  <div className="text-sm font-semibold">{nextSub.pmtCode} {nextSub.displayName}</div>
-                </div>
-                <span className="text-xl group-hover:translate-x-1 transition-transform">→</span>
-              </Link>
-            ) : <div className="flex-1" />}
+              <div className="flex flex-col items-end gap-1.5">
+                <Link
+                  href={`/subjects/${slug}/topics/${topicSlug}/${nextSub.slug}`}
+                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-4 py-2 transition group"
+                >
+                  <span className="text-sm font-bold">Next</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </Link>
+                <span className="text-xs font-medium text-[#001C71] text-right">{nextSub.pmtCode} {nextSub.displayName}</span>
+              </div>
+            ) : <div />}
           </div>
         );
       })()}

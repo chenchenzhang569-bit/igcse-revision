@@ -11,7 +11,6 @@ const navLinks = [
   { href: "/past-papers", label: "Past Paper" },
   { href: "/mock-exams", label: "Mock Exam" },
   { href: "/pricing", label: "Purchase" },
-  { href: "/submit-errors", label: "Submit Errors" },
 ];
 
 function Header() {
