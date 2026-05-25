@@ -11,7 +11,7 @@ function CheckoutContent() {
   const plan = searchParams.get("plan");
   const isTrial = searchParams.get("trial") === "true";
 
-  const [subject, setSubject] = useState<{ id: string; display_name: string } | null>(null);
+  const [subject, setSubject] = useState<{ id: string; display_name: string; code: string | null; board_name: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
@@ -184,14 +184,16 @@ function CheckoutContent() {
         <h1 className="text-2xl font-bold text-primary-900 mb-1">
           {isTrial ? "🎁 Free Trial" : "Checkout"}
         </h1>
-        <p className="text-gray-500 mb-6">{subject.display_name}</p>
+        <p className="text-gray-500 mb-6">
+          {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""}
+        </p>
 
         {isTrial ? (
           <>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
               <p className="text-green-700 text-sm font-medium mb-1">7-Day Free Trial</p>
               <p className="text-green-600 text-xs">
-                Full access to {subject.display_name} for 7 days. No credit card required.
+                Full access to {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""} for 7 days. No credit card required.
               </p>
             </div>
             <div className="text-3xl font-bold text-green-600 mb-2 text-center">¥0</div>
