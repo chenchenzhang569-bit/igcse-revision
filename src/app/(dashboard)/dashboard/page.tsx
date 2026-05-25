@@ -172,6 +172,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap gap-2 mb-3">
             {purchases.map(p => (
               <span key={p.subject_id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border shadow-sm">
+                {p.board && <span className="text-gray-400 text-[10px]">{p.board}</span>}
                 <span className="text-gray-500">{p.subject_code}</span>
                 <span className="text-gray-800">{p.subject_name}</span>
                 <span className="text-gray-300 mx-0.5">·</span>

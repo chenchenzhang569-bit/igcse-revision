@@ -37,19 +37,25 @@ export async function GET(request: NextRequest) {
     .map(p => p.subject_id);
   const hasAllSubjectPlan = purchases.some(p => !p.subject_id);
 
-  // 查 subjects 名字
+  // 查 subjects 名字 + 考试局
   let subjectMap: Record<string, { name: string; code: string; board: string }> = {};
   if (allSubjectIds.length > 0) {
     const { data: subjects } = await admin
       .from("subjects")
-      .select("id, display_name, code")
+      .select("id, display_name, code, exam_board_id")
       .in("id", allSubjectIds);
+
+    // 查考试局
+    const { data: boards } = await admin.from("exam_boards").select("id, name");
+    const boardMap: Record<string, string> = {};
+    if (boards) for (const b of boards) boardMap[b.id] = b.name;
+
     if (subjects) {
       for (const s of subjects) {
         subjectMap[s.id] = {
           name: s.display_name || s.code,
           code: s.code || "",
-          board: "",
+          board: boardMap[s.exam_board_id] || "",
         };
       }
     }
@@ -60,7 +66,7 @@ export async function GET(request: NextRequest) {
     const allPlanPurchase = purchases.find(p => !p.subject_id);
     const { data: allSubjects } = await admin
       .from("subjects")
-      .select("id, display_name, code")
+      .select("id, display_name, code, exam_board_id")
       .eq("is_published", true);
 
     if (allSubjects && allPlanPurchase) {
@@ -70,7 +76,7 @@ export async function GET(request: NextRequest) {
         subjectMap[s.id] = {
           name: s.display_name || s.code,
           code: s.code || "",
-          board: "",
+          board: boardMap[s.exam_board_id] || "",
         };
         // 虚拟一条全科映射的 purchase
         purchases.push({
