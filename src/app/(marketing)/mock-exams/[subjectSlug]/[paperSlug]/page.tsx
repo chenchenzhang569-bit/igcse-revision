@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import StructuredQuestion from "@/components/StructuredQuestion";
 import BookmarkButton from "@/components/BookmarkButton";
+import ReportBugModal from "@/components/ReportBugModal";
 import "katex/dist/katex.min.css";
 import { fixMathNotationUnicode, renderMath } from "@/lib/math";
 import { getSupabaseClient } from "@/lib/supabase-client";
@@ -175,6 +176,7 @@ export default function MockExamPaperPage() {
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
+  const [bugModalOpen, setBugModalOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -301,6 +303,7 @@ export default function MockExamPaperPage() {
   }
 
   return (
+    <>
     <div className="max-w-4xl mx-auto px-4 py-6 sm:py-10">
       {/* Header */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
@@ -370,7 +373,10 @@ export default function MockExamPaperPage() {
                       {diffLabel}
                     </span>
                     <span className="text-xs text-gray-400">{q.marks} mark{q.marks > 1 ? "s" : ""}</span>
-                    <div className="ml-auto"><BookmarkButton questionId={q.id} source="mock_exam" /></div>
+                    <div className="ml-auto flex items-center gap-1">
+                      <BookmarkButton questionId={q.id} source="mock_exam" />
+                      <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-primary-600 transition" title="Report issue">🔧</button>
+                    </div>
                   </div>
                   <div className="text-gray-800 text-sm whitespace-pre-wrap">
                     {parseStem(q.stem).map((part, pi) => renderPart(part, pi))}
@@ -446,6 +452,7 @@ export default function MockExamPaperPage() {
                 key={q.id}
                 question={q}
                 index={mcqQuestions.length + i}
+                onBugReport={() => setBugModalOpen(true)}
               />
             ))}
           </div>
@@ -476,5 +483,17 @@ export default function MockExamPaperPage() {
         </div>
       )}
     </div>
+    <ReportBugModal
+      open={bugModalOpen}
+      onClose={() => setBugModalOpen(false)}
+      context={{
+        board: subjectSlug.startsWith("edexcel") ? "Edexcel" : "CAIE",
+        subject: subjectName,
+        code: subjectSlug.split("-").slice(-1)[0] || "",
+        set: paper?.paper_type || "",
+        paper: paper?.paper_number || "",
+      }}
+    />
+    </>
   );
 }

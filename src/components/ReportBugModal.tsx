@@ -83,7 +83,7 @@ export default function ReportBugModal({ open, onClose, context }: Props) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <h3 className="text-lg font-bold text-primary-900 mb-3">🐛 Report Issue</h3>
+        <h3 className="text-lg font-bold text-primary-900 mb-3">🔧 Report Issue</h3>
 
         {/* Context — read-only */}
         <div className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mb-4">

@@ -265,7 +265,7 @@ export function TopicTabs({
               <span className="text-xs text-gray-400">{q.marks} marks</span>
               <div className="ml-auto flex items-center gap-1">
                 <BookmarkButton questionId={q.id} />
-                <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-amber-500 transition" title="Report issue">🐛</button>
+                <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-primary-600 transition" title="Report issue">🔧</button>
               </div>
             </div>
             <MixedContent text={cleanText} className="text-gray-800 prose prose-sm max-w-none" />
@@ -364,7 +364,7 @@ export function TopicTabs({
             <span className="text-xs text-gray-400">{q.marks} marks</span>
             <div className="ml-auto flex items-center gap-1">
               <BookmarkButton questionId={q.id} />
-              <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-amber-500 transition" title="Report issue">🐛</button>
+              <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-primary-600 transition" title="Report issue">🔧</button>
             </div>
           </div>
           <MixedContent text={stem} className="text-gray-800 prose prose-sm max-w-none" />
@@ -479,7 +479,7 @@ export function TopicTabs({
           {tabs.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-6 py-3 font-medium text-sm transition border-b-2 ${
-                activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
+                activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-primary-600"
               }`}>
               {t.label} ({t.count})
             </button>

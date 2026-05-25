@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { fixMathNotationUnicode, renderMath } from "@/lib/math";
+import BookmarkButton from "@/components/BookmarkButton";
 
 // ─── Symbol groups ───────────────────────────────────────────────────────────
 const SYMBOL_GROUPS = [
@@ -565,9 +566,9 @@ function parseModelAnswer(explanation: string): string {
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function StructuredQuestion({
-  question, index,
+  question, index, onBugReport,
 }: {
-  question: Question; index: number;
+  question: Question; index: number; onBugReport?: () => void;
 }) {
   const fixedStem = useMemo(() => fixMathNotationUnicode(question.stem), [question.stem]);
   const { preamble, items } = useMemo(() => parseSubParts(fixedStem), [fixedStem]);
@@ -601,6 +602,12 @@ export default function StructuredQuestion({
               {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
             </span>
           )}
+          <div className="ml-auto flex items-center gap-1">
+            <BookmarkButton questionId={question.id} source="mock_exam" />
+            {onBugReport && (
+              <button onClick={onBugReport} className="text-gray-400 hover:text-primary-600 transition" title="Report issue">🔧</button>
+            )}
+          </div>
         </div>
         <div className="text-gray-800 text-sm">
           <StemParts stem={preamble} />

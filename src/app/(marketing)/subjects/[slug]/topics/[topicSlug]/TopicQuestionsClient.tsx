@@ -719,10 +719,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
             <BookmarkButton questionId={q.id} />
             <button
               onClick={() => setBugModalOpen(true)}
-              className="text-gray-400 hover:text-amber-500 transition"
+              className="text-gray-400 hover:text-primary-600 transition"
               title="Report issue"
             >
-              🐛
+              🔧
             </button>
           </div>
         </div>
