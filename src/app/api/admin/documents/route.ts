@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   // notes table — supports subtopic + doc type filter
   let query = admin
     .from("notes")
-    .select("id, title, file_url, subject_id, subtopic_id, created_at", { count: "exact" })
+    .select("id, title, file_url, subject_id, topic_id, created_at", { count: "exact" })
     .eq("subject_id", subjectId)
     .order("created_at", { ascending: false });
 
