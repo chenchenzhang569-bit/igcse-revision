@@ -66,15 +66,29 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Get all subjects for lookup
+  // Get all subjects for lookup (with exam board)
   const { data: subjects } = await admin
     .from("subjects")
-    .select("id, display_name");
+    .select("id, display_name, code, exam_board_id")
+    .limit(100);
+
+  const { data: examBoards } = await admin
+    .from("exam_boards")
+    .select("id, name, slug");
+
+  const boardMap: Record<string, string> = {};
+  if (examBoards) {
+    for (const b of examBoards) {
+      boardMap[b.id] = b.name;
+    }
+  }
 
   const subjectMap: Record<string, string> = {};
   if (subjects) {
     for (const s of subjects) {
-      subjectMap[s.id] = s.display_name;
+      const board = boardMap[s.exam_board_id] || "";
+      const code = s.code ? ` · ${s.code}` : "";
+      subjectMap[s.id] = `${board} ${s.display_name}${code}`;
     }
   }
 

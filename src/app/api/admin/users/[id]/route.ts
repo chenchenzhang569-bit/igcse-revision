@@ -45,25 +45,43 @@ export async function GET(
     .eq("user_id", id)
     .order("created_at", { ascending: false });
 
+  // Filter: by default exclude pending, unless ?showAll=true
+  const { searchParams } = new URL(request.url);
+  const showAll = searchParams.get("showAll") === "true";
+  const filtered = showAll ? purchases : (purchases || []).filter((p) => p.status !== "pending");
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Get subject names
+  // Get subject names (with exam board + code)
   const subjectIds = [...new Set(purchases.filter((p) => p.subject_id).map((p) => p.subject_id))];
   const { data: subjects } = await admin
     .from("subjects")
-    .select("id, display_name")
+    .select("id, display_name, code, exam_board_id")
     .in("id", subjectIds);
+
+  const { data: examBoards } = await admin
+    .from("exam_boards")
+    .select("id, name");
+
+  const boardMap: Record<string, string> = {};
+  if (examBoards) {
+    for (const b of examBoards) {
+      boardMap[b.id] = b.name;
+    }
+  }
 
   const subjectMap: Record<string, string> = {};
   if (subjects) {
     for (const s of subjects) {
-      subjectMap[s.id] = s.display_name;
+      const board = boardMap[s.exam_board_id] || "";
+      const code = s.code ? ` · ${s.code}` : "";
+      subjectMap[s.id] = `${board} ${s.display_name}${code}`;
     }
   }
 
-  const enriched = purchases.map((p) => ({
+  const enriched = (filtered || []).map((p) => ({
     ...p,
     subject_name: p.subject_id ? subjectMap[p.subject_id] || p.subject_id : "All Subjects",
   }));
@@ -83,6 +101,8 @@ export async function GET(
         }
       : null,
     purchases: enriched,
+    total: (purchases || []).length,
+    filtered: (filtered || []).length,
   });
 }
 
@@ -96,7 +116,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { purchaseId, subject_id, amount_cny, expires_at } = body;
+  const { purchaseId, subject_id, amount_cny, expires_at, status } = body;
 
   if (!purchaseId) {
     return NextResponse.json({ error: "Missing purchaseId" }, { status: 400 });
@@ -106,6 +126,7 @@ export async function PATCH(
   if (subject_id !== undefined) update.subject_id = subject_id;
   if (amount_cny !== undefined) update.amount_cny = amount_cny;
   if (expires_at !== undefined) update.expires_at = expires_at;
+  if (status !== undefined) update.status = status;
   update.updated_at = new Date().toISOString();
 
   const { error } = await admin
