@@ -35,12 +35,29 @@ interface Purchase {
 interface Subject {
   id: string;
   display_name: string;
+  code: string | null;
+  board_name: string;
+}
+
+interface EditForm {
+  subject_id: string;
+  amount_cny: number;
+  expires_at: string;
+  status: string;
 }
 
 interface EditModal {
   purchase: Purchase | null;
   mode: "edit" | "add";
 }
+
+const STATUS_OPTIONS = [
+  { value: "paid", label: "已付款", color: "text-emerald-600" },
+  { value: "trial", label: "试用中", color: "text-blue-600" },
+  { value: "pending", label: "待付款（无权限）", color: "text-red-500" },
+  { value: "refunded", label: "已退款", color: "text-gray-400" },
+  { value: "expired", label: "已过期", color: "text-amber-600" },
+];
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -52,9 +69,17 @@ export default function AdminUsersPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<{ purchases: Purchase[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [showAllPurchases, setShowAllPurchases] = useState(false);
+  const [totalPurchases, setTotalPurchases] = useState(0);
+  const [filteredPurchases, setFilteredPurchases] = useState(0);
   const [editModal, setEditModal] = useState<EditModal | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [editForm, setEditForm] = useState({ subject_id: "", amount_cny: 0, expires_at: "" });
+  const [editForm, setEditForm] = useState<EditForm>({
+    subject_id: "",
+    amount_cny: 0,
+    expires_at: "",
+    status: "paid",
+  });
 
   // Auth
   useEffect(() => {
@@ -103,19 +128,39 @@ export default function AdminUsersPage() {
   }, [fetchUsers]);
 
   // Expand user detail
-  const toggleExpand = async (userId: string) => {
-    if (expandedId === userId) {
+  const toggleExpand = async (userId: string, showAll?: boolean) => {
+    if (expandedId === userId && showAll === undefined) {
       setExpandedId(null);
       setDetail(null);
+      setShowAllPurchases(false);
       return;
     }
     setExpandedId(userId);
     setDetailLoading(true);
-    const res = await fetch(`/api/admin/users/${userId}`, {
+    const showAllParam = showAll !== undefined ? showAll : showAllPurchases;
+    const url = `/api/admin/users/${userId}${showAllParam ? "?showAll=true" : ""}`;
+    const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token || ""}` },
     });
     const d = await res.json();
     setDetail({ purchases: d.purchases || [] });
+    setTotalPurchases(d.total || 0);
+    setFilteredPurchases(d.filtered || 0);
+    setDetailLoading(false);
+  };
+
+  // Refresh current detail without toggling
+  const refreshDetail = async () => {
+    if (!expandedId) return;
+    setDetailLoading(true);
+    const url = `/api/admin/users/${expandedId}${showAllPurchases ? "?showAll=true" : ""}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token || ""}` },
+    });
+    const d = await res.json();
+    setDetail({ purchases: d.purchases || [] });
+    setTotalPurchases(d.total || 0);
+    setFilteredPurchases(d.filtered || 0);
     setDetailLoading(false);
   };
 
@@ -145,20 +190,28 @@ export default function AdminUsersPage() {
     setEditModal({ purchase: p, mode: "edit" });
     setEditForm({
       subject_id: p.subject_id || "",
-      amount_cny: p.amount_cny,
+      amount_cny: Math.round(p.amount_cny / 100),
       expires_at: p.expires_at ? p.expires_at.slice(0, 10) : "",
+      status: p.status,
     });
   };
 
   // Open add modal
   const openAdd = () => {
     setEditModal({ purchase: null, mode: "add" });
-    setEditForm({ subject_id: "", amount_cny: 0, expires_at: "" });
+    setEditForm({ subject_id: "", amount_cny: 50, expires_at: "", status: "paid" });
   };
 
   // Save purchase (add or edit)
   const savePurchase = async () => {
     if (!expandedId || !token) return;
+
+    const payload = {
+      subject_id: editForm.subject_id || null,
+      amount_cny: editForm.amount_cny * 100, // fen
+      expires_at: editForm.expires_at || null,
+      status: editForm.status,
+    };
 
     if (editModal?.mode === "edit" && editModal.purchase) {
       const res = await fetch(`/api/admin/users/${expandedId}`, {
@@ -169,14 +222,12 @@ export default function AdminUsersPage() {
         },
         body: JSON.stringify({
           purchaseId: editModal.purchase.id,
-          subject_id: editForm.subject_id || null,
-          amount_cny: editForm.amount_cny,
-          expires_at: editForm.expires_at || null,
+          ...payload,
         }),
       });
       if (res.ok) {
         setEditModal(null);
-        toggleExpand(expandedId); // refresh
+        refreshDetail();
       }
     } else {
       const res = await fetch(`/api/admin/users/${expandedId}`, {
@@ -185,15 +236,11 @@ export default function AdminUsersPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          subject_id: editForm.subject_id,
-          amount_cny: editForm.amount_cny,
-          expires_at: editForm.expires_at || null,
-        }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setEditModal(null);
-        toggleExpand(expandedId); // refresh
+        toggleExpand(expandedId);
       }
     }
   };
@@ -225,6 +272,14 @@ export default function AdminUsersPage() {
   const formatDate = (d: string | null) => {
     if (!d) return "—";
     return new Date(d).toLocaleDateString("zh-CN");
+  };
+
+  const formatAmount = (fen: number) => `¥${(fen / 100).toFixed(0)}`;
+
+  const statusBadge = (status: string) => {
+    const opt = STATUS_OPTIONS.find((s) => s.value === status);
+    if (!opt) return status;
+    return <span className={`text-xs font-medium ${opt.color}`}>{opt.label}</span>;
   };
 
   return (
@@ -291,7 +346,9 @@ export default function AdminUsersPage() {
 
                 <div className="text-right shrink-0">
                   <p className="text-sm font-bold text-accent-500">
-                    {user.total_paid > 0 ? `¥${user.total_paid}` : "免费"}
+                    {user.total_paid > 0
+                      ? `${formatAmount(user.total_paid)}`
+                      : "免费"}
                   </p>
                   <p className="text-xs text-gray-400">
                     {user.purchase_count} 科
@@ -328,16 +385,36 @@ export default function AdminUsersPage() {
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-semibold text-gray-500">
                         购买记录
+                        {totalPurchases > filteredPurchases && (
+                          <span className="text-gray-300 ml-1">
+                            ({filteredPurchases}/{totalPurchases})
+                          </span>
+                        )}
                       </p>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openAdd();
-                        }}
-                        className="text-xs font-semibold text-primary-900 hover:underline"
-                      >
-                        + 添加购买
-                      </button>
+                      <div className="flex gap-2">
+                        {totalPurchases > filteredPurchases && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newShowAll = !showAllPurchases;
+                              setShowAllPurchases(newShowAll);
+                              toggleExpand(user.id, newShowAll);
+                            }}
+                            className="text-xs font-semibold text-gray-400 hover:text-primary-900"
+                          >
+                            {showAllPurchases ? "隐藏 pending" : "显示全部"}
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAdd();
+                          }}
+                          className="text-xs font-semibold text-primary-900 hover:underline"
+                        >
+                          + 添加购买
+                        </button>
+                      </div>
                     </div>
 
                     {detailLoading ? (
@@ -355,9 +432,14 @@ export default function AdminUsersPage() {
                               <p className="text-xs font-medium text-gray-700">
                                 {p.subject_name}
                               </p>
-                              <p className="text-xs text-gray-400">
-                                ¥{p.amount_cny} · 到期{" "}
-                                {formatDate(p.expires_at)} · {p.status}
+                              <p className="text-xs text-gray-400 flex items-center gap-2">
+                                <span>{formatAmount(p.amount_cny)}</span>
+                                <span>·</span>
+                                <span>
+                                  到期 {formatDate(p.expires_at)}
+                                </span>
+                                <span>·</span>
+                                {statusBadge(p.status)}
                               </p>
                             </div>
                             <div className="flex gap-1 shrink-0">
@@ -439,9 +521,8 @@ export default function AdminUsersPage() {
               <option value="">选择科目</option>
               {subjects.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.display_name}
-                </option>
-              ))}
+                  {s.board_name} {s.display_name}{s.code ? ` · ${s.code}` : ""}
+                </option>))} 
             </select>
 
             {/* Amount */}
@@ -467,8 +548,26 @@ export default function AdminUsersPage() {
               onChange={(e) =>
                 setEditForm({ ...editForm, expires_at: e.target.value })
               }
-              className="w-full px-3 py-2 border rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary-900/20"
+              className="w-full px-3 py-2 border rounded-xl text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary-900/20"
             />
+
+            {/* Status */}
+            <label className="block text-xs font-semibold text-gray-500 mb-1">
+              状态
+            </label>
+            <select
+              value={editForm.status}
+              onChange={(e) =>
+                setEditForm({ ...editForm, status: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary-900/20"
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
 
             {/* Actions */}
             <div className="flex gap-2">
