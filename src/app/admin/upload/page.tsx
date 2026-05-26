@@ -491,6 +491,13 @@ export default function AdminUploadPage() {
                              (st.display_name || "").toLowerCase().includes(q) ||
                              (st.topic_name || "").toLowerCase().includes(q);
                     })
+                    .sort((a, b) => {
+                      // Sort by pmt_code numerically: "1.1" < "1.10" < "2.1"
+                      const pa = parseFloat(a.pmt_code || "999");
+                      const pb = parseFloat(b.pmt_code || "999");
+                      if (pa !== pb) return pa - pb;
+                      return (a.pmt_code || "").localeCompare(b.pmt_code || "");
+                    })
                     .map((st) => (
                       <option key={st.id} value={st.id}>
                         {st.pmt_code ? `${st.pmt_code} ` : ""}{st.name || st.display_name}{st.topic_name ? ` (${st.topic_name})` : ""}
@@ -537,7 +544,9 @@ export default function AdminUploadPage() {
               {notesLoading ? (
                 <p className="text-sm text-gray-400">Loading...</p>
               ) : (() => {
-                const filtered = notes.filter((n) => n.doc_type === noteType);
+                const filtered = noteType === "notes"
+                  ? notes  // "笔记" tab shows everything (fallback)
+                  : notes.filter((n) => n.doc_type === noteType);
                 return filtered.length === 0 ? (
                   <p className="text-sm text-gray-400">暂无{NOTE_TYPES.find(nt => nt.value === noteType)?.label || "文档"}</p>
                 ) : (
@@ -579,7 +588,7 @@ export default function AdminUploadPage() {
                     ))}
                 </div>
               );
-              })()}
+              })()})
             </div>
           )}
         </>
