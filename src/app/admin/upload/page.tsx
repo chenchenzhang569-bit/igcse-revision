@@ -578,8 +578,8 @@ export default function AdminUploadPage() {
                       </div>
                     ))}
                 </div>
-              )}{/* closes inner ternary */}
-              })()}{/* closes IIFE */}
+              );
+              })()}
             </div>
           )}
         </>
