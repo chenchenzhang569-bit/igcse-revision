@@ -3,7 +3,6 @@ import { getSupabaseClient } from "@/lib/supabase-client";
 
 const supabase = getSupabaseClient();
 
-// Section slug → section name (from SubjectSearchBox sectionSlug generation)
 const SLUG_TO_SECTION: Record<string, string> = {
   "number": "Number",
   "algebra-sequences": "Algebra & Sequences",
@@ -16,17 +15,28 @@ const SLUG_TO_SECTION: Record<string, string> = {
   "statistics": "Statistics",
 };
 
-// Section name → parent topic DB slug
-const SECTION_TO_PARENT_SLUG: Record<string, string> = {
-  "Number": "caie-mathematics-0580-section-number",
-  "Algebra & Sequences": "caie-mathematics-0580-section-algebra-and-sequences",
-  "Coordinate Geometry & Graphs": "caie-mathematics-0580-section-coordinate-geometry-and-graphs",
-  "Geometry": "caie-mathematics-0580-section-geometry",
-  "Lengths, Areas & Volumes": "caie-mathematics-0580-section-lengths-areas-and-volumes",
-  "Pythagoras & Trigonometry": "caie-mathematics-0580-section-pythagoras-and-trigonometry",
-  "Transformations": "caie-mathematics-0580-section-transformations",
-  "Probability": "caie-mathematics-0580-section-probability",
-  "Statistics": "caie-mathematics-0580-section-statistics",
+const SME_SECTION_MAP: Record<string, string> = {
+  "types-of-numbers":"Number","compound-measures":"Number","fractions-decimals-and-percentages":"Number",
+  "introduction-to-fractions":"Number","money-calculations":"Number","operations-with-fractions":"Number",
+  "operations-with-numbers-and-decimals":"Number","percentages":"Number","powers-roots-and-standard-form":"Number",
+  "prime-factors-hcf-and-lcm":"Number","ratio-and-proportion":"Number","reading-and-ordering-numbers":"Number",
+  "rounding-estimation-and-bounds":"Number","simple-and-compound-interest":"Number","time-currency-and-conversions":"Number",
+  "using-a-calculator":"Number",
+  "algebraic-roots-and-indices":"Algebra & Sequences","expanding-and-factorising-brackets":"Algebra & Sequences",
+  "inequalities":"Algebra & Sequences","introduction-to-algebra":"Algebra & Sequences",
+  "linear-equations":"Algebra & Sequences","rearranging-formulas":"Algebra & Sequences",
+  "sequences":"Algebra & Sequences","simultaneous-equations":"Algebra & Sequences",
+  "further-graphs":"Coordinate Geometry & Graphs","linear-graphs":"Coordinate Geometry & Graphs",
+  "real-life-graphs":"Coordinate Geometry & Graphs",
+  "angles-in-polygons-and-parallel-lines":"Geometry","basic-angle-properties":"Geometry",
+  "bearings-constructions-and-scale-drawings":"Geometry","circle-theorems":"Geometry",
+  "symmetry-and-shapes":"Geometry",
+  "area-and-perimeter":"Lengths, Areas & Volumes","circles-arcs-and-sectors":"Lengths, Areas & Volumes",
+  "congruence-and-similarity":"Lengths, Areas & Volumes","volume-and-surface-area":"Lengths, Areas & Volumes",
+  "pythagoras":"Pythagoras & Trigonometry","trigonometry":"Pythagoras & Trigonometry",
+  "transformations":"Transformations",
+  "basic-probability":"Probability","set-notation-and-probability-diagrams":"Probability",
+  "averages-and-range":"Statistics","scatter-graphs-and-correlation":"Statistics","statistical-diagrams":"Statistics",
 };
 
 export default async function SectionPage({
@@ -46,34 +56,31 @@ export default async function SectionPage({
     );
   }
 
-  // Fetch subtopics for this section from DB
-  let subtopics: { id: string; display_name: string; pmt_code: string; sort_order: number }[] = [];
-  let topicSlug = "";
-  
+  // Fetch topics for this section from DB
+  let topics: { name: string; slug: string }[] = [];
   try {
-    const parentSlug = SECTION_TO_PARENT_SLUG[sectionName];
+    // Find maths subject
+    const { data: subjects } = await supabase
+      .from("subjects")
+      .select("id")
+      .eq("code", "0580")
+      .single();
     
-    // Find parent topic
-    const { data: parentTopics } = await supabase
-      .from("topics")
-      .select("id, slug, name")
-      .eq("slug", parentSlug)
-      .limit(1);
-    
-    if (parentTopics && parentTopics.length > 0) {
-      const parentTopic = parentTopics[0];
-      topicSlug = parentTopic.slug.split("-").slice(3).join("-") || parentTopic.slug;
-      // Remove "section-" prefix from the last part
-      topicSlug = topicSlug.replace(/^section-/, "");
-      
-      // Fetch subtopics under this parent
-      const { data: subs } = await supabase
-        .from("subtopics")
-        .select("id, display_name, pmt_code, sort_order")
-        .eq("topic_id", parentTopic.id)
+    if (subjects) {
+      const { data: dbTopics } = await supabase
+        .from("topics")
+        .select("name, slug, sort_order")
+        .eq("subject_id", subjects.id)
         .order("sort_order");
-      
-      if (subs) subtopics = subs;
+
+      if (dbTopics) {
+        for (const t of dbTopics) {
+          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
+          if (SME_SECTION_MAP[smeSlug] === sectionName) {
+            topics.push({ name: t.name, slug: smeSlug });
+          }
+        }
+      }
     }
   } catch (e) {
     console.error("Section fetch failed:", e);
@@ -90,35 +97,27 @@ export default async function SectionPage({
       </div>
 
       <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">{sectionName}</h1>
-      <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
+      <p className="text-gray-500 mt-1">{topics.length} topics</p>
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {subtopics.map((st, i) => {
-          // Build subtopic slug from pmt_code + display_name
-          const subSlug = st.display_name
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/-+$/, "");
-          
-          return (
-            <Link
-              key={st.id}
-              href={`/subjects/${slug}/topics/${topicSlug}/${subSlug}`}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-accent-300 transition-all group flex items-center gap-4"
-            >
-              <span className="text-accent-500 font-extrabold text-sm shrink-0 w-10">{st.pmt_code}</span>
-              <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition text-sm">
-                {st.display_name}
-              </h3>
-              <span className="text-gray-300 group-hover:text-primary-500 ml-auto">→</span>
-            </Link>
-          );
-        })}
+        {topics.map((topic, i) => (
+          <Link
+            key={topic.slug}
+            href={`/subjects/${slug}/topics/${topic.slug}`}
+            className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-accent-300 transition-all group flex items-center gap-4"
+          >
+            <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{i + 1}</span>
+            <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">
+              {topic.name}
+            </h3>
+            <span className="text-gray-300 group-hover:text-primary-500 ml-auto">→</span>
+          </Link>
+        ))}
       </div>
 
-      {subtopics.length === 0 && (
+      {topics.length === 0 && (
         <div className="mt-8 bg-gray-50 border rounded-xl p-8 text-center text-gray-500">
-          <p className="font-medium">No subtopics found in this section</p>
+          <p className="font-medium">No topics found in this section</p>
         </div>
       )}
     </div>
