@@ -69,6 +69,36 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "probability": "Probability", "statistics": "Statistics",
 };
 
+const TOPIC_SLUG_TO_DB: Record<string, string> = {
+  "motion-forces-energy": "general-physics",
+  "thermal-physics": "physics-0625-thermal-physics",
+  "waves": "physics-0625-properties-of-waves",
+  "electricity-magnetism": "physics-0625-electricity-and-magnetism",
+  "nuclear-physics": "physics-0625-atomic-physics",
+  "space-physics": "physics-0625-space-physics",
+  "states-of-matter": "caie-chemistry-0620-1-states-of-matter",
+  "atoms-elements-compounds": "caie-chemistry-0620-2-atoms-elements-and-compounds",
+  "stoichiometry": "caie-chemistry-0620-3-stoichiometry",
+  "electrochemistry": "caie-chemistry-0620-4-electrochemistry",
+  "chemical-energetics": "caie-chemistry-0620-5-chemical-energetics",
+  "chemical-reactions": "caie-chemistry-0620-6-chemical-reactions",
+  "acids-bases-salts": "caie-chemistry-0620-7-acids-bases-and-salts",
+  "periodic-table": "caie-chemistry-0620-8-the-periodic-table",
+  "metals": "caie-chemistry-0620-9-metals",
+  "chemistry-environment": "caie-chemistry-0620-10-chemistry-of-the-environment",
+  "organic-chemistry": "caie-chemistry-0620-11-organic-chemistry",
+  "experimental-techniques": "caie-chemistry-0620-12-experimental-techniques",
+  "number": "caie-mathematics-0580-section-number",
+  "algebra-graphs": "caie-mathematics-0580-section-algebra-and-sequences",
+  "coordinate-geometry": "caie-mathematics-0580-section-coordinate-geometry-and-graphs",
+  "geometry": "caie-mathematics-0580-section-geometry",
+  "mensuration": "caie-mathematics-0580-section-lengths-areas-and-volumes",
+  "trigonometry": "caie-mathematics-0580-section-pythagoras-and-trigonometry",
+  "vectors-transformations": "caie-mathematics-0580-section-transformations",
+  "probability": "caie-mathematics-0580-section-probability",
+  "statistics": "caie-mathematics-0580-section-statistics",
+};
+
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const baseHeaders = { apikey: KEY, Authorization: `Bearer ${KEY}` };
@@ -94,15 +124,25 @@ export default async function TopicPage({
   let notes: any[] = [];
   let questions: any[] = [];
   try {
+    const dbSlug = TOPIC_SLUG_TO_DB[topicSlug] || topicSlug;
     const tRes = await fetch(
-      `${API}/topics?slug=ilike.*${encodeURIComponent(topicSlug)}&select=id,name&limit=1`,
+      `${API}/topics?slug=eq.${encodeURIComponent(dbSlug)}&select=id,name&limit=1`,
       { headers: baseHeaders, cache: "no-store" }
     );
     const topics = await tRes.json();
-    if (topics?.[0]?.id) {
-      topicId = topics[0].id;
+    // Fallback: try with original topicSlug if exact match fails
+    let topicResults = topics;
+    if (!topicResults?.[0]?.id && dbSlug !== topicSlug) {
+      const tRes2 = await fetch(
+        `${API}/topics?slug=ilike.*${encodeURIComponent(topicSlug)}&select=id,name&limit=1`,
+        { headers: baseHeaders, cache: "no-store" }
+      );
+      topicResults = await tRes2.json();
+    }
+    if (topicResults?.[0]?.id) {
+      topicId = topicResults[0].id;
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
-        displayName = topics[0].name || displayName;
+        displayName = topicResults[0].name || displayName;
       }
       // Fetch notes
       const nRes = await fetch(
