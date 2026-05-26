@@ -70,7 +70,8 @@ function YearSeasonAccordion({
   // Group by year → season
   const grouped: Record<number, Record<string, Document[]>> = {};
   for (const p of papers) {
-    const y = p.year || 0;
+    const y = p.year;
+    if (!y) continue;  // skip papers without year
     const s = p.season || "Unknown";
     if (!grouped[y]) grouped[y] = {};
     if (!grouped[y][s]) grouped[y][s] = [];
@@ -301,6 +302,7 @@ export default function AdminUploadPage() {
 
       if (uploadType === "notes" && selSubtopic) {
         formData.append("topic_id", selSubtopic);
+        formData.append("subtopic_id", selSubtopic);
       }
       if (uploadType === "past_paper") {
         formData.append("year", String(uploadYear));

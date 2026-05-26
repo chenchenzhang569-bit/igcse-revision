@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const topic_id = formData.get("topic_id") as string;
+    const subtopic_id = formData.get("subtopic_id") as string;
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const doc_type = formData.get("doc_type") as string || "notes";
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
       .from("notes")
       .insert({
         topic_id,
+        subtopic_id: subtopic_id || null,
         title: title || file.name.replace(/\.pdf$/i, ""),
         content: `[type:${doc_type}]${content || ""}`,
         file_url: urlData.publicUrl,

@@ -55,12 +55,14 @@ export async function GET(request: NextRequest) {
   // notes table — supports subtopic + doc type filter
   let query = admin
     .from("notes")
-    .select("id, title, file_url, subject_id, topic_id, content, created_at", { count: "exact" })
+    .select("id, title, file_url, subject_id, topic_id, content, subtopic_id, created_at", { count: "exact" })
     .eq("subject_id", subjectId)
     .order("created_at", { ascending: false });
 
   if (subtopicId) {
-    query = query.eq("topic_id", subtopicId);
+    // Match both new notes (topic_id = subtopicId) and old notes (subtopic_id = subtopicId)
+    // Also need to match old PMT notes where topic_id = parent topic UUID
+    query = query.or(`subtopic_id.eq.${subtopicId},topic_id.eq.${subtopicId}`);
   }
 
   const { data, error, count } = await query.range((page - 1) * limit, page * limit - 1);
