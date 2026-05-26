@@ -39,23 +39,23 @@ export async function GET(request: NextRequest) {
   if (type === "past_papers") {
     const { data, error, count } = await admin
       .from("past_papers")
-      .select("id, title, file_url, subject_id, created_at", { count: "exact" })
+      .select("id, title, file_url, subject_id, year, season, paper_number, paper_type, created_at", { count: "exact" })
       .eq("subject_id", subjectId)
-      .order("created_at", { ascending: false })
-      .range((page - 1) * limit, page * limit - 1);
+      .order("year", { ascending: false })
+      .order("paper_number", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     return NextResponse.json({
       items: (data || []).map((d) => ({ ...d, type: "past_paper" })),
-      total: count || 0, page, limit,
+      total: count || 0,
     });
   }
 
   // notes table — supports subtopic + doc type filter
   let query = admin
     .from("notes")
-    .select("id, title, file_url, subject_id, topic_id, created_at", { count: "exact" })
+    .select("id, title, file_url, subject_id, topic_id, content, created_at", { count: "exact" })
     .eq("subject_id", subjectId)
     .order("created_at", { ascending: false });
 

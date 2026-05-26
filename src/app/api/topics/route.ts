@@ -12,13 +12,26 @@ export async function GET(request: NextRequest) {
   }
 
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("topics")
-    .select("id, display_name, slug, sort_order")
-    .eq("subject_id", subjectId)
+
+  // Fetch subtopics + join with topics to get topic name
+  const { data: subtopics, error } = await admin
+    .from("subtopics")
+    .select(`
+      id, display_name, pmt_code, name, sort_order, topic_id,
+      topics!inner(id, display_name)
+    `)
+    .eq("topics.subject_id", subjectId)
     .order("sort_order", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json(data);
+  const result = (subtopics || []).map((st: any) => ({
+    id: st.id,
+    display_name: st.display_name,
+    pmt_code: st.pmt_code,
+    name: st.name,
+    topic_name: st.topics?.display_name || "",
+  }));
+
+  return NextResponse.json(result);
 }

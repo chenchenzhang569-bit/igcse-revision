@@ -11,6 +11,11 @@ interface Document {
   subtopic_id?: string;
   created_at: string;
   type: string;
+  doc_type?: string;
+  year?: number;
+  season?: string;
+  paper_number?: number;
+  paper_type?: string;
 }
 
 interface Subject {
@@ -23,6 +28,9 @@ interface Subject {
 interface Subtopic {
   id: string;
   display_name: string;
+  pmt_code?: string;
+  name?: string;
+  topic_name?: string;
 }
 
 const NOTE_TYPES = [
@@ -31,12 +39,157 @@ const NOTE_TYPES = [
   { value: "mcq_pdf", label: "MCQ PDF" },
 ];
 
+// ──── YearSeasonAccordion Component ────
+
+const SEASON_ORDER: Record<string, number> = {
+  "Mar": 1, "Feb/Mar": 1,
+  "May/Jun": 2,
+  "Oct/Nov": 3, "Nov": 3,
+};
+
+const SEASON_LABEL: Record<string, string> = {
+  "Mar": "Mar", "Feb/Mar": "Feb/Mar",
+  "May/Jun": "May/Jun",
+  "Oct/Nov": "Oct/Nov", "Nov": "Nov",
+};
+
+function YearSeasonAccordion({
+  papers,
+  onEdit,
+  onDelete,
+  formatDate,
+}: {
+  papers: Document[];
+  onEdit: (d: Document) => void;
+  onDelete: (d: Document) => void;
+  formatDate: (d: string) => string;
+}) {
+  const [expandedYear, setExpandedYear] = useState<number | null>(null);
+  const [expandedSeason, setExpandedSeason] = useState<string | null>(null);
+
+  // Group by year → season
+  const grouped: Record<number, Record<string, Document[]>> = {};
+  for (const p of papers) {
+    const y = p.year || 0;
+    const s = p.season || "Unknown";
+    if (!grouped[y]) grouped[y] = {};
+    if (!grouped[y][s]) grouped[y][s] = [];
+    grouped[y][s].push(p);
+  }
+
+  const years = Object.keys(grouped)
+    .map(Number)
+    .sort((a, b) => b - a);
+
+  const toggleYear = (y: number) => {
+    setExpandedYear(expandedYear === y ? null : y);
+    setExpandedSeason(null);
+  };
+
+  const toggleSeason = (s: string) => {
+    setExpandedSeason(expandedSeason === s ? null : s);
+  };
+
+  return (
+    <div className="space-y-1">
+      {years.map((year) => {
+        const seasons = grouped[year];
+        const seasonKeys = Object.keys(seasons).sort(
+          (a, b) => (SEASON_ORDER[a] || 99) - (SEASON_ORDER[b] || 99)
+        );
+        const yearCount = Object.values(seasons).flat().length;
+
+        return (
+          <div key={year}>
+            {/* Year row */}
+            <button
+              onClick={() => toggleYear(year)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-left"
+            >
+              <span className="text-sm font-bold text-gray-700">
+                {expandedYear === year ? "▼" : "▶"} {year}
+              </span>
+              <span className="text-xs text-gray-400">{yearCount} papers</span>
+            </button>
+
+            {/* Seasons (expand when year is open) */}
+            {expandedYear === year && (
+              <div className="ml-3 border-l-2 border-gray-200 pl-3 space-y-0.5">
+                {seasonKeys.map((season) => {
+                  const seasonPapers = seasons[season];
+                  const seasonLabel = SEASON_LABEL[season] || season;
+
+                  return (
+                    <div key={season}>
+                      {/* Season row */}
+                      <button
+                        onClick={() => toggleSeason(season)}
+                        className="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-gray-50 text-left"
+                      >
+                        <span className="text-xs font-semibold text-gray-600">
+                          {expandedSeason === season ? "▼" : "▶"} {seasonLabel}
+                        </span>
+                        <span className="text-xs text-gray-400">{seasonPapers.length} papers</span>
+                      </button>
+
+                      {/* Papers (expand when season is open) */}
+                      {expandedSeason === season && (
+                        <div className="ml-2 space-y-0.5">
+                          {seasonPapers.map((doc) => (
+                            <div
+                              key={doc.id}
+                              className="flex items-center justify-between rounded px-2 py-1 hover:bg-gray-100"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-gray-700 truncate">
+                                  Paper {doc.paper_number} {doc.paper_type}
+                                </p>
+                              </div>
+                              <div className="flex gap-1 shrink-0">
+                                <a
+                                  href={doc.file_url}
+                                  target="_blank"
+                                  rel="noopener"
+                                  className="text-xs text-gray-400 hover:text-primary-900 px-1"
+                                >
+                                  查看
+                                </a>
+                                <button
+                                  onClick={() => onEdit(doc)}
+                                  className="text-xs text-gray-400 hover:text-primary-900 px-1"
+                                >
+                                  编辑
+                                </button>
+                                <button
+                                  onClick={() => onDelete(doc)}
+                                  className="text-xs text-gray-400 hover:text-red-500 px-1"
+                                >
+                                  🗑
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AdminUploadPage() {
   const [token, setToken] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subtopics, setSubtopics] = useState<Subtopic[]>([]);
   const [selSubject, setSelSubject] = useState("");
   const [selSubtopic, setSelSubtopic] = useState("");
+  const [subtopicSearch, setSubtopicSearch] = useState("");
   const [noteType, setNoteType] = useState("notes");
 
   // Past papers list
@@ -121,7 +274,14 @@ export default function AdminUploadPage() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((d) => setNotes(d.items || []))
+      .then((d) => {
+        const items = (d.items || []).map((item: any) => {
+          // Parse doc_type from content field: [type:mcq_pdf]actual content
+          const m = (item.content || "").match(/^\[type:(\w+)\]/);
+          return { ...item, doc_type: m ? m[1] : "notes" };
+        });
+        setNotes(items);
+      })
       .finally(() => setNotesLoading(false));
   }, [token, selSubject, selSubtopic]);
 
@@ -137,6 +297,7 @@ export default function AdminUploadPage() {
       formData.append("file", uploadFile);
       if (uploadAnswerFile) formData.append("answer_file", uploadAnswerFile);
       formData.append("subject_id", selSubject);
+      formData.append("doc_type", noteType);
 
       if (uploadType === "notes" && selSubtopic) {
         formData.append("topic_id", selSubtopic);
@@ -265,7 +426,9 @@ export default function AdminUploadPage() {
           {/* ──── Past Papers ──── */}
           <div className="bg-white border rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-primary-900">历年真题</h2>
+              <h2 className="text-lg font-bold text-primary-900">
+                历年真题 <span className="text-sm font-normal text-gray-400">({pastPapers.length})</span>
+              </h2>
               <button
                 onClick={() => {
                   setUploadType("past_paper");
@@ -284,43 +447,7 @@ export default function AdminUploadPage() {
             ) : pastPapers.length === 0 ? (
               <p className="text-sm text-gray-400">暂无历年真题</p>
             ) : (
-              <div className="space-y-1">
-                {pastPapers.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-700 truncate">
-                        {doc.title}
-                      </p>
-                      <p className="text-xs text-gray-400">{formatDate(doc.created_at)}</p>
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <a
-                        href={doc.file_url}
-                        target="_blank"
-                        rel="noopener"
-                        className="text-xs text-gray-400 hover:text-primary-900 px-2 py-1"
-                      >
-                        查看
-                      </a>
-                      <button
-                        onClick={() => openEdit(doc)}
-                        className="text-xs text-gray-400 hover:text-primary-900 px-2 py-1"
-                      >
-                        编辑
-                      </button>
-                      <button
-                        onClick={() => handleDelete(doc)}
-                        className="text-xs text-gray-400 hover:text-red-500 px-2 py-1"
-                      >
-                        🗑
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <YearSeasonAccordion papers={pastPapers} onEdit={openEdit} onDelete={handleDelete} formatDate={formatDate} />
             )}
           </div>
 
@@ -329,18 +456,49 @@ export default function AdminUploadPage() {
             <label className="block text-xs font-semibold text-gray-500 mb-1">
               SubTopic（选填，选后支持上传笔记/题目/MCQ）
             </label>
-            <select
-              value={selSubtopic}
-              onChange={(e) => setSelSubtopic(e.target.value)}
-              className="w-full max-w-md px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20"
-            >
-              <option value="">不限（只看历年真题）</option>
-              {subtopics.map((st) => (
-                <option key={st.id} value={st.id}>
-                  {st.display_name}
-                </option>
-              ))}
-            </select>
+            {!selSubject ? (
+              <p className="text-sm text-gray-400">请先选择科目</p>
+            ) : (
+              <div className="relative max-w-md">
+                <input
+                  type="text"
+                  value={subtopicSearch}
+                  onChange={(e) => setSubtopicSearch(e.target.value)}
+                  placeholder="搜索 SubTopic 编号或名称..."
+                  className="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20"
+                />
+                <select
+                  value={selSubtopic}
+                  onChange={(e) => {
+                    setSelSubtopic(e.target.value);
+                    setSubtopicSearch("");
+                  }}
+                  size={Math.min(8, subtopics.filter(st => {
+                    const q = subtopicSearch.toLowerCase();
+                    if (!q) return true;
+                    return (st.pmt_code || "").toLowerCase().includes(q) ||
+                           (st.display_name || "").toLowerCase().includes(q) ||
+                           (st.topic_name || "").toLowerCase().includes(q);
+                  }).length + 1)}
+                  className="w-full mt-1 px-2 py-1 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20 bg-white"
+                >
+                  <option value="">不限（只看历年真题）</option>
+                  {subtopics
+                    .filter(st => {
+                      const q = subtopicSearch.toLowerCase();
+                      if (!q) return true;
+                      return (st.pmt_code || "").toLowerCase().includes(q) ||
+                             (st.display_name || "").toLowerCase().includes(q) ||
+                             (st.topic_name || "").toLowerCase().includes(q);
+                    })
+                    .map((st) => (
+                      <option key={st.id} value={st.id}>
+                        {st.pmt_code ? `${st.pmt_code} ` : ""}{st.name || st.display_name}{st.topic_name ? ` (${st.topic_name})` : ""}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* ──── Notes ──── */}
@@ -378,11 +536,13 @@ export default function AdminUploadPage() {
 
               {notesLoading ? (
                 <p className="text-sm text-gray-400">Loading...</p>
-              ) : notes.length === 0 ? (
-                <p className="text-sm text-gray-400">暂无文档</p>
-              ) : (
-                <div className="space-y-1">
-                  {notes.map((doc) => (
+              ) : (() => {
+                const filtered = notes.filter((n) => n.doc_type === noteType);
+                return filtered.length === 0 ? (
+                  <p className="text-sm text-gray-400">暂无{NOTE_TYPES.find(nt => nt.value === noteType)?.label || "文档"}</p>
+                ) : (
+                  <div className="space-y-1">
+                    {filtered.map((doc) => (
                       <div
                         key={doc.id}
                         className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50"
@@ -418,7 +578,8 @@ export default function AdminUploadPage() {
                       </div>
                     ))}
                 </div>
-              )}
+              )}{/* closes inner ternary */}
+              })()}{/* closes IIFE */}
             </div>
           )}
         </>

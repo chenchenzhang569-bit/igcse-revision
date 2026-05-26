@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     const topic_id = formData.get("topic_id") as string;
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
+    const doc_type = formData.get("doc_type") as string || "notes";
     const is_free_preview = formData.get("is_free_preview") === "true";
 
     if (!file || !topic_id || !title) {
@@ -49,13 +50,13 @@ export async function POST(req: NextRequest) {
       .from("notes-pdfs")
       .getPublicUrl(filePath);
 
-    // 存入 notes 表
+    // 存入 notes 表 (store doc_type in content as prefix)
     const { data: note, error: dbError } = await supabase
       .from("notes")
       .insert({
         topic_id,
         title: title || file.name.replace(/\.pdf$/i, ""),
-        content: content || "",
+        content: `[type:${doc_type}]${content || ""}`,
         file_url: urlData.publicUrl,
         file_name: file.name,
         is_free_preview,
