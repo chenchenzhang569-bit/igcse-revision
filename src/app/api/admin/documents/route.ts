@@ -37,10 +37,17 @@ export async function GET(request: NextRequest) {
   if (!subjectId) return NextResponse.json({ error: "Missing subject_id" }, { status: 400 });
 
   if (type === "past_papers") {
-    const { data, error, count } = await admin
+    const subtopicId = searchParams.get("subtopic_id");
+    let query = admin
       .from("past_papers")
       .select("id, title, file_url, subject_id, year, season, paper_number, paper_type, created_at", { count: "exact" })
-      .eq("subject_id", subjectId)
+      .eq("subject_id", subjectId);
+
+    if (subtopicId) {
+      query = query.eq("subtopic_id", subtopicId);
+    }
+
+    const { data, error, count } = await query
       .order("year", { ascending: false })
       .order("paper_number", { ascending: true });
 

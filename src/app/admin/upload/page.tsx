@@ -39,6 +39,30 @@ const NOTE_TYPES = [
   { value: "mcq_pdf", label: "MCQ PDF" },
 ];
 
+// ──── DocRow Component ────
+function DocRow({
+  doc, formatDate, onEdit, onDelete,
+}: {
+  doc: Document;
+  formatDate: (d: string) => string;
+  onEdit: (d: Document) => void;
+  onDelete: (d: Document) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-700 truncate">{doc.title}</p>
+        <p className="text-xs text-gray-400">{formatDate(doc.created_at)}</p>
+      </div>
+      <div className="flex gap-1 shrink-0">
+        <a href={doc.file_url} target="_blank" rel="noopener" className="text-xs text-gray-400 hover:text-primary-900 px-2 py-1">查看</a>
+        <button onClick={() => onEdit(doc)} className="text-xs text-gray-400 hover:text-primary-900 px-2 py-1">编辑</button>
+        <button onClick={() => onDelete(doc)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">🗑</button>
+      </div>
+    </div>
+  );
+}
+
 // ──── YearSeasonAccordion Component ────
 
 const SEASON_ORDER: Record<string, number> = {
@@ -201,6 +225,10 @@ export default function AdminUploadPage() {
   const [notes, setNotes] = useState<Document[]>([]);
   const [notesLoading, setNotesLoading] = useState(false);
 
+  // Subtopic papers (MCQ QP/MS + Topic QP/MS)
+  const [subtopicPapers, setSubtopicPapers] = useState<Document[]>([]);
+  const [subtopicPapersLoading, setSubtopicPapersLoading] = useState(false);
+
   // Upload modal
   const [showUpload, setShowUpload] = useState(false);
   const [uploadType, setUploadType] = useState<"past_paper" | "notes">("past_paper");
@@ -288,6 +316,25 @@ export default function AdminUploadPage() {
 
   useEffect(() => { fetchNotes(); }, [fetchNotes]);
 
+  // Fetch subtopic papers (MCQ + Topic QP/MS)
+  const fetchSubtopicPapers = useCallback(() => {
+    if (!token || !selSubject || !selSubtopic) return;
+    setSubtopicPapersLoading(true);
+    const params = new URLSearchParams({
+      type: "past_papers",
+      subject_id: selSubject,
+      subtopic_id: selSubtopic,
+    });
+    fetch(`/api/admin/documents?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => setSubtopicPapers(d.items || []))
+      .finally(() => setSubtopicPapersLoading(false));
+  }, [token, selSubject, selSubtopic]);
+
+  useEffect(() => { fetchSubtopicPapers(); }, [fetchSubtopicPapers]);
+
   // Upload
   const handleUpload = async () => {
     if (!token || !selSubject || !uploadFile) return;
@@ -352,7 +399,7 @@ export default function AdminUploadPage() {
     );
 
     if (res.ok) {
-      if (doc.type === "past_paper") fetchPastPapers();
+      if (doc.type === "past_paper") { fetchPastPapers(); fetchSubtopicPapers(); }
       else fetchNotes();
     }
   };
@@ -502,7 +549,7 @@ export default function AdminUploadPage() {
                     })
                     .map((st) => (
                       <option key={st.id} value={st.id}>
-                        {st.pmt_code ? `${st.pmt_code} ` : ""}{st.name || st.display_name}{st.topic_name ? ` (${st.topic_name})` : ""}
+                        {st.pmt_code ? `${st.pmt_code} ` : ""}{st.name || st.display_name}{st.topic_name ? ` — ${st.topic_name}` : ""}
                       </option>
                     ))}
                 </select>
@@ -543,54 +590,42 @@ export default function AdminUploadPage() {
                 </button>
               </div>
 
-              {notesLoading ? (
-                <p className="text-sm text-gray-400">Loading...</p>
-              ) : (() => {
-                const filtered = noteType === "notes"
-                  ? notes  // "笔记" tab shows everything (fallback)
-                  : notes.filter((n) => n.doc_type === noteType);
+              {(() => {
+                // "笔记" tab: show notes table
+                // "题目PDF"/"MCQ PDF" tabs: show past_papers table
+                const isNotesTab = noteType === "notes";
+                const loading = isNotesTab ? notesLoading : subtopicPapersLoading;
+                
+                if (loading) return <p className="text-sm text-gray-400">Loading...</p>;
+
+                if (isNotesTab) {
+                  return notes.length === 0 ? (
+                    <p className="text-sm text-gray-400">暂无笔记</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {notes.map((doc) => (
+                        <DocRow key={doc.id} doc={doc} formatDate={formatDate} onEdit={openEdit} onDelete={handleDelete} />
+                      ))}
+                    </div>
+                  );
+                }
+
+                // 题目PDF / MCQ PDF tabs → filter past_papers by paper_type
+                const typeFilter = noteType === "question_paper"
+                  ? ["Topic QP", "Topic MS", "QP", "MS"]
+                  : ["MCQ QP", "MCQ MS"];
+                const filtered = subtopicPapers.filter(p => typeFilter.includes(p.paper_type || ""));
+                
                 return filtered.length === 0 ? (
                   <p className="text-sm text-gray-400">暂无{NOTE_TYPES.find(nt => nt.value === noteType)?.label || "文档"}</p>
                 ) : (
                   <div className="space-y-1">
                     {filtered.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-700 truncate">
-                            {doc.title}
-                          </p>
-                          <p className="text-xs text-gray-400">{formatDate(doc.created_at)}</p>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          <a
-                            href={doc.file_url}
-                            target="_blank"
-                            rel="noopener"
-                            className="text-xs text-gray-400 hover:text-primary-900 px-2 py-1"
-                          >
-                            查看
-                          </a>
-                          <button
-                            onClick={() => openEdit(doc)}
-                            className="text-xs text-gray-400 hover:text-primary-900 px-2 py-1"
-                          >
-                            编辑
-                          </button>
-                          <button
-                            onClick={() => handleDelete(doc)}
-                            className="text-xs text-gray-400 hover:text-red-500 px-2 py-1"
-                          >
-                            🗑
-                          </button>
-                        </div>
-                      </div>
+                      <DocRow key={doc.id} doc={doc} formatDate={formatDate} onEdit={openEdit} onDelete={handleDelete} />
                     ))}
-                </div>
-              );
-              })()})
+                  </div>
+                );
+              })()}
             </div>
           )}
         </>
