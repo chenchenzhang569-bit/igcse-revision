@@ -6,7 +6,7 @@ import { MockExamsTab } from "./MockExamsTab";
 import { SubjectSearchBox } from "./SubjectSearchBox";
 
 interface Topic { name: string; displayName: string; slug: string; sort: number }
-interface TopicSection { section: string; topics: Topic[] }
+interface TopicSection { section: string; topics: Topic[]; count?: number }
 
 const PHYSICS: Topic[] = [
   { name: "Motion, forces and energy", displayName: "Motion, Forces & Energy", slug: "motion-forces-energy", sort: 1 },
@@ -223,39 +223,42 @@ export default async function SubjectPage({
   if (key === "maths" && subjectId) {
     try {
       const supabase = createClient();
-      const { data: dbTopics } = await supabase
+      // Fetch parent topics to get section names
+      const { data: parentTopics } = await supabase
         .from("topics")
-        .select("name, slug, sort_order")
+        .select("id, name, slug, sort_order")
         .eq("subject_id", subjectId)
         .order("sort_order");
-      if (dbTopics && dbTopics.length > 0) {
-        // Group by extracting SME topic slug (last segment of DB slug like "caie-mathematics-0580-types-of-numbers")
-        const grouped = new Map<string, Topic[]>();
-        const added = new Set<string>();
-        for (const t of dbTopics) {
-          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
-          const sectionName = SME_SECTION_MAP[smeSlug] || "Other";
-          if (!grouped.has(sectionName)) grouped.set(sectionName, []);
-          if (!added.has(smeSlug)) {
-            added.add(smeSlug);
-            grouped.get(sectionName)!.push({
-              name: sectionName,
-              displayName: t.name,
-              slug: smeSlug,
-              sort: t.sort_order,
-            });
+      // Fetch subtopics and count by parent topic
+      const { data: dbSubtopics } = await supabase
+        .from("subtopics")
+        .select("id, display_name, pmt_code, topic_id, sort_order")
+        .in("topic_id", parentTopics?.map(t => t.id) || [])
+        .order("sort_order");
+      if (parentTopics && parentTopics.length > 0) {
+        const sectionTopics = new Map<string, { name: string; count: number; sort: number }>();
+        for (const pt of parentTopics) {
+          const smeSlug = pt.slug.split("-").slice(3).join("-") || pt.slug;
+          const sectionName = SME_SECTION_MAP[smeSlug] || pt.name;
+          sectionTopics.set(pt.id, { name: sectionName, count: 0, sort: pt.sort_order });
+        }
+        // Count subtopics per section
+        if (dbSubtopics) {
+          for (const st of dbSubtopics) {
+            const sec = sectionTopics.get(st.topic_id);
+            if (sec) sec.count++;
           }
         }
-        topicSections = Array.from(grouped.entries()).map(([section, topics]) => ({
-          section,
-          topics,
+        // Build sections with just the parent topic entry (used for section cards)
+        topicSections = Array.from(sectionTopics.entries()).map(([tid, info]) => ({
+          section: info.name,
+          topics: [{ name: info.name, displayName: `${info.count} topics`, slug: info.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), sort: info.sort }],
+          count: info.count,
         }));
-        // Also provide flat topics for non-section rendering if needed
-        topics = topicSections.flatMap(s => s.topics);
+        topics = [];
       }
     } catch (e) {
       console.error("Topic DB fetch failed:", e);
-      // Fall back to hardcoded
       topics = data.topics;
     }
   }

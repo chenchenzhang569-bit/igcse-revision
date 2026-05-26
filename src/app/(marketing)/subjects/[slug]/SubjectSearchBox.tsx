@@ -14,6 +14,7 @@ interface Topic {
 interface TopicSection {
   section: string;
   topics: Topic[];
+  count?: number;
 }
 
 // Section order for math
@@ -201,7 +202,7 @@ export function SubjectSearchBox({
                     {secName}
                   </h3>
                   <p className="text-sm text-gray-400 mt-0.5">
-                    {sec.topics.length} topics
+                    {sec.count || sec.topics.length} topics
                   </p>
                 </div>
                 <span className="text-gray-300 group-hover:text-primary-500 text-xl transition">
