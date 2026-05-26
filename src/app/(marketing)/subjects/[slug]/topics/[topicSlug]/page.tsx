@@ -62,10 +62,10 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "organisms-environment": "Organisms & Their Environment",
   "human-influences-ecosystems": "Human Influences on Ecosystems",
   "biotechnology": "Biotechnology & Genetic Modification",
-  "number": "Number", "algebra-graphs": "Algebra & Sequences",
-  "coordinate-geometry": "Coordinate Geometry & Graphs", "geometry": "Geometry",
-  "mensuration": "Lengths, Areas & Volumes", "trigonometry": "Pythagoras & Trigonometry",
-  "vectors-transformations": "Transformations",
+  "number": "Number", "algebra-graphs": "Algebra & Graphs",
+  "coordinate-geometry": "Coordinate Geometry", "geometry": "Geometry",
+  "mensuration": "Mensuration", "trigonometry": "Trigonometry",
+  "vectors-transformations": "Vectors & Transformations",
   "probability": "Probability", "statistics": "Statistics",
 };
 

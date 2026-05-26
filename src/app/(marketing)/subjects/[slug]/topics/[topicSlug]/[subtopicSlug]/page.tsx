@@ -63,15 +63,6 @@ const TOPIC_SLUG_TO_DB: Record<string, string> = {
   "organisms-environment": "caie-biology-0610-19-organisms-and-their-environment",
   "biotechnology": "caie-biology-0610-21-biotechnology-and-genetic-engineering",
   "human-influences-ecosystems": "caie-biology-0610-20-human-influences-on-ecosystems",
-  "number": "caie-mathematics-0580-section-number",
-  "algebra-graphs": "caie-mathematics-0580-section-algebra-and-sequences",
-  "coordinate-geometry": "caie-mathematics-0580-section-coordinate-geometry-and-graphs",
-  "geometry": "caie-mathematics-0580-section-geometry",
-  "mensuration": "caie-mathematics-0580-section-lengths-areas-and-volumes",
-  "trigonometry": "caie-mathematics-0580-section-pythagoras-and-trigonometry",
-  "vectors-transformations": "caie-mathematics-0580-section-transformations",
-  "probability": "caie-mathematics-0580-section-probability",
-  "statistics": "caie-mathematics-0580-section-statistics",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {
@@ -108,10 +99,10 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "organisms-environment": "Organisms & Their Environment",
   "human-influences-ecosystems": "Human Influences on Ecosystems",
   "biotechnology": "Biotechnology & Genetic Modification",
-  "number": "Number", "algebra-graphs": "Algebra & Sequences",
-  "coordinate-geometry": "Coordinate Geometry & Graphs", "geometry": "Geometry",
-  "mensuration": "Lengths, Areas & Volumes", "trigonometry": "Pythagoras & Trigonometry",
-  "vectors-transformations": "Transformations",
+  "number": "Number", "algebra-graphs": "Algebra & Graphs",
+  "coordinate-geometry": "Coordinate Geometry", "geometry": "Geometry",
+  "mensuration": "Mensuration", "trigonometry": "Trigonometry",
+  "vectors-transformations": "Vectors & Transformations",
   "probability": "Probability", "statistics": "Statistics",
 };
 
