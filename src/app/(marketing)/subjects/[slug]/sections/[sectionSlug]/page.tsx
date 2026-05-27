@@ -76,12 +76,11 @@ export default async function SectionPage({
     
     if (subjects) {
       // Find the parent topic for this section
-      // Parent topic slugs: caie-mathematics-0580-section-{name}
-      const parentSlug = `caie-mathematics-0580-section-${sectionSlug}`;
+      // Use ilike because URL strips & and , from section names
       const { data: parentTopics } = await supabase
         .from("topics")
         .select("id, name, slug")
-        .eq("slug", parentSlug)
+        .ilike("slug", `%section-${sectionSlug.replace(/-/g, '%')}%`)
         .eq("subject_id", subjects.id)
         .limit(1);
 
@@ -118,7 +117,7 @@ export default async function SectionPage({
       </div>
 
       <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">{sectionName}</h1>
-      <p className="text-gray-500 mt-1">{topics.length} topics</p>
+      <p className="text-gray-500 mt-1">{topics.length} subtopics</p>
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
         {topics.map((topic, i) => (
