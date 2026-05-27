@@ -215,19 +215,17 @@ export default async function TopicPage({
                 📝 ZNotes Summary
               </h3>
               {subtopicNotes.filter((n: any) => (n.title || "").includes("ZNotes")).map((note: any) => (
-                <div key={note.id} className="bg-white border rounded-xl p-5 hover:shadow-md transition">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-primary-900">{note.title.replace("[ZNotes Summary] ", "")}</h4>
-                      <p className="text-xs text-gray-400 mt-1">ZNotes Summary PDF</p>
-                    </div>
-                    {note.file_url && (
-                      <a href={note.file_url} target="_blank" rel="noopener noreferrer"
-                         className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition shrink-0">
-                        📥 Download
-                      </a>
-                    )}
-                  </div>
+                <div key={note.id} className="bg-white border rounded-xl overflow-hidden">
+                  {note.file_url ? (
+                    <img
+                      src={note.file_url}
+                      alt={note.title.replace("[ZNotes Summary] ", "")}
+                      className="w-full"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="p-5 text-gray-400 text-center">No preview available</div>
+                  )}
                 </div>
               ))}
             </div>
