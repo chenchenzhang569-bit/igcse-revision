@@ -1,4 +1,5 @@
-// force-redeploy-v4-images-fixed
+// force-redeploy-v5-subtopic-count
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PastPapersTab } from "./PastPapersTab";
