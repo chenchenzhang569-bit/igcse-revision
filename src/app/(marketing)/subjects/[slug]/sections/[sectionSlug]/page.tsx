@@ -64,8 +64,8 @@ export default async function SectionPage({
     );
   }
 
-  // Fetch topics for this section from DB
-  let topics: { name: string; slug: string }[] = [];
+  // Fetch subtopics for this section from DB
+  let topics: { name: string; slug: string; subtopicId: string }[] = [];
   try {
     // Find maths subject
     const { data: subjects } = await supabase
@@ -75,18 +75,31 @@ export default async function SectionPage({
       .single();
     
     if (subjects) {
-      const { data: dbTopics } = await supabase
+      // Find the parent topic for this section
+      // Parent topic slugs: caie-mathematics-0580-section-{name}
+      const parentSlug = `caie-mathematics-0580-section-${sectionSlug}`;
+      const { data: parentTopics } = await supabase
         .from("topics")
-        .select("name, slug, sort_order")
+        .select("id, name, slug")
+        .eq("slug", parentSlug)
         .eq("subject_id", subjects.id)
-        .order("sort_order");
+        .limit(1);
 
-      if (dbTopics) {
-        for (const t of dbTopics) {
-          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
-          if (SME_SECTION_MAP[smeSlug] === sectionName) {
-            topics.push({ name: t.name, slug: smeSlug });
-          }
+      if (parentTopics && parentTopics.length > 0) {
+        const parent = parentTopics[0];
+        // Get subtopics under this parent
+        const { data: subtopics } = await supabase
+          .from("subtopics")
+          .select("id, display_name, slug")
+          .eq("topic_id", parent.id)
+          .order("sort_order");
+
+        if (subtopics) {
+          topics = subtopics.map((st: any) => ({
+            name: st.display_name || st.name,
+            slug: parent.slug.split("-").slice(3).join("-") || parent.slug,
+            subtopicId: st.id,
+          }));
         }
       }
     }
@@ -111,7 +124,7 @@ export default async function SectionPage({
         {topics.map((topic, i) => (
           <Link
             key={topic.slug}
-            href={`/subjects/${slug}/topics/${topic.slug}`}
+            href={`/subjects/${slug}/topics/${topic.slug}?sub=${topic.subtopicId}`}
             className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-accent-300 transition-all group flex items-center gap-4"
           >
             <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{i + 1}</span>

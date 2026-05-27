@@ -88,7 +88,7 @@ export default async function TopicPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { slug, topicSlug } = await params;
-  const { tab } = await searchParams;
+  const { tab, sub } = await searchParams;
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics";
@@ -100,6 +100,7 @@ export default async function TopicPage({
   let topicId: string | null = null;
   let notes: any[] = [];
   let questions: any[] = [];
+  let subtopicDisplay: string | null = null;
   try {
     const tRes = await fetch(
       `${API}/topics?slug=ilike.*${encodeURIComponent(topicSlug)}&select=id,name&limit=1`,
@@ -111,6 +112,18 @@ export default async function TopicPage({
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
       }
+      // Fetch subtopic name if sub param present
+      if (sub) {
+        const stRes = await fetch(
+          `${API}/subtopics?id=eq.${sub}&select=display_name&limit=1`,
+          { headers: baseHeaders, cache: "no-store" }
+        );
+        const stData = await stRes.json();
+        if (stData?.[0]?.display_name) {
+          subtopicDisplay = stData[0].display_name;
+          displayName = subtopicDisplay;
+        }
+      }
       // Fetch notes
       const nRes = await fetch(
         `${API}/notes?select=*&topic_id=eq.${topicId}&order=sort_order&limit=50`,
@@ -118,10 +131,10 @@ export default async function TopicPage({
       );
       notes = await nRes.json();
       // Fetch questions
-      const qRes = await fetch(
-        `${API}/questions?select=*&topic_id=eq.${topicId}&order=sort_order`,
-        { headers: baseHeaders, cache: "no-store" }
-      );
+      const qUrl = sub
+        ? `${API}/questions?select=*&subtopic_id=eq.${sub}&order=sort_order`
+        : `${API}/questions?select=*&topic_id=eq.${topicId}&order=sort_order`;
+      const qRes = await fetch(qUrl, { headers: baseHeaders, cache: "no-store" });
       questions = await qRes.json();
     }
   } catch (e) {
