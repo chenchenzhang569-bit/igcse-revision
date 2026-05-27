@@ -1,13 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
-const supabase = createClient(
-  "https://aondldqwwvttwpervrfq.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
+function getSupabase() {
+  return createClient(
+    "https://aondldqwwvttwpervrfq.supabase.co",
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  );
+}
 
 // GET /api/bookmarks — get user's bookmarks (with optional ?question_id= or ?mock_exam_question_id=)
 export async function GET(req: NextRequest) {
+  const supabase = getSupabase();
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -233,8 +236,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/bookmarks — add a bookmark (supports question_id or mock_exam_question_id)
+// POST /api/bookmarks — add a bookmark
 export async function POST(req: NextRequest) {
+  const supabase = getSupabase();
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -280,6 +284,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/bookmarks — remove a bookmark
 export async function DELETE(req: NextRequest) {
+  const supabase = getSupabase();
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
