@@ -85,7 +85,7 @@ export default async function TopicPage({
   searchParams,
 }: {
   params: Promise<{ slug: string; topicSlug: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; sub?: string }>;
 }) {
   const { slug, topicSlug } = await params;
   const { tab, sub } = await searchParams;
