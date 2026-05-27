@@ -206,20 +206,22 @@ export default async function TopicPage({
       )}
 
       {/* Subtopic-specific notes (ZNotes summaries) — only when subtopic selected */}
-      {sub && subtopicNotes.filter((n: any) => (n.title || \"\").includes(\"ZNotes\")).length > 0 && (
-        <div className=\"mt-6\">
-          <h3 className=\"text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3\">📝 ZNotes Summary</h3>
-          <div className=\"space-y-3\">
-            {subtopicNotes.filter((n: any) => (n.title || \"\").includes(\"ZNotes\")).map((note: any) => (
-              <div key={note.id} className=\"bg-white border rounded-xl p-5 hover:shadow-md transition\">
-                <div className=\"flex items-center justify-between\">
+      {sub && subtopicNotes.filter((n: any) => (n.title || "").includes("ZNotes")).length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            📝 ZNotes Summary
+          </h3>
+          <div className="space-y-3">
+            {subtopicNotes.filter((n: any) => (n.title || "").includes("ZNotes")).map((note: any) => (
+              <div key={note.id} className="bg-white border rounded-xl p-5 hover:shadow-md transition">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h4 className=\"font-semibold text-primary-900\">{note.title.replace(\"[ZNotes Summary] \", \"\")}</h4>
-                    <p className=\"text-xs text-gray-400 mt-1\">ZNotes Summary PDF</p>
+                    <h4 className="font-semibold text-primary-900">{note.title.replace("[ZNotes Summary] ", "")}</h4>
+                    <p className="text-xs text-gray-400 mt-1">ZNotes Summary PDF</p>
                   </div>
                   {note.file_url && (
-                    <a href={note.file_url} target=\"_blank\" rel=\"noopener noreferrer\"
-                       className=\"bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition shrink-0\">
+                    <a href={note.file_url} target="_blank" rel="noopener noreferrer"
+                       className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition shrink-0">
                       📥 Download
                     </a>
                   )}
@@ -239,7 +241,7 @@ export default async function TopicPage({
               <p className="text-sm mt-2">Study notes are being prepared</p>
             </div>
           ) : (
-            notes.filter((n: any) => !(n.title || \"\").includes(\"ZNotes\")).map((note: any) => (
+notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) => (
               <div key={note.id} className="bg-white border rounded-xl p-6">
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                   <h3 className="text-lg font-semibold text-gray-900">{note.title}</h3>
