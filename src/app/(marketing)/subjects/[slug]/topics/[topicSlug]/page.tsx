@@ -108,6 +108,7 @@ export default async function TopicPage({
   let topicId: string | null = null;
   let notes: any[] = [];
   let questions: any[] = [];
+  let subtopicNotes: any[] = [];
   let subtopicDisplay: string | null = null;
   try {
     const tRes = await fetch(
@@ -139,7 +140,6 @@ export default async function TopicPage({
       );
       notes = await nRes.json();
       // Fetch subtopic-specific notes (ZNotes summaries etc.)
-      let subtopicNotes: any[] = [];
       if (sub) {
         const snRes = await fetch(
           `${API}/notes?select=*&subtopic_id=eq.${sub}&order=sort_order&limit=20`,
