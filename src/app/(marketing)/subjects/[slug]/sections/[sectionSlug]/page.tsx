@@ -1,8 +1,6 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
-import { getSupabaseClient } from "@/lib/supabase-client";
-
-const supabase = getSupabaseClient();
+import { createClient } from "@/lib/supabase/server";
 
 const SLUG_TO_SECTION: Record<string, string> = {
   "number": "Number",
@@ -68,6 +66,7 @@ export default async function SectionPage({
   // Fetch subtopics for this section from DB
   let topics: { name: string; slug: string; subtopicId: string }[] = [];
   try {
+    const supabase = await createClient();
     // Find maths subject
     const { data: subjects } = await supabase
       .from("subjects")

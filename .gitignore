@@ -5,3 +5,7 @@ node_modules/
 alipay_private.key
 .vercel
 *.pem
+znotes_pdfs/
+znotes_content/
+znotes_generate*.py
+znotes_playwright.py
