@@ -14,20 +14,8 @@ interface Topic {
 interface TopicSection {
   section: string;
   topics: Topic[];
+  subtopicCount?: number;
 }
-
-// Section name → SUBTOPIC_DATA key for math subtopic count
-const MATH_SECTION_TO_KEY: Record<string, string> = {
-  "Number": "number",
-  "Algebra & Sequences": "algebra-graphs",
-  "Coordinate Geometry & Graphs": "coordinate-geometry",
-  "Geometry": "geometry",
-  "Lengths, Areas & Volumes": "mensuration",
-  "Pythagoras & Trigonometry": "trigonometry",
-  "Transformations": "vectors-transformations",
-  "Probability": "probability",
-  "Statistics": "statistics",
-};
 
 // Section order for math
 const SME_SECTION_ORDER = [
@@ -214,7 +202,7 @@ export function SubjectSearchBox({
                     {secName}
                   </h3>
                   <p className="text-sm text-gray-400 mt-0.5">
-                    {subtopicData[MATH_SECTION_TO_KEY[secName]]?.length || 0} subtopics
+                    {sec.subtopicCount ?? 0} subtopics
                   </p>
                 </div>
                 <span className="text-gray-300 group-hover:text-primary-500 text-xl transition">

@@ -6,7 +6,7 @@ import { MockExamsTab } from "./MockExamsTab";
 import { SubjectSearchBox } from "./SubjectSearchBox";
 
 interface Topic { name: string; displayName: string; slug: string; sort: number }
-interface TopicSection { section: string; topics: Topic[] }
+interface TopicSection { section: string; topics: Topic[]; subtopicCount?: number }
 
 const PHYSICS: Topic[] = [
   { name: "Motion, forces and energy", displayName: "Motion, Forces & Energy", slug: "motion-forces-energy", sort: 1 },
@@ -222,11 +222,33 @@ export default async function SubjectPage({
       const supabase = createClient();
       const { data: dbTopics } = await supabase
         .from("topics")
-        .select("name, slug, sort_order")
+        .select("id, name, slug, sort_order")
         .eq("subject_id", subjectId)
         .order("sort_order");
       if (dbTopics && dbTopics.length > 0) {
-        // Group by extracting SME topic slug (last segment of DB slug like "caie-mathematics-0580-types-of-numbers")
+        // Build parent topic id → section name map
+        const topicIdToSection = new Map<string, string>();
+        for (const t of dbTopics) {
+          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
+          topicIdToSection.set(t.id, SME_SECTION_MAP[smeSlug] || "Other");
+        }
+        // Count subtopics per section from subtopics table
+        const sectionSubCounts = new Map<string, number>();
+        for (const secName of SME_SECTION_ORDER) sectionSubCounts.set(secName, 0);
+        try {
+          const { data: subRows } = await supabase
+            .from("subtopics")
+            .select("topic_id")
+            .in("topic_id", Array.from(topicIdToSection.keys()));
+          if (subRows) {
+            for (const row of subRows) {
+              const sec = topicIdToSection.get(row.topic_id);
+              if (sec) sectionSubCounts.set(sec, (sectionSubCounts.get(sec) || 0) + 1);
+            }
+          }
+        } catch (_) { /* keep zeros */ }
+
+        // Group parent topics by section
         const grouped = new Map<string, Topic[]>();
         const added = new Set<string>();
         for (const t of dbTopics) {
@@ -246,6 +268,7 @@ export default async function SubjectPage({
         topicSections = Array.from(grouped.entries()).map(([section, topics]) => ({
           section,
           topics,
+          subtopicCount: sectionSubCounts.get(section) || 0,
         }));
         // Also provide flat topics for non-section rendering if needed
         topics = topicSections.flatMap(s => s.topics);
