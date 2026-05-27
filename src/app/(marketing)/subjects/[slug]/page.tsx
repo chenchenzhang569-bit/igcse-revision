@@ -1,4 +1,4 @@
-// force-redeploy-v6-subtopic-count-fix
+// force-redeploy-v7-section-numbers
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";

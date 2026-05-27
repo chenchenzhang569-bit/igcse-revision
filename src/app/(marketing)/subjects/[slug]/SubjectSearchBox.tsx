@@ -184,7 +184,7 @@ export function SubjectSearchBox({
 
       {isMath ? (
         <div className="space-y-3">
-          {SME_SECTION_ORDER.map((secName) => {
+          {SME_SECTION_ORDER.map((secName, idx) => {
             const sec = filteredSections.find((s) => s.section === secName);
             if (!sec) return null;
             const sectionSlug = secName
@@ -197,13 +197,16 @@ export function SubjectSearchBox({
                 href={`/subjects/${slug}/sections/${sectionSlug}`}
                 className="bg-white border rounded-xl p-5 hover:shadow-md hover:border-primary-300 transition-all group flex items-center justify-between"
               >
-                <div>
-                  <h3 className="font-semibold text-primary-900 group-hover:text-primary-600 transition text-lg">
-                    {secName}
-                  </h3>
-                  <p className="text-sm text-gray-400 mt-0.5">
-                    {sec.subtopicCount ?? 0} subtopics
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{idx + 1}</span>
+                  <div>
+                    <h3 className="font-semibold text-primary-900 group-hover:text-primary-600 transition text-lg">
+                      {secName}
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                      {sec.subtopicCount ?? 0} subtopics
+                    </p>
+                  </div>
                 </div>
                 <span className="text-gray-300 group-hover:text-primary-500 text-xl transition">
                   →
