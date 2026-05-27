@@ -541,11 +541,16 @@ export default function AdminUploadPage() {
                              (st.topic_name || "").toLowerCase().includes(q);
                     })
                     .sort((a, b) => {
-                      // Sort by pmt_code numerically: "1.1" < "1.10" < "2.1"
-                      const pa = parseFloat(a.pmt_code || "999");
-                      const pb = parseFloat(b.pmt_code || "999");
-                      if (pa !== pb) return pa - pb;
-                      return (a.pmt_code || "").localeCompare(b.pmt_code || "");
+                      // Sort by pmt_code numerically: split "1.1" → [1,1], "1.10" → [1,10]
+                      const segA = (a.pmt_code || "").split(".").map(Number);
+                      const segB = (b.pmt_code || "").split(".").map(Number);
+                      const len = Math.max(segA.length, segB.length);
+                      for (let i = 0; i < len; i++) {
+                        const va = segA[i] ?? 999;
+                        const vb = segB[i] ?? 999;
+                        if (va !== vb) return va - vb;
+                      }
+                      return 0;
                     })
                     .map((st) => (
                       <option key={st.id} value={st.id}>
