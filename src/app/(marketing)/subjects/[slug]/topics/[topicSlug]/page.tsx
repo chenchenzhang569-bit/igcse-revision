@@ -96,6 +96,14 @@ export default async function TopicPage({
   // Math: default to notes tab; others: default to subtopics, but allow ?tab= override
   const activeTab = tab || (isMaths ? "notes" : "subtopics");
 
+  // Build tab URL preserving ?sub= param
+  const tabUrl = (tabName: string) => {
+    const params = new URLSearchParams();
+    params.set("tab", tabName);
+    if (sub) params.set("sub", sub);
+    return `?${params.toString()}`;
+  };
+
   // Fetch topic ID (needed for notes and questions)
   let topicId: string | null = null;
   let notes: any[] = [];
@@ -160,7 +168,7 @@ export default async function TopicPage({
       {isMaths && (
       <div className="flex gap-1 mt-8 border-b">
         <Link
-          href={`/subjects/${slug}/topics/${topicSlug}?tab=notes`}
+          href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("notes")}`}
           className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
             activeTab === "notes" ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
           }`}
@@ -168,7 +176,7 @@ export default async function TopicPage({
           📖 Notes
         </Link>
         <Link
-          href={`/subjects/${slug}/topics/${topicSlug}?tab=questions`}
+          href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("questions")}`}
           className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
             activeTab === "questions" ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
           }`}
@@ -177,7 +185,7 @@ export default async function TopicPage({
         </Link>
         {subtopics.length > 0 && (
           <Link
-            href={`/subjects/${slug}/topics/${topicSlug}?tab=subtopics`}
+            href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("subtopics")}`}
             className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
               activeTab === "subtopics" ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
