@@ -16,6 +16,14 @@ const SLUG_TO_SECTION: Record<string, string> = {
 };
 
 const SME_SECTION_MAP: Record<string, string> = {
+  // Parent topic slugs (new structure)
+  "section-number":"Number","section-algebra-and-sequences":"Algebra & Sequences",
+  "section-coordinate-geometry-and-graphs":"Coordinate Geometry & Graphs",
+  "section-geometry":"Geometry","section-lengths-areas-and-volumes":"Lengths, Areas & Volumes",
+  "section-pythagoras-and-trigonometry":"Pythagoras & Trigonometry",
+  "section-transformations":"Transformations","section-probability":"Probability",
+  "section-statistics":"Statistics",
+  // Legacy subtopic slugs (backward compat)
   "types-of-numbers":"Number","compound-measures":"Number","fractions-decimals-and-percentages":"Number",
   "introduction-to-fractions":"Number","money-calculations":"Number","operations-with-fractions":"Number",
   "operations-with-numbers-and-decimals":"Number","percentages":"Number","powers-roots-and-standard-form":"Number",

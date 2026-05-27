@@ -67,6 +67,13 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "mensuration": "Mensuration", "trigonometry": "Trigonometry",
   "vectors-transformations": "Vectors & Transformations",
   "probability": "Probability", "statistics": "Statistics",
+  // New section slugs (math parent topics)
+  "section-number": "Number", "section-algebra-and-sequences": "Algebra & Sequences",
+  "section-coordinate-geometry-and-graphs": "Coordinate Geometry & Graphs",
+  "section-geometry": "Geometry", "section-lengths-areas-and-volumes": "Lengths, Areas & Volumes",
+  "section-pythagoras-and-trigonometry": "Pythagoras & Trigonometry",
+  "section-transformations": "Transformations", "section-probability": "Probability",
+  "section-statistics": "Statistics",
 };
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
