@@ -1,4 +1,4 @@
-// force-redeploy-v5-subtopic-count
+// force-redeploy-v6-subtopic-count-fix
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -78,6 +78,8 @@ const SME_SECTION_MAP: Record<string, string> = {
   "section-pythagoras-and-trigonometry":"Pythagoras & Trigonometry",
   "section-transformations":"Transformations","section-probability":"Probability",
   "section-statistics":"Statistics",
+  // slice(3) partials for 3+ word names
+  "and-graphs":"Coordinate Geometry & Graphs","and-volumes":"Lengths, Areas & Volumes",
   // Legacy subtopic slugs (backward compat)
   "types-of-numbers":"Number","compound-measures":"Number","fractions-decimals-and-percentages":"Number",
   "introduction-to-fractions":"Number","money-calculations":"Number","operations-with-fractions":"Number",
