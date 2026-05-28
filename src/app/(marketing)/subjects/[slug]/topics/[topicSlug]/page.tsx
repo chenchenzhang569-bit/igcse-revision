@@ -84,6 +84,18 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "calculus": "Calculus",
 };
 
+// 0606 subtopic PMT codes (Section.Topic numbering)
+const ADDL_MATHS_PMT: Record<string, string> = {
+  "functions": "1.3", "quadratic-functions": "1.5",
+  "equations-inequalities-and-graphs": "1.1", "factors-of-polynomials": "1.2",
+  "simultaneous-equations": "1.6", "logarithmic-and-exponential-functions": "1.4",
+  "straight-line-graphs": "3.2", "circular-measure": "5.1",
+  "trigonometry": "5.2", "coordinate-geometry-of-the-circle": "3.1",
+  "arithmetic-and-geometric-progressions": "4.1", "binomial-theorem": "4.2",
+  "permutations-and-combinations": "4.3", "vectors-in-two-dimensions": "6.1",
+  "differentiation": "2.2", "integration": "2.3", "calculus-for-kinematics": "2.1",
+};
+
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const baseHeaders = { apikey: KEY, Authorization: `Bearer ${KEY}` };
@@ -100,7 +112,7 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  let subtopics: any[] = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
+  let subtopics: any[] = subjectKey === "additional-maths" ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths, fetch subtopics from DB
   // Math: default to notes tab; additional-maths defaults to subtopics; others: default to subtopics
   const activeTab = tab || (subjectKey === "additional-maths" ? "subtopics" : isMaths ? "notes" : "subtopics");
@@ -141,7 +153,7 @@ export default async function TopicPage({
           subtopics = stData.map((s: any) => ({
             slug: s.slug,
             displayName: s.display_name || s.name,
-            pmtCode: "",
+            pmtCode: ADDL_MATHS_PMT[s.slug] || "",
           }));
         }
       }
@@ -210,6 +222,7 @@ export default async function TopicPage({
               >
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">
+                    {st.pmtCode && <span className="text-accent-500 mr-2 font-bold">{st.pmtCode}</span>}
                     {st.displayName}
                   </h3>
                 </div>
