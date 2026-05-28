@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
+import AdditionalMathsTabs from "../AdditionalMathsTabs";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -118,6 +119,14 @@ export default async function SubtopicPage({
   // For additional-maths: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
   if (subjectKey === "additional-maths") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
+    // Fetch real display_name from DB
+    try {
+      const subRes = await fetch(`${API}/subtopics?select=display_name,slug&slug=eq.${subtopicSlug}&limit=1`, { headers: H, cache: "no-store" });
+      const subData = await subRes.json();
+      if (Array.isArray(subData) && subData[0]?.display_name) {
+        subtopic.displayName = subData[0].display_name;
+      }
+    } catch {}
   }
   const topicDisplay = TOPIC_DISPLAY[topicSlug] || topicSlug;
 
@@ -236,18 +245,29 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      <TopicTabs
-        notes={notes}
-        mcqs={mcqs}
-        mcqPairs={mcqPairs as any}
-        pairedPapers={structPairs as any}
-        structuredQuestions={structuredQs}
-        pmtCode={subtopic.pmtCode}
-        displayName={subtopic.displayName}
-        subtopicId={subtopicId}
-        subjectSlug={slug}
-        topicSlug={topicSlug}
-      />
+      {subjectKey === "additional-maths" ? (
+        <AdditionalMathsTabs
+          notes={notes}
+          structuredQuestions={structuredQs}
+          subtopicId={subtopicId}
+          subtopicName={subtopic.displayName}
+          slug={slug}
+          topicSlug={topicSlug}
+        />
+      ) : (
+        <TopicTabs
+          notes={notes}
+          mcqs={mcqs}
+          mcqPairs={mcqPairs as any}
+          pairedPapers={structPairs as any}
+          structuredQuestions={structuredQs}
+          pmtCode={subtopic.pmtCode}
+          displayName={subtopic.displayName}
+          subtopicId={subtopicId}
+          subjectSlug={slug}
+          topicSlug={topicSlug}
+        />
+      )}
 
       {/* Back/Next Navigation — within same Topic */}
       {(() => {
