@@ -127,8 +127,8 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bend\s*fraction\b/g, "}");
   
   // ── Powers ──
-  result = result.replace(/to\s*the\s*power\s*of\s*negative\s+(.+?)\s*end\s*exponent/g, "^{-{$1}}");
-  result = result.replace(/to\s*the\s*power\s*of\s+(.+?)\s*end\s*exponent/g, "^{$1}");
+  result = result.replace(/to\s*the\s*power\s*of\s*negative\s*(.+?)\s*end\s*exponent/g, "^{-{$1}}");
+  result = result.replace(/to\s*the\s*power\s*of\s*(.+?)\s*end\s*exponent/g, "^{$1}");
   result = result.replace(/\bend\s*exponent\b/g, "");
   result = result.replace(/superscript/g, "^");
   result = result.replace(/subscript/g, "_");
@@ -145,11 +145,11 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/greater-than or slanted equal to/g, "\\geq");
   result = result.replace(/less or equal than/g, "\\leq");
   result = result.replace(/greater or equal than/g, "\\geq");
-  result = result.replace(/greater\s+than\b/g, ">");
-  result = result.replace(/less\s+than\b/g, "<");
+  result = result.replace(/greater\s*than\b/g, ">");
+  result = result.replace(/less\s*than\b/g, "<");
   
   // ── Operators ──
-  result = result.replace(/\bnegative\s+(?=[\w\\])/g, "-");
+  result = result.replace(/\bnegative\s*(?=[\w\\])/g, "-");
   result = result.replace(/\bminus\b/g, "-");
   result = result.replace(/\bplus\b/g, "+");
   result = result.replace(/\bequals\b/g, "=");
