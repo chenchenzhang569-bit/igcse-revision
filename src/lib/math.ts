@@ -84,18 +84,21 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/to\s*the\s*power\s*of\s*negative\s*(.+?)\s*end\s*exponent/g, "^{-{$1}}");
   result = result.replace(/to\s*the\s*power\s*of\s*(.+?)\s*end\s*exponent/g, "^{$1}");
   result = result.replace(/\bend\s*exponent\b/g, "");
+  result = result.replace(/\bend\s*subscript\b/g, "");
   result = result.replace(/superscript/g, "^");
   result = result.replace(/subscript/g, "_");
   result = result.replace(/\bsquared\b/g, "^2");
   result = result.replace(/\bcubed\b/g, "^3");
   
   // ── Standalone "over" fraction (AFTER powers: end exponent already consumed, won't be confused) ──
-  result = result.replace(/(\S+)\s+over\s+(\S+)/g, "\\frac{$1}{$2}");
+  // .+? captures multi-word expressions including {braces} and spaces
+  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|$))/g, "\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
   result = result.replace(/cube\s*root\s*of\b/g, "\\sqrt[3]{");
   result = result.replace(/\bend\s*root\b/g, "}");
+  result = result.replace(/\bend\s*sqrt\b/g, "}");
   
   // ── Inequalities ──
   result = result.replace(/less-than or slanted equal to/g, "\\leq");
