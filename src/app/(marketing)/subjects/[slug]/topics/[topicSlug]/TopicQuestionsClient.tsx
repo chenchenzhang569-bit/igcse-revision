@@ -843,8 +843,31 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           }`}>
             <p className="font-semibold mb-1">
               {isCorrect
-                ? "✅ Correct! (+" + q.marks + " mark" + (q.marks > 1 ? "s" : "") + ")"
-                : <span>❌ Incorrect. The answer is: {q.clean_answer_text || q.answer_text}</span>
+                ? (
+                  <span>
+                    ✅ Correct! (+{q.marks} mark{q.marks > 1 ? "s" : ""})
+                    {(q.clean_answer_text || q.answer_text) && (
+                      <details className="mt-1 font-normal">
+                        <summary className="text-green-600 cursor-pointer text-xs hover:text-green-800">Show answer</summary>
+                        <div className="mt-1 space-y-0.5">
+                          {(q.clean_answer_text || q.answer_text || "").split("||").map((part: string, i: number) => (
+                            <div key={i}>{part.trim()}</div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                  </span>
+                )
+                : (
+                  <span>
+                    ❌ Incorrect. The answer is:
+                    <div className="mt-1 space-y-0.5 font-normal">
+                      {(q.clean_answer_text || q.answer_text || "").split("||").map((part: string, i: number) => (
+                        <div key={i}>{part.trim()}</div>
+                      ))}
+                    </div>
+                  </span>
+                )
               }
             </p>
           </div>
