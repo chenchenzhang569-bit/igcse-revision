@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import TopicQuestionsClient from "../TopicQuestionsClient";
+import TopicQuestionsClient from "./TopicQuestionsClient";
 
 interface Note {
   id: string;
