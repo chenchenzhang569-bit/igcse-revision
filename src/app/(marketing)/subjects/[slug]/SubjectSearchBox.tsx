@@ -228,7 +228,7 @@ export function SubjectSearchBox({
                       {topic.displayName}
                     </h3>
                     <p className="text-sm text-gray-400 mt-0.5">
-                      {subtopicData[topic.slug]?.length ?? 0} subtopics
+                      {topic.subtopicCount ?? subtopicData[topic.slug]?.length ?? 0} subtopics
                     </p>
                   </div>
                 </div>

@@ -348,8 +348,8 @@ export default async function SubjectPage({
           topics,
           subtopicCount: sectionSubCounts.get(section) || 0,
         }));
-        // Also provide flat topics for non-section rendering if needed
-        topics = topicSections.flatMap(s => s.topics);
+        // Also provide flat topics for non-section rendering; attach subtopicCount for non-math subjects
+        topics = topicSections.flatMap(s => s.topics.map(t => ({...t, subtopicCount: s.subtopicCount})));
       }
     } catch (e) {
       console.error("Topic DB fetch failed:", e);
@@ -383,7 +383,7 @@ export default async function SubjectPage({
           topicSections={topicSections}
           topics={topics}
           slug={slug}
-          isMath={key === "maths" || key === "additional-maths"}
+          isMath={key === "maths"}
         />
       )}
 
