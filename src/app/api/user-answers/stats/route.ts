@@ -139,7 +139,8 @@ export async function GET(req: NextRequest) {
     let hasNoPurchases = true; // assume none until proven
     try {
       const resPurchases = await fetch(
-        `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,\n        { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}` } }
+        `${API}/purchases?select=subject_id,status&user_id=eq.${userId}&status=in.(paid,trial)`,
+        { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}` } }
       );
       const purchases = await resPurchases.json();
       if (Array.isArray(purchases) && purchases.length > 0) {
