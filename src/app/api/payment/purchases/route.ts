@@ -6,7 +6,8 @@ import type { NextRequest } from "next/server";
 function parseJwt(token: string) {
   try {
     const base64 = token.split(".")[1];
-    return JSON.parse(Buffer.from(base64, "base64").toString());
+    const decoded = atob(base64);
+    return JSON.parse(decoded);
   } catch { return null; }
 }
 
