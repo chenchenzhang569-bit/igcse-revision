@@ -44,8 +44,8 @@ export function fixMathNotationUnicode(text: string): string {
   result = result.replace(/~([\d]+)~/g, (_, content) => toSubscript(content));
 
   // 3. Clean up double-bold superscript artifacts
-  result = result.replace(/\*\*\^\*\*([^*]+)\*\*\^\*\*/g, (_, content) => toSuperscript(content));
-  result = result.replace(/\*\*\^\*\*([^*\^]+)\*\*\^/g, (_, content) => toSuperscript(content));
+  result = result.replace(/\*\^\*\*([^*]+)\*\*\^\*\*/g, (_, content) => toSuperscript(content));
+  result = result.replace(/\*\^\*\*([^*\^]+)\*\*\^/g, (_, content) => toSuperscript(content));
 
   // 4. Handle fragmented markup: *T*^* *^^2^ → T²
   result = result.replace(/\^\*\s*\*\^\^(\d+)\^/g, (_, content) => toSuperscript(content));
@@ -75,8 +75,8 @@ export function fixMathNotation(text: string): string {
   result = result.replace(/~([\d]+)~/g, "<sub>$1</sub>");
 
   // 3. Clean up double-bold superscript artifacts
-  result = result.replace(/\*\*\^\*\*([^*]+)\*\*\^\*\*/g, "<sup>$1</sup>");
-  result = result.replace(/\*\*\^\*\*([^*\^]+)\*\*\^/g, "<sup>$1</sup>");
+  result = result.replace(/\*\^\*\*([^*]+)\*\*\^\*\*/g, "<sup>$1</sup>");
+  result = result.replace(/\*\^\*\*([^*\^]+)\*\*\^/g, "<sup>$1</sup>");
 
   // 4. Handle fragmented markup
   result = result.replace(/\^\*\s*\*\^\^(\d+)\^/g, "<sup>$1</sup>");
@@ -154,18 +154,23 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\btimes\b/g, "\\times");
   result = result.replace(/\bdivided\s*by\b/g, "\\div");
   
-  // ── Functions ──
-  result = result.replace(/(?<![a-zA-Z\\])cos(?![a-zA-Z])/g, "\\cos");
-  result = result.replace(/(?<![a-zA-Z\\])sin(?![a-zA-Z])/g, "\\sin");
-  result = result.replace(/(?<![a-zA-Z\\])tan(?![a-zA-Z])/g, "\\tan");
-  result = result.replace(/(?<![a-zA-Z\\])sec(?![a-zA-Z])/g, "\\sec");
-  result = result.replace(/(?<![a-zA-Z\\])csc(?![a-zA-Z])/g, "\\csc");
-  result = result.replace(/(?<![a-zA-Z\\])cot(?![a-zA-Z])/g, "\\cot");
-  result = result.replace(/(?<![a-zA-Z\\])ln(?![a-zA-Z])/g, "\\ln");
-  result = result.replace(/(?<![a-zA-Z\\])log(?![a-zA-Z])/g, "\\log");
+  // ── Functions (standard \b pattern) ──
+  result = result.replace(/(?<!\\)\bcos(?![a-zA-Z])/g, "\\cos");
+  result = result.replace(/(?<!\\)\bsin(?![a-zA-Z])/g, "\\sin");
+  result = result.replace(/(?<!\\)\btan(?![a-zA-Z])/g, "\\tan");
+  result = result.replace(/(?<!\\)\bsec(?![a-zA-Z])/g, "\\sec");
+  result = result.replace(/(?<!\\)\bcsc(?![a-zA-Z])/g, "\\csc");
+  result = result.replace(/(?<!\\)\bcot(?![a-zA-Z])/g, "\\cot");
+  result = result.replace(/(?<!\\)\blog(?![a-zA-Z])/g, "\\log");
+  
+  // ── ln: need BOTH word-boundary AND digit-boundary patterns ──
+  // (a) After digit: 8ln2 → 8\ln2 (word boundary \b fails here)
+  result = result.replace(/(?<=\d)ln(?![a-zA-Z])/g, "\\ln");
+  // (b) Word boundary: ln x, 2 ln 3, etc.
+  result = result.replace(/(?<!\\)\bln(?![a-zA-Z])/g, "\\ln");
   
   // ── Constants & Notation ──
-  result = result.replace(/(?<![a-zA-Z\\])pi(?![a-zA-Z])/g, "\\pi");
+  result = result.replace(/(?<!\\)\bpi(?![a-zA-Z])/g, "\\pi");
   result = result.replace(/\belement\s*of\b/g, "\\in");
   result = result.replace(/\breal\s*numbers\b/g, "\\mathbb{R}");
   result = result.replace(/rightwards\s*arrow\s*from\s*bar/g, "\\mapsto");
