@@ -63,20 +63,25 @@ export default async function SectionPage({
     );
   }
 
+  // Determine subject code from slug
+  const codeMap: Record<string, string> = {
+    "caie-mathematics-0580": "0580",
+    "caie-additional-mathematics-0606": "0606",
+    "mathematics-0580": "0580",
+  };
+  const subjectCode = codeMap[slug] || "0580";
+
   // Fetch subtopics for this section from DB
   let topics: { name: string; slug: string; subtopicId: string }[] = [];
   try {
     const supabase = await createClient();
-    // Find maths subject
     const { data: subjects } = await supabase
       .from("subjects")
       .select("id")
-      .eq("code", "0580")
+      .eq("code", subjectCode)
       .single();
     
     if (subjects) {
-      // Find the parent topic for this section
-      // Use ilike because URL strips & and , from section names
       const { data: parentTopics } = await supabase
         .from("topics")
         .select("id, name, slug")
@@ -86,7 +91,6 @@ export default async function SectionPage({
 
       if (parentTopics && parentTopics.length > 0) {
         const parent = parentTopics[0];
-        // Get subtopics under this parent
         const { data: subtopics } = await supabase
           .from("subtopics")
           .select("id, display_name, slug")
