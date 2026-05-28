@@ -108,6 +108,27 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "probability": "Probability", "statistics": "Statistics",
 };
 
+// 0606 subtopic PMT codes (Section.Topic numbering)
+const ADDL_MATHS_PMT: Record<string, string> = {
+  "functions": "1.3",
+  "quadratic-functions": "1.5",
+  "equations-inequalities-and-graphs": "1.1",
+  "factors-of-polynomials": "1.2",
+  "simultaneous-equations": "1.6",
+  "logarithmic-and-exponential-functions": "1.4",
+  "straight-line-graphs": "3.2",
+  "circular-measure": "5.1",
+  "trigonometry": "5.2",
+  "coordinate-geometry-of-the-circle": "3.1",
+  "arithmetic-and-geometric-progressions": "4.1",
+  "binomial-theorem": "4.2",
+  "permutations-and-combinations": "4.3",
+  "vectors-in-two-dimensions": "6.1",
+  "differentiation": "2.2",
+  "integration": "2.3",
+  "calculus-for-kinematics": "2.1",
+};
+
 export default async function SubtopicPage({
   params,
 }: {
@@ -118,7 +139,7 @@ export default async function SubtopicPage({
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For additional-maths: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
   if (subjectKey === "additional-maths") {
-    subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
+    subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: ADDL_MATHS_PMT[subtopicSlug] || "" };
     // Fetch real display_name from DB
     try {
       const subRes = await fetch(`${API}/subtopics?select=display_name,slug&slug=eq.${subtopicSlug}&limit=1`, { headers: H, cache: "no-store" });
