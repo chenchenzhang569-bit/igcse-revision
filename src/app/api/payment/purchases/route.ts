@@ -5,8 +5,18 @@ import type { NextRequest } from "next/server";
 
 function parseJwt(token: string) {
   try {
+    // JWT uses URL-safe base64 ( - instead of +, _ instead of / ).
+    // Buffer handles both; atob requires standard base64.
+    // Use Buffer first, fallback to atob for Edge runtime.
     const base64 = token.split(".")[1];
-    const decoded = typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString();
+    let decoded: string;
+    if (typeof Buffer !== "undefined") {
+      decoded = Buffer.from(base64, "base64").toString();
+    } else {
+      // URL-safe → standard base64
+      const std = base64.replace(/-/g, "+").replace(/_/g, "/");
+      decoded = atob(std);
+    }
     return JSON.parse(decoded);
   } catch { return null; }
 }
@@ -40,7 +50,7 @@ export async function GET(request: NextRequest) {
   const { data: purchases, error } = await admin
     .from("purchases")
     .select("id, subject_id, amount_cny, status, expires_at")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .in("status", ["paid", "trial"]);
 
   if (error) {
