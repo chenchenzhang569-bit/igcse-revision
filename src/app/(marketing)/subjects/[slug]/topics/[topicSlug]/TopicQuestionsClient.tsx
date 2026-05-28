@@ -3,11 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 import { createBrowserClient } from "@supabase/ssr";
-import { renderMath, processMathContent } from "@/lib/math";
+import { renderMath } from "@/lib/math";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal, { type BugContext } from "@/components/ReportBugModal";
 
@@ -850,16 +847,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 : <span>❌ Incorrect. The answer is: {q.clean_answer_text || q.answer_text}</span>
               }
             </p>
-            {!isCorrect && (q.clean_explanation || q.explanation) && (
-              <details className="mt-2">
-                <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
-                <div className="prose prose-sm max-w-none mt-1 text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                    {processMathContent(q.clean_explanation || q.explanation)}
-                  </ReactMarkdown>
-                </div>
-              </details>
-            )}
           </div>
         )}
 
