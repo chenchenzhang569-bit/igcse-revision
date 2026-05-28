@@ -9,6 +9,7 @@ interface Topic {
   displayName: string;
   slug: string;
   sort: number;
+  subtopicCount?: number;
 }
 
 interface TopicSection {
@@ -238,7 +239,7 @@ export function SubjectSearchBox({
                       {topic.displayName}
                     </h3>
                     <p className="text-sm text-gray-400 mt-0.5">
-                      {topic.name}
+                      {subtopicData[topic.slug]?.length ?? 0} subtopics
                     </p>
                   </div>
                 </div>
