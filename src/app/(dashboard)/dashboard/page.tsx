@@ -77,6 +77,7 @@ interface Purchase {
   subject_id: string;
   subject_name: string;
   subject_code: string;
+  subject_slug: string;
   board: string;
   status: string;
   expires_at: string;
@@ -175,7 +176,11 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
             {purchases.map(p => (
-              <span key={p.subject_id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border shadow-sm">
+              <Link
+                key={p.subject_id}
+                href={`/subjects/${p.subject_slug}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border shadow-sm hover:border-[#FF8C00]/50 hover:shadow-md transition-all"
+              >
                 {p.board && <span className="text-gray-400 text-[10px]">{p.board}</span>}
                 <span className="text-gray-500">{p.subject_code}</span>
                 <span className="text-gray-800">{p.subject_name}</span>
@@ -187,7 +192,7 @@ export default function DashboardPage() {
                 ) : (
                   <span className="text-gray-400">{p.days_left}d</span>
                 )}
-              </span>
+              </Link>
             ))}
           </div>
           {!hasAllSubject && upgradePrice != null && (
