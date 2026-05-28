@@ -164,22 +164,32 @@ export default function DashboardPage() {
             ? "bg-amber-50/60 border-amber-200"
             : "bg-emerald-50/60 border-emerald-200"
         }`}>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">
-              {purchases.every(p => p.expired)
-                ? "❌"
-                : purchases.some(p => p.days_left !== null && p.days_left <= 14 && p.days_left > 0)
-                ? "⚠️"
-                : "✅"}
-            </span>
-            <h2 className="text-base font-extrabold" style={{ color: "#001C71" }}>My Subscriptions</h2>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">
+                {purchases.every(p => p.expired)
+                  ? "❌"
+                  : purchases.some(p => p.days_left !== null && p.days_left <= 14 && p.days_left > 0)
+                  ? "⚠️"
+                  : "✅"}
+              </span>
+              <h2 className="text-base font-extrabold" style={{ color: "#001C71" }}>My Subscriptions</h2>
+            </div>
+            {!hasAllSubject && upgradePrice != null && (
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-1 text-xs font-bold text-white bg-accent-500 hover:bg-accent-600 px-4 py-1.5 rounded-lg transition shrink-0"
+              >
+                Upgrade to All Subjects ¥{upgradePrice / 100} →
+              </Link>
+            )}
           </div>
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2">
             {purchases.map(p => (
               <Link
                 key={p.subject_id}
                 href={`/subjects/${p.subject_slug}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all"
                 style={{ background: "linear-gradient(135deg, #001C71, #00154f)" }}
               >
                 {p.board && <span className="text-white/70 text-[10px]">{p.board}</span>}
@@ -196,14 +206,6 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-          {!hasAllSubject && upgradePrice != null && (
-            <Link
-              href="/pricing"
-              className="inline-flex items-center gap-1 text-xs font-bold text-white bg-accent-500 hover:bg-accent-600 px-4 py-1.5 rounded-lg transition"
-            >
-              Upgrade to All Subjects ¥{upgradePrice / 100} →
-            </Link>
-          )}
         </div>
       )}
 
