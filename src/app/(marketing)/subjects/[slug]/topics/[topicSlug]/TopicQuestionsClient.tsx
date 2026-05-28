@@ -849,16 +849,20 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                     {(q.clean_answer_text || q.answer_text) && (
                       <details className="mt-1 font-normal">
                         <summary className="text-green-600 cursor-pointer text-xs hover:text-green-800">Show answer</summary>
-                        <div className="mt-1 space-y-1"
-                          dangerouslySetInnerHTML={{
-                            __html: renderMath(
-                              (q.clean_answer_text || q.answer_text || "")
-                                .split("||")
-                                .map((p: string) => `$${p.trim()}$`)
-                                .join("\n\n")
-                            )
-                          }}
-                        />
+                        <div className="mt-1 space-y-1">
+                          {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
+                            const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
+                            if (m) {
+                              return (
+                                <div key={i}>
+                                  <span className="font-medium">{m[1]}</span>{" "}
+                                  <span dangerouslySetInnerHTML={{ __html: renderMath(`$${m[2]}$`) }} />
+                                </div>
+                              );
+                            }
+                            return <div key={i} dangerouslySetInnerHTML={{ __html: renderMath(`$${p.trim()}$`) }} />;
+                          })}
+                        </div>
                       </details>
                     )}
                   </span>
@@ -866,16 +870,20 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 : (
                   <span>
                     ❌ Incorrect. The answer is:
-                    <div className="mt-1 space-y-1 font-normal"
-                      dangerouslySetInnerHTML={{
-                        __html: renderMath(
-                          (q.clean_answer_text || q.answer_text || "")
-                            .split("||")
-                            .map((p: string) => `$${p.trim()}$`)
-                            .join("\n\n")
-                        )
-                      }}
-                    />
+                    <div className="mt-1 space-y-1 font-normal">
+                      {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
+                        const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
+                        if (m) {
+                          return (
+                            <div key={i}>
+                              <span className="font-medium">{m[1]}</span>{" "}
+                              <span dangerouslySetInnerHTML={{ __html: renderMath(`$${m[2]}$`) }} />
+                            </div>
+                          );
+                        }
+                        return <div key={i} dangerouslySetInnerHTML={{ __html: renderMath(`$${p.trim()}$`) }} />;
+                      })}
+                    </div>
                   </span>
                 )
               }
