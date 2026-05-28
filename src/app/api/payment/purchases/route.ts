@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
     const daysLeft = expiresAt
       ? Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : null;
-    return {
+    result.push({
       purchase_id: p.id,
       subject_id: p.subject_id,
       subject_name: sub?.name || "Unknown",
@@ -136,8 +136,8 @@ export async function GET(request: NextRequest) {
       expires_at: p.expires_at,
       days_left: daysLeft,
       expired: expiresAt ? expiresAt <= now : false,
-    };
-  });
+    });
+  }
 
   // Calculate upgrade price
   const perSubjectMax: Record<string, number> = {};
