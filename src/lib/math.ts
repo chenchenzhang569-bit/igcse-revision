@@ -218,7 +218,7 @@ export function renderMath(text: string): string {
   });
 
   // Inline math: $...$ — must start with letter/digit/backslash/brace/minus
-  result = result.replace(/\$(?=[a-zA-Z0-9\\\{\-])(.+?)(?<!\\)\$/g, (_, math) => {
+  result = result.replace(/\$(?=[a-zA-Z0-9\\\{\-\(])(.+?)(?<!\\)\$/g, (_, math) => {
     try {
       return katex.renderToString(cleanSmeMathMarkup(math.trim()), {
         displayMode: false,
