@@ -155,17 +155,17 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bdivided\s*by\b/g, "\\div");
   
   // ── Functions ──
-  result = result.replace(/(?<!\\)\bcos\b/g, "\\cos");
-  result = result.replace(/(?<!\\)\bsin\b/g, "\\sin");
-  result = result.replace(/(?<!\\)\btan\b/g, "\\tan");
-  result = result.replace(/(?<!\\)\bsec\b/g, "\\sec");
-  result = result.replace(/(?<!\\)\bcsc\b/g, "\\csc");
-  result = result.replace(/(?<!\\)\bcot\b/g, "\\cot");
-  result = result.replace(/(?<!\\)\bln\b/g, "\\ln");
-  result = result.replace(/(?<!\\)\blog\b/g, "\\log");
+  result = result.replace(/(?<!\\)\bcos(?![a-zA-Z])/g, "\\cos");
+  result = result.replace(/(?<!\\)\bsin(?![a-zA-Z])/g, "\\sin");
+  result = result.replace(/(?<!\\)\btan(?![a-zA-Z])/g, "\\tan");
+  result = result.replace(/(?<!\\)\bsec(?![a-zA-Z])/g, "\\sec");
+  result = result.replace(/(?<!\\)\bcsc(?![a-zA-Z])/g, "\\csc");
+  result = result.replace(/(?<!\\)\bcot(?![a-zA-Z])/g, "\\cot");
+  result = result.replace(/(?<!\\)\bln(?![a-zA-Z])/g, "\\ln");
+  result = result.replace(/(?<!\\)\blog(?![a-zA-Z])/g, "\\log");
   
   // ── Constants & Notation ──
-  result = result.replace(/(?<!\\)\bpi\b/g, "\\pi");
+  result = result.replace(/(?<!\\)\bpi(?![a-zA-Z])/g, "\\pi");
   result = result.replace(/\belement\s*of\b/g, "\\in");
   result = result.replace(/\breal\s*numbers\b/g, "\\mathbb{R}");
   result = result.replace(/rightwards\s*arrow\s*from\s*bar/g, "\\mapsto");
