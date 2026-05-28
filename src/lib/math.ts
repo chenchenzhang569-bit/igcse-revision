@@ -96,17 +96,92 @@ export function fixMathNotation(text: string): string {
  */
 function cleanSmeMathMarkup(math: string): string {
   let result = math;
-  // Fix double-escaped LaTeX commands: \\frac → \frac, \\sqrt → \sqrt, etc.
-  // Line breaks (\\) are typically followed by whitespace/newline, not a letter
+  
+  // ── Noise words: remove immediately ──
+  result = result.replace(/\bstraight\b/g, "");
+  result = result.replace(/\bbold\b/g, "");
+  result = result.replace(/\bitalic\b/g, "");
+  result = result.replace(/\bthin\b/g, "");
+  result = result.replace(/\bspace\b/g, "");
+  
+  // ── Parentheses ──
+  result = result.replace(/open\s*parentheses/g, "(");
+  result = result.replace(/close\s*parentheses/g, ")");
+  result = result.replace(/left\s*parenthes[ie]s/g, "(");
+  result = result.replace(/right\s*parenthes[ie]s/g, ")");
+  result = result.replace(/open\s*bracket/g, "[");
+  result = result.replace(/close\s*bracket/g, "]");
+  result = result.replace(/left\s*bracket/g, "[");
+  result = result.replace(/right\s*bracket/g, "]");
+  result = result.replace(/open\s*vertical\s*bar/g, "|");
+  result = result.replace(/close\s*vertical\s*bar/g, "|");
+  result = result.replace(/left\s*vertical\s*bar/g, "|");
+  result = result.replace(/right\s*vertical\s*bar/g, "|");
+  
+  // ── Fractions ──
+  result = result.replace(/fraction\s*numerator\s*/g, "\\frac{");
+  result = result.replace(/\/denominator\s*/g, "}{");
+  result = result.replace(/over\s*denominator\s*/g, "}{");
+  result = result.replace(/(\S+)\s+over\s+(\S+)/g, "\\frac{$1}{$2}");
+  result = result.replace(/\bend\s*fraction\b/g, "}");
+  
+  // ── Powers ──
+  result = result.replace(/to\s*the\s*power\s*of\s*negative\s+(\d+)\s*end\s*exponent/g, "^{-{$1}}");
+  result = result.replace(/to\s*the\s*power\s*of\s+(\S+?)\s*end\s*exponent/g, "^{$1}");
+  result = result.replace(/\bend\s*exponent\b/g, "");
+  result = result.replace(/superscript/g, "^");
+  result = result.replace(/\bsquared\b/g, "^2");
+  result = result.replace(/\bcubed\b/g, "^3");
+  
+  // ── Roots ──
+  result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
+  result = result.replace(/cube\s*root\s*of\b/g, "\\sqrt[3]{");
+  result = result.replace(/\bend\s*root\b/g, "}");
+  
+  // ── Inequalities ──
+  result = result.replace(/less-than or slanted equal to/g, "\\leq");
+  result = result.replace(/greater-than or slanted equal to/g, "\\geq");
+  result = result.replace(/less or equal than/g, "\\leq");
+  result = result.replace(/greater or equal than/g, "\\geq");
+  result = result.replace(/greater\s+than\b/g, ">");
+  result = result.replace(/less\s+than\b/g, "<");
+  
+  // ── Operators ──
+  result = result.replace(/\bnegative\s+(?=[\w\\])/g, "-");
+  result = result.replace(/\bminus\b/g, "-");
+  result = result.replace(/\bplus\b/g, "+");
+  result = result.replace(/\bequals\b/g, "=");
+  result = result.replace(/\btimes\b/g, "\\times");
+  result = result.replace(/\bdivided\s*by\b/g, "\\div");
+  
+  // ── Functions ──
+  result = result.replace(/(?<!\\)\bcos\b/g, "\\cos");
+  result = result.replace(/(?<!\\)\bsin\b/g, "\\sin");
+  result = result.replace(/(?<!\\)\btan\b/g, "\\tan");
+  result = result.replace(/(?<!\\)\bsec\b/g, "\\sec");
+  result = result.replace(/(?<!\\)\bcsc\b/g, "\\csc");
+  result = result.replace(/(?<!\\)\bcot\b/g, "\\cot");
+  result = result.replace(/(?<!\\)\bln\b/g, "\\ln");
+  result = result.replace(/(?<!\\)\blog\b/g, "\\log");
+  
+  // ── Constants & Notation ──
+  result = result.replace(/(?<!\\)\bpi\b/g, "\\pi");
+  result = result.replace(/\belement\s*of\b/g, "\\in");
+  result = result.replace(/\breal\s*numbers\b/g, "\\mathbb{R}");
+  result = result.replace(/rightwards\s*arrow\s*from\s*bar/g, "\\mapsto");
+  result = result.replace(/rightwards\s*arrow/g, "\\rightarrow");
+  
+  // ── Cleanup ──
+  // Fix double-escaped LaTeX commands: \\frac → \frac, \\sqrt → \sqrt
   result = result.replace(/\\\\([a-zA-Z])/g, "\\$1");
-  // Handle spaced and no-space variants: square root of / squarerootof
-  result = result.replace(/square\s*root\s*of\s*\(/g, "\\sqrt{");
-  // Handle cube root of / cuberootof
-  result = result.replace(/cube\s*root\s*of\s*\(/g, "\\sqrt[3]{");
-  // Handle end root / endroot (with or without space)
-  result = result.replace(/end\s*root/g, "}");
-  // Handle end exponent (with or without space)
-  result = result.replace(/end\s*exponent/g, "");
+  // Remove stray backslash before brace that's not a command
+  result = result.replace(/\\\{/g, "{");
+  result = result.replace(/\\\}/g, "}");
+  // Fix empty braces in superscript: ^{-{}1} → ^{-1}
+  result = result.replace(/\^\{-\{\}(\d+)\}/g, "^{-{$1}}");
+  // Remove duplicate spaces
+  result = result.replace(/\s+/g, " ");
+  
   return result;
 }
 
