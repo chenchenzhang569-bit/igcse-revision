@@ -179,6 +179,10 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\\\}/g, "}");
   // Fix empty braces in superscript: ^{-{}1} → ^{-1}
   result = result.replace(/\^\{-\{\}(\d+)\}/g, "^{-{$1}}");
+  // colon → :
+  result = result.replace(/\bcolon\b/g, ":");
+  // X bar → \bar{X} (statistical notation)
+  result = result.replace(/([a-zA-Z])\s+bar\b/g, "\\bar{$1}");
   // Remove duplicate spaces
   result = result.replace(/\s+/g, " ");
   
