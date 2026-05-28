@@ -849,11 +849,16 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                     {(q.clean_answer_text || q.answer_text) && (
                       <details className="mt-1 font-normal">
                         <summary className="text-green-600 cursor-pointer text-xs hover:text-green-800">Show answer</summary>
-                        <div className="mt-1 space-y-0.5">
-                          {(q.clean_answer_text || q.answer_text || "").split("||").map((part: string, i: number) => (
-                            <div key={i}>{part.trim()}</div>
-                          ))}
-                        </div>
+                        <div className="mt-1 space-y-1"
+                          dangerouslySetInnerHTML={{
+                            __html: renderMath(
+                              (q.clean_answer_text || q.answer_text || "")
+                                .split("||")
+                                .map((p: string) => `$${p.trim()}$`)
+                                .join("\n\n")
+                            )
+                          }}
+                        />
                       </details>
                     )}
                   </span>
@@ -861,11 +866,16 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 : (
                   <span>
                     ❌ Incorrect. The answer is:
-                    <div className="mt-1 space-y-0.5 font-normal">
-                      {(q.clean_answer_text || q.answer_text || "").split("||").map((part: string, i: number) => (
-                        <div key={i}>{part.trim()}</div>
-                      ))}
-                    </div>
+                    <div className="mt-1 space-y-1 font-normal"
+                      dangerouslySetInnerHTML={{
+                        __html: renderMath(
+                          (q.clean_answer_text || q.answer_text || "")
+                            .split("||")
+                            .map((p: string) => `$${p.trim()}$`)
+                            .join("\n\n")
+                        )
+                      }}
+                    />
                   </span>
                 )
               }
