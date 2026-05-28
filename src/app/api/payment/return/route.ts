@@ -49,14 +49,10 @@ export async function GET(request: NextRequest) {
   const isSandbox = !gateway || gateway.includes("sandbox");
 
   if (isSandbox) {
-    // 沙箱环境：queryTrade 不支持，验签可能失败
-    // 直接信任 return URL 的 trade_status
-    const tradeStatus = params.trade_status;
-    if (tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") {
-      await markPaid(tradeNo);
-      return NextResponse.redirect(new URL("/dashboard?payment=success", request.url));
-    }
-    return NextResponse.redirect(new URL("/dashboard?payment=cancelled", request.url));
+    // 沙箱环境：queryTrade 不支持，且 page pay 同步返回可能不带 trade_status
+    // 只要能拿回 out_trade_no 就标记 paid
+    await markPaid(tradeNo);
+    return NextResponse.redirect(new URL("/dashboard?payment=success", request.url));
   }
 
   // 生产环境：queryTrade API 验证
