@@ -18,19 +18,6 @@ interface TopicSection {
   subtopicCount?: number;
 }
 
-// Section order for math
-const SME_SECTION_ORDER = [
-  "Number",
-  "Algebra & Sequences",
-  "Coordinate Geometry & Graphs",
-  "Geometry",
-  "Lengths, Areas & Volumes",
-  "Pythagoras & Trigonometry",
-  "Transformations",
-  "Probability",
-  "Statistics",
-];
-
 const SLUG_TO_KEY: Record<string, string> = {
   "caie-physics-0625": "physics",
   "caie-chemistry-0620": "chemistry",
@@ -185,24 +172,26 @@ export function SubjectSearchBox({
 
       {isMath ? (
         <div className="space-y-3">
-          {SME_SECTION_ORDER.map((secName, idx) => {
-            const sec = filteredSections.find((s) => s.section === secName);
-            if (!sec) return null;
-            const sectionSlug = secName
+          {filteredSections.map((sec, idx) => {
+            const sectionSlug = sec.section
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")
               .replace(/-+$/, "");
+            // 0606: section link → topic page (no separate /sections route)
+            const href = subjectKey === "additional-maths"
+              ? `/subjects/${slug}/topics/${sec.topics[0]?.slug || sectionSlug}`
+              : `/subjects/${slug}/sections/${sectionSlug}`;
             return (
               <Link
-                key={secName}
-                href={`/subjects/${slug}/sections/${sectionSlug}`}
+                key={sec.section}
+                href={href}
                 className="bg-white border rounded-xl p-5 hover:shadow-md hover:border-primary-300 transition-all group flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-accent-500 font-extrabold text-lg shrink-0 w-8">{idx + 1}</span>
                   <div>
                     <h3 className="font-semibold text-primary-900 group-hover:text-primary-600 transition text-lg">
-                      {secName}
+                      {sec.section}
                     </h3>
                     <p className="text-sm text-gray-400 mt-0.5">
                       {sec.subtopicCount ?? 0} subtopics
