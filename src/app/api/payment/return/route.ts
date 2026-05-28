@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyNotify } from "@/lib/alipay";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -15,13 +16,25 @@ export async function GET(request: NextRequest) {
   }
 
   const tradeStatus = params.trade_status;
+  const tradeNo = params.out_trade_no;
 
-  if (tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") {
-    const subjectSlug = params.passback_params || "";
-    const redirect = subjectSlug
-      ? `/subjects/${subjectSlug}?payment=success`
-      : "/dashboard?payment=success";
-    return NextResponse.redirect(new URL(redirect, request.url));
+  if ((tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") && tradeNo) {
+    // 标记购买为已付（兼容沙箱环境回调不可靠）
+    try {
+      const admin = createAdminClient();
+      const now = new Date();
+      const expiresAt = new Date(now);
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      await admin
+        .from("purchases")
+        .update({ status: "paid", paid_at: now.toISOString(), expires_at: expiresAt.toISOString() })
+        .eq("alipay_trade_no", tradeNo)
+        .eq("status", "pending");
+    } catch (e) {
+      console.error("Return route DB update failed:", e);
+    }
+
+    return NextResponse.redirect(new URL("/dashboard?payment=success", request.url));
   }
 
   return NextResponse.redirect(new URL("/dashboard?payment=cancelled", request.url));
