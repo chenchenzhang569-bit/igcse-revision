@@ -6,6 +6,9 @@ import { PastPapersTab } from "./PastPapersTab";
 import { MockExamsTab } from "./MockExamsTab";
 import { SubjectSearchBox } from "./SubjectSearchBox";
 
+const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
+const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
+
 interface Topic { name: string; displayName: string; slug: string; sort: number }
 interface TopicSection { section: string; topics: Topic[]; subtopicCount?: number }
 
