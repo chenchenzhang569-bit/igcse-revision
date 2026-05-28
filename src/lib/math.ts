@@ -127,8 +127,8 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bend\s*fraction\b/g, "}");
   
   // ── Powers ──
-  result = result.replace(/to\s*the\s*power\s*of\s*negative\s+(\d+)\s*end\s*exponent/g, "^{-{$1}}");
-  result = result.replace(/to\s*the\s*power\s*of\s+(\S+?)\s*end\s*exponent/g, "^{$1}");
+  result = result.replace(/to\s*the\s*power\s*of\s*negative\s+(.+?)\s*end\s*exponent/g, "^{-{$1}}");
+  result = result.replace(/to\s*the\s*power\s*of\s+(.+?)\s*end\s*exponent/g, "^{$1}");
   result = result.replace(/\bend\s*exponent\b/g, "");
   result = result.replace(/superscript/g, "^");
   result = result.replace(/subscript/g, "_");
