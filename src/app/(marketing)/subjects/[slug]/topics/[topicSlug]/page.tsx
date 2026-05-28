@@ -76,10 +76,10 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "section-transformations": "Transformations", "section-probability": "Probability",
   "section-statistics": "Statistics",
   // 0606 Additional Mathematics
-  "algebra-and-functions": "Algebra & Functions",
+  "algebra-functions": "Algebra & Functions",
   "coordinate-geometry": "Coordinate Geometry",
   "trigonometry": "Trigonometry",
-  "sequences-and-series": "Sequences & Series",
+  "sequences-series": "Sequences & Series",
   "vectors": "Vectors",
   "calculus": "Calculus",
 };

@@ -69,10 +69,10 @@ const MATHEMATICS: Topic[] = [
   { name: "Statistics", displayName: "Statistics", slug: "statistics", sort: 9 },
 ];
 const ADDITIONAL_MATHEMATICS: Topic[] = [
-  { name: "Algebra & Functions", displayName: "Algebra & Functions", slug: "algebra-and-functions", sort: 1 },
+  { name: "Algebra & Functions", displayName: "Algebra & Functions", slug: "algebra-functions", sort: 1 },
   { name: "Coordinate Geometry", displayName: "Coordinate Geometry", slug: "coordinate-geometry", sort: 2 },
   { name: "Trigonometry", displayName: "Trigonometry", slug: "trigonometry", sort: 3 },
-  { name: "Sequences & Series", displayName: "Sequences & Series", slug: "sequences-and-series", sort: 4 },
+  { name: "Sequences & Series", displayName: "Sequences & Series", slug: "sequences-series", sort: 4 },
   { name: "Vectors", displayName: "Vectors", slug: "vectors", sort: 5 },
   { name: "Calculus", displayName: "Calculus", slug: "calculus", sort: 6 },
 ];
@@ -87,8 +87,8 @@ const SME_SECTION_MAP: Record<string, string> = {
   "section-transformations":"Transformations","section-probability":"Probability",
   "section-statistics":"Statistics",
   // 0606 Additional Mathematics sections
-  "algebra-and-functions":"Algebra & Functions","coordinate-geometry":"Coordinate Geometry",
-  "trigonometry":"Trigonometry","sequences-and-series":"Sequences & Series",
+  "algebra-functions":"Algebra & Functions","coordinate-geometry":"Coordinate Geometry",
+  "trigonometry":"Trigonometry","sequences-series":"Sequences & Series",
   "vectors":"Vectors","calculus":"Calculus",
   // slice(3) partials for 3+ word names
   "and-graphs":"Coordinate Geometry & Graphs","and-volumes":"Lengths, Areas & Volumes",
