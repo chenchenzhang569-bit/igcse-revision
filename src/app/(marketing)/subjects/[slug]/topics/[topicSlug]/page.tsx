@@ -102,8 +102,8 @@ export default async function TopicPage({
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
   let subtopics: any[] = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths, fetch subtopics from DB
-  // Math: default to notes tab; others: default to subtopics, but allow ?tab= override
-  const activeTab = tab || (isMaths ? "notes" : "subtopics");
+  // Math: default to notes tab; additional-maths defaults to subtopics; others: default to subtopics
+  const activeTab = tab || (subjectKey === "additional-maths" ? "subtopics" : isMaths ? "notes" : "subtopics");
 
   // Build tab URL preserving ?sub= param
   const tabUrl = (tabName: string) => {
