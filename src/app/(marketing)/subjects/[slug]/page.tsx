@@ -68,6 +68,14 @@ const MATHEMATICS: Topic[] = [
   { name: "Probability", displayName: "Probability", slug: "probability", sort: 8 },
   { name: "Statistics", displayName: "Statistics", slug: "statistics", sort: 9 },
 ];
+const ADDITIONAL_MATHEMATICS: Topic[] = [
+  { name: "Algebra & Functions", displayName: "Algebra & Functions", slug: "algebra-and-functions", sort: 1 },
+  { name: "Coordinate Geometry", displayName: "Coordinate Geometry", slug: "coordinate-geometry", sort: 2 },
+  { name: "Trigonometry", displayName: "Trigonometry", slug: "trigonometry", sort: 3 },
+  { name: "Sequences & Series", displayName: "Sequences & Series", slug: "sequences-and-series", sort: 4 },
+  { name: "Vectors", displayName: "Vectors", slug: "vectors", sort: 5 },
+  { name: "Calculus", displayName: "Calculus", slug: "calculus", sort: 6 },
+];
 
 // SME math section mapping (slug → section name)
 const SME_SECTION_MAP: Record<string, string> = {
@@ -125,6 +133,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "additional-maths", topics: ADDITIONAL_MATHEMATICS },
   // Old format aliases (without board prefix)
   "physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
