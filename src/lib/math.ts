@@ -102,6 +102,8 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bend\s*root\b/g, "}");
   result = result.replace(/\bend\s*sqrt\b/g, "}");
   result = result.replace(/(?<!\\)\bsqrt\b/g, "\\sqrt{");
+  // Auto-close unclosed \sqrt{... patterns (no matching } found anywhere after)
+  result = result.replace(/(\\sqrt(?:\[[^\]]*\])?\{)(?![^}]*\})\s*([^}\s]{1,30})/g, '$1$2}');
   
   // ── Inequalities ──
   result = result.replace(/less-than or slanted equal to/g, "\\leq");
