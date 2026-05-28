@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { PastPapersTab } from "./PastPapersTab";
 import { MockExamsTab } from "./MockExamsTab";
 import { SubjectSearchBox } from "./SubjectSearchBox";
@@ -215,6 +216,67 @@ export default async function SubjectPage({
   } catch (e) {
     console.error("Subject lookup failed:", e);
     subjectId = null;
+  }
+
+  // 购买校验
+  let hasAccess = false;
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      hasAccess = false;
+    } else if (subjectId) {
+      const admin = createAdminClient();
+      const { data: purchases } = await admin
+        .from("purchases")
+        .select("id, subject_id, status, expires_at")
+        .eq("user_id", user.id)
+        .in("status", ["paid", "trial"]);
+      if (purchases && purchases.length > 0) {
+        const now = new Date();
+        // all-subjects plan covers everything
+        if (purchases.some(p => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
+          hasAccess = true;
+        } else {
+          // check specific subject purchase
+          hasAccess = purchases.some(p =>
+            p.subject_id === subjectId &&
+            (!p.expires_at || new Date(p.expires_at) > now)
+          );
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Purchase check failed:", e);
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+        <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">← Back to Home</Link>
+        <div className="flex items-center gap-4 mt-4">
+          <span className="text-4xl sm:text-5xl">{icon}</span>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">{board} IGCSE {name}</h1>
+            <p className="text-gray-500 mt-1">Code: {code}</p>
+          </div>
+        </div>
+        <div className="mt-8 bg-white rounded-2xl border border-gray-200 p-8 sm:p-12 text-center">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-primary-900 mb-2">Subscribe to Access</h2>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Get full access to notes, questions, past papers, and mock exams for {board} {name} {code}
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-primary-700 transition"
+          >
+            View Plans →
+          </Link>
+          <p className="text-xs text-gray-400 mt-4">Starting from ¥50 per subject</p>
+        </div>
+      </div>
+    );
   }
 
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
