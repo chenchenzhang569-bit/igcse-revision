@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { createBrowserClient } from "@supabase/ssr";
-import { renderMath } from "@/lib/math";
+import { renderMath, processMathContent } from "@/lib/math";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal, { type BugContext } from "@/components/ReportBugModal";
 
@@ -849,13 +849,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
             </p>
             {!isCorrect && (q.clean_explanation || q.explanation) && (
               <div className="prose prose-sm max-w-none mt-2 text-gray-700"
-                dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
+                dangerouslySetInnerHTML={{ __html: processMathContent(q.clean_explanation || q.explanation) }} />
             )}
             {isCorrect && (q.clean_explanation || q.explanation) && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
                 <div className="prose prose-sm max-w-none mt-1 text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: renderMath(markdownify(q.clean_explanation || q.explanation)) }} />
+                  dangerouslySetInnerHTML={{ __html: processMathContent(q.clean_explanation || q.explanation) }} />
               </details>
             )}
           </div>
