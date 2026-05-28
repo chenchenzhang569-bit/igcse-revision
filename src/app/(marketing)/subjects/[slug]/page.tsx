@@ -2,7 +2,6 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { PastPapersTab } from "./PastPapersTab";
 import { MockExamsTab } from "./MockExamsTab";
 import { SubjectSearchBox } from "./SubjectSearchBox";
@@ -223,11 +222,8 @@ export default async function SubjectPage({
   try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      hasAccess = false;
-    } else if (subjectId) {
-      const admin = createAdminClient();
-      const { data: purchases } = await admin
+    if (user && subjectId) {
+      const { data: purchases } = await supabase
         .from("purchases")
         .select("id, subject_id, status, expires_at")
         .eq("user_id", user.id)
