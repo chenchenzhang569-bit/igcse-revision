@@ -102,7 +102,7 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bbold\b/g, "");
   result = result.replace(/\bitalic\b/g, "");
   result = result.replace(/\bthin\b/g, "");
-  result = result.replace(/\bspace\b/g, "");
+  result = result.replace(/\bspace\b/g, " ");
   
   // ── Parentheses ──
   result = result.replace(/open\s*parentheses/g, "(");
