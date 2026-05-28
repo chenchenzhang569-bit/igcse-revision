@@ -117,6 +117,7 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/close\s*vertical\s*bar/g, "|");
   result = result.replace(/left\s*vertical\s*bar/g, "|");
   result = result.replace(/right\s*vertical\s*bar/g, "|");
+  result = result.replace(/\bvertical\s*line\b/g, "|");
   
   // ── Fractions ──
   result = result.replace(/fraction\s*numerator\s*/g, "\\frac{");
@@ -130,6 +131,7 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/to\s*the\s*power\s*of\s+(\S+?)\s*end\s*exponent/g, "^{$1}");
   result = result.replace(/\bend\s*exponent\b/g, "");
   result = result.replace(/superscript/g, "^");
+  result = result.replace(/subscript/g, "_");
   result = result.replace(/\bsquared\b/g, "^2");
   result = result.replace(/\bcubed\b/g, "^3");
   
