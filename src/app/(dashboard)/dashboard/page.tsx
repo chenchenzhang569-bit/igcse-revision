@@ -179,18 +179,19 @@ export default function DashboardPage() {
               <Link
                 key={p.subject_id}
                 href={`/subjects/${p.subject_slug}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border shadow-sm hover:border-[#FF8C00]/50 hover:shadow-md transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all"
+                style={{ background: "linear-gradient(135deg, #001C71, #00154f)" }}
               >
-                {p.board && <span className="text-gray-400 text-[10px]">{p.board}</span>}
-                <span className="text-gray-500">{p.subject_code}</span>
-                <span className="text-gray-800">{p.subject_name}</span>
-                <span className="text-gray-300 mx-0.5">·</span>
+                {p.board && <span className="text-white/70 text-[10px]">{p.board}</span>}
+                <span className="text-white/80">{p.subject_code}</span>
+                <span className="text-white">{p.subject_name}</span>
+                <span className="text-white/40 mx-0.5">·</span>
                 {p.expired ? (
-                  <span className="text-red-500">Expired</span>
+                  <span className="text-red-300">Expired</span>
                 ) : p.days_left != null && p.days_left <= 14 ? (
-                  <span className="text-amber-600 font-bold">⚠ {p.days_left}d</span>
+                  <span className="text-amber-300 font-bold">⚠ {p.days_left}d</span>
                 ) : (
-                  <span className="text-gray-400">{p.days_left}d</span>
+                  <span className="text-white/60">{p.days_left}d</span>
                 )}
               </Link>
             ))}
