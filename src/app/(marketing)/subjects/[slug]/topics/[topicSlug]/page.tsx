@@ -342,8 +342,8 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
         </div>
       )}
 
-      {/* Subtopics tab */}
-      {activeTab === "subtopics" && (
+      {/* Subtopics tab — ONLY for non-additional-maths */}
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
