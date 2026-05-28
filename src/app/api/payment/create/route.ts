@@ -81,12 +81,14 @@ export async function POST(request: NextRequest) {
     }
     let url: string;
     const amountYuan = (upgradeAmount / 100).toFixed(2);
+    const returnUrl = `${new URL(request.url).origin}/api/payment/return`;
     try {
       url = createPagePayUrl({
         outTradeNo: tradeNo,
         totalAmount: amountYuan,
         subject: "IGCSE All Subjects - 12 Months Access",
         body: "CAIE + Edexcel all subjects",
+        returnUrl,
       });
     } catch (e: any) {
       console.error("Alipay form error:", e.message, e.stack);
@@ -132,12 +134,14 @@ export async function POST(request: NextRequest) {
   }
 
   let url: string;
+  const returnUrl = `${new URL(request.url).origin}/api/payment/return`;
   try {
     url = createPagePayUrl({
       outTradeNo: tradeNo,
       totalAmount: String(PRICE_PER_SUBJECT) + ".00",
       subject: `IGCSE ${subject.display_name}`,
       body: `IGCSE ${subject.display_name} 科目复习资料`,
+      returnUrl,
     });
   } catch (e: any) {
     console.error("Alipay form error:", e.message, e.stack);
