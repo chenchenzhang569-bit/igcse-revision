@@ -847,10 +847,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 : <span>❌ Incorrect. The answer is: {q.clean_answer_text || q.answer_text}</span>
               }
             </p>
-            {!isCorrect && (q.clean_explanation || q.explanation) && (
-              <div className="prose prose-sm max-w-none mt-2 text-gray-700"
-                dangerouslySetInnerHTML={{ __html: processMathContent(q.clean_explanation || q.explanation) }} />
-            )}
             {isCorrect && (q.clean_explanation || q.explanation) && (
               <details className="mt-2">
                 <summary className="text-gray-500 cursor-pointer hover:text-gray-700">Show solution</summary>
