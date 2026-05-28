@@ -110,23 +110,23 @@ const TOPIC_DISPLAY: Record<string, string> = {
 
 // 0606 subtopic PMT codes (Section.Topic numbering)
 const ADDL_MATHS_PMT: Record<string, string> = {
-  "functions": "1.3",
-  "quadratic-functions": "1.5",
-  "equations-inequalities-and-graphs": "1.1",
-  "factors-of-polynomials": "1.2",
-  "simultaneous-equations": "1.6",
-  "logarithmic-and-exponential-functions": "1.4",
-  "straight-line-graphs": "3.2",
+  "functions": "1.1",
+  "quadratic-functions": "1.2",
+  "equations-inequalities-and-graphs": "1.3",
+  "factors-of-polynomials": "1.4",
+  "simultaneous-equations": "1.5",
+  "logarithmic-and-exponential-functions": "1.6",
+  "straight-line-graphs": "3.1",
   "circular-measure": "5.1",
   "trigonometry": "5.2",
-  "coordinate-geometry-of-the-circle": "3.1",
+  "coordinate-geometry-of-the-circle": "3.2",
   "arithmetic-and-geometric-progressions": "4.1",
   "binomial-theorem": "4.2",
   "permutations-and-combinations": "4.3",
   "vectors-in-two-dimensions": "6.1",
-  "differentiation": "2.2",
-  "integration": "2.3",
-  "calculus-for-kinematics": "2.1",
+  "differentiation": "2.1",
+  "integration": "2.2",
+  "calculus-for-kinematics": "2.3",
 };
 
 export default async function SubtopicPage({
