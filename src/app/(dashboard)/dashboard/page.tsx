@@ -178,7 +178,7 @@ export default function DashboardPage() {
             {!hasAllSubject && upgradePrice != null && (
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-1 text-sm font-bold text-white bg-accent-500 hover:bg-accent-600 px-5 py-2 rounded-lg transition shrink-0"
+                className="inline-flex items-center gap-1 text-xs font-bold text-white bg-accent-500 hover:bg-accent-600 px-4 py-1.5 rounded-lg transition shrink-0"
               >
                 Upgrade to All Subjects ¥{upgradePrice / 100} →
               </Link>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
               <Link
                 key={p.subject_id}
                 href={`/subjects/${p.subject_slug}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-base font-bold text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all"
                 style={{ background: "linear-gradient(135deg, #001C71, #00154f)" }}
               >
                 {p.board && <span className="text-white/70 text-[10px]">{p.board}</span>}
