@@ -23,18 +23,20 @@ Rules:
 8. Output as JSON: {"clean_answer": "..."}"""
 
 
-def fetch_questions(offset, limit):
+def fetch_questions(offset, limit, subtopic_ids=None):
+    params = {
+        "select": "id,question_text,answer_text,clean_answer_text",
+        "answer_text": "not.is.null",
+        "order": "id",
+        "offset": offset,
+        "limit": limit,
+    }
+    if subtopic_ids:
+        params["subtopic_id"] = f"in.({','.join(subtopic_ids)})"
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/questions",
         headers={"apikey": SRV_KEY, "Authorization": f"Bearer {SRV_KEY}"},
-        params={
-            "select": "id,question_text,answer_text,clean_answer_text",
-            "answer_text": "not.is.null",
-            "order": "id",
-            "offset": offset,
-            "limit": limit,
-        },
-        timeout=30,
+        params=params,
     )
     r.raise_for_status()
     return r.json()
@@ -82,9 +84,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--limit", type=int, default=100)
+    parser.add_argument("--subtopic-ids", type=str, default=None,
+                        help="Comma-separated subtopic UUIDs to filter (optional)")
     args = parser.parse_args()
 
-    questions = fetch_questions(args.offset, args.limit)
+    subtopic_ids = args.subtopic_ids.split(",") if args.subtopic_ids else None
+    questions = fetch_questions(args.offset, args.limit, subtopic_ids)
     if not isinstance(questions, list):
         print(f"ERROR: {type(questions)}")
         return
