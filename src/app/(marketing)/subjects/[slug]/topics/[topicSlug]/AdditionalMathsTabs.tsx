@@ -75,14 +75,13 @@ export default function AdditionalMathsTabs({
       {/* Notes tab */}
       {tab === "notes" && (
         <div className="mt-6 space-y-4">
-          {notes.filter((n) => !(n.title || "").includes("ZNotes")).length === 0 ? (
+          {notes.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
               <p className="text-lg font-medium">No notes yet</p>
               <p className="text-sm mt-2">Our team is adding study notes for this topic</p>
             </div>
           ) : (
             notes
-              .filter((n) => !(n.title || "").includes("ZNotes"))
               .map((note) => (
                 <div key={note.id} className="bg-white border rounded-xl p-6">
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
