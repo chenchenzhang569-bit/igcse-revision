@@ -854,6 +854,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                             const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                             const renderPart = (content: string) => {
                               const t = content.trim();
+                              if (/[^\x00-\x7F]/.test(t)) return <span>{t}</span>;
                               const isMath = t.length <= 25 && /[=\^\\\/\(\)<>\+\-]/.test(t);
                               return isMath
                                 ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
@@ -882,6 +883,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                         const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                         const renderPart = (content: string) => {
                           const t = content.trim();
+                          if (/[^\x00-\x7F]/.test(t)) return <span>{t}</span>;
                           const isMath = t.length <= 25 && /[=\^\\\/\(\)<>\+\-]/.test(t);
                           return isMath
                             ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
