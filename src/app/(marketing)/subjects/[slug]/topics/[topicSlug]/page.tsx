@@ -84,18 +84,6 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "calculus": "Calculus",
 };
 
-// 0606 subtopic PMT codes (Section.Topic numbering, per SME order)
-const ADDL_MATHS_PMT: Record<string, string> = {
-  "functions": "1.1", "quadratic-functions": "1.2",
-  "equations-inequalities-and-graphs": "1.3", "factors-of-polynomials": "1.4",
-  "simultaneous-equations": "1.5", "logarithmic-and-exponential-functions": "1.6",
-  "differentiation": "2.1", "integration": "2.2", "calculus-for-kinematics": "2.3",
-  "straight-line-graphs": "3.1", "coordinate-geometry-of-the-circle": "3.2",
-  "arithmetic-and-geometric-progressions": "4.1", "binomial-theorem": "4.2", "permutations-and-combinations": "4.3",
-  "circular-measure": "5.1", "trigonometry": "5.2",
-  "vectors-in-two-dimensions": "6.1",
-};
-
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const baseHeaders = { apikey: KEY, Authorization: `Bearer ${KEY}` };
@@ -132,13 +120,17 @@ export default async function TopicPage({
   let subtopicNotes: any[] = [];
   let subtopicDisplay: string | null = null;
   try {
+    const topicSearchPattern = subjectKey === "additional-maths"
+      ? `*0606-${encodeURIComponent(topicSlug)}`
+      : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(
-      `${API}/topics?slug=ilike.*${encodeURIComponent(topicSlug)}&select=id,name&limit=1`,
+      `${API}/topics?slug=ilike.${topicSearchPattern}&select=id,name,sort_order&limit=1`,
       { headers: baseHeaders, cache: "no-store" }
     );
     const topics = await tRes.json();
     if (topics?.[0]?.id) {
       topicId = topics[0].id;
+      const topicSortOrder = topics[0].sort_order || 1;
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
       }
@@ -153,7 +145,7 @@ export default async function TopicPage({
           subtopics = stData.map((s: any) => ({
             slug: s.slug,
             displayName: s.display_name || s.name,
-            pmtCode: ADDL_MATHS_PMT[s.slug] || "",
+            pmtCode: `${topicSortOrder}.${s.sort_order}`,
           }));
         }
       }

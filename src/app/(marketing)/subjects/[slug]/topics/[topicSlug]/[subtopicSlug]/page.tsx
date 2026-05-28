@@ -108,27 +108,6 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "probability": "Probability", "statistics": "Statistics",
 };
 
-// 0606 subtopic PMT codes (Section.Topic numbering)
-const ADDL_MATHS_PMT: Record<string, string> = {
-  "functions": "1.1",
-  "quadratic-functions": "1.2",
-  "equations-inequalities-and-graphs": "1.3",
-  "factors-of-polynomials": "1.4",
-  "simultaneous-equations": "1.5",
-  "logarithmic-and-exponential-functions": "1.6",
-  "straight-line-graphs": "3.1",
-  "circular-measure": "5.1",
-  "trigonometry": "5.2",
-  "coordinate-geometry-of-the-circle": "3.2",
-  "arithmetic-and-geometric-progressions": "4.1",
-  "binomial-theorem": "4.2",
-  "permutations-and-combinations": "4.3",
-  "vectors-in-two-dimensions": "6.1",
-  "differentiation": "2.1",
-  "integration": "2.2",
-  "calculus-for-kinematics": "2.3",
-};
-
 export default async function SubtopicPage({
   params,
 }: {
@@ -139,7 +118,7 @@ export default async function SubtopicPage({
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For additional-maths: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
   if (subjectKey === "additional-maths") {
-    subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: ADDL_MATHS_PMT[subtopicSlug] || "" };
+    subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
       const subRes = await fetch(`${API}/subtopics?select=display_name,slug&slug=eq.${subtopicSlug}&limit=1`, { headers: H, cache: "no-store" });
@@ -174,7 +153,10 @@ export default async function SubtopicPage({
     let topicRow: any = null;
     const pmtCode = subtopic?.pmtCode || "";
     
-    const tRes = await fetch(`${API}/topics?select=id&slug=ilike.*${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+    const topicSearchPat = subjectKey === "additional-maths"
+      ? `*0606-${encodeURIComponent(topicSlug)}`
+      : `*${encodeURIComponent(topicSlug)}`;
+    const tRes = await fetch(`${API}/topics?select=id,sort_order&slug=ilike.${topicSearchPat}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
     topicRow = Array.isArray(tData) && tData.length > 0 ? tData[0] : null;
     
@@ -194,9 +176,12 @@ export default async function SubtopicPage({
     // Fallback for additional-maths: lookup by subtopic slug
     if (!subtopicId && topicRow && subjectKey === "additional-maths") {
       try {
-        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+        const subRes = await fetch(`${API}/subtopics?select=id,sort_order&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
         const subData = await subRes.json();
-        if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
+        if (Array.isArray(subData) && subData.length > 0) {
+          subtopicId = subData[0].id;
+          subtopic.pmtCode = `${topicRow.sort_order || 1}.${subData[0].sort_order || 1}`;
+        }
       } catch {}
     }
 
