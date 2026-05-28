@@ -155,12 +155,6 @@ export default async function TopicPage({
             displayName: s.display_name || s.name,
             pmtCode: ADDL_MATHS_PMT[s.slug] || "",
           }));
-          // Sort by PMT code (canonical SME order), ignore DB sort_order
-          subtopics.sort((a: any, b: any) => {
-            const [a1, a2] = (a.pmtCode || "99.99").split(".").map(Number);
-            const [b1, b2] = (b.pmtCode || "99.99").split(".").map(Number);
-            return a1 - b1 || a2 - b2;
-          });
         }
       }
       // Fetch subtopic name if sub param present
