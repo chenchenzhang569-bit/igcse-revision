@@ -104,3 +104,39 @@ export function generateTradeNo(): string {
   const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `IGCSE${now}${rand}`;
 }
+
+export async function queryTrade(outTradeNo: string): Promise<string | null> {
+  const bizContent = JSON.stringify({ out_trade_no: outTradeNo });
+
+  const signParams: Record<string, string> = {
+    app_id: process.env.ALIPAY_APP_ID!,
+    method: "alipay.trade.query",
+    charset: "utf-8",
+    sign_type: "RSA2",
+    timestamp: new Date().toISOString().replace(/T/, " ").replace(/\..+/, ""),
+    version: "1.0",
+    biz_content: bizContent,
+  };
+
+  const signature = sign(signParams);
+
+  const gateway = process.env.ALIPAY_GATEWAY || "https://openapi-sandbox.dl.alipaydev.com/gateway.do";
+  const body = new URLSearchParams({ ...signParams, sign: signature }).toString();
+
+  const res = await fetch(gateway, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+
+  const text = await res.text();
+  // Parse JSON response: { alipay_trade_query_response: { trade_status, ... } }
+  try {
+    const json = JSON.parse(text);
+    const resp = json.alipay_trade_query_response;
+    if (resp?.code === "10000") return resp.trade_status;
+    return null;
+  } catch {
+    return null;
+  }
+}
