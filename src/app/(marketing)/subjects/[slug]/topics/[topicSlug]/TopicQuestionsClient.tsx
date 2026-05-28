@@ -852,15 +852,22 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                         <div className="mt-1 space-y-1">
                           {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
                             const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
+                            const renderPart = (content: string) => {
+                              const t = content.trim();
+                              const isMath = t.length <= 25 && /[=\^\\\/\(\)<>\+\-]/.test(t);
+                              return isMath
+                                ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
+                                : <span>{t}</span>;
+                            };
                             if (m) {
                               return (
                                 <div key={i}>
                                   <span className="font-medium">{m[1]}</span>{" "}
-                                  <span dangerouslySetInnerHTML={{ __html: renderMath(`$${m[2]}$`) }} />
+                                  {renderPart(m[2])}
                                 </div>
                               );
                             }
-                            return <div key={i} dangerouslySetInnerHTML={{ __html: renderMath(`$${p.trim()}$`) }} />;
+                            return <div key={i}>{renderPart(p)}</div>;
                           })}
                         </div>
                       </details>
@@ -873,15 +880,22 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                     <div className="mt-1 space-y-1 font-normal">
                       {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
                         const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
+                        const renderPart = (content: string) => {
+                          const t = content.trim();
+                          const isMath = t.length <= 25 && /[=\^\\\/\(\)<>\+\-]/.test(t);
+                          return isMath
+                            ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
+                            : <span>{t}</span>;
+                        };
                         if (m) {
                           return (
                             <div key={i}>
                               <span className="font-medium">{m[1]}</span>{" "}
-                              <span dangerouslySetInnerHTML={{ __html: renderMath(`$${m[2]}$`) }} />
+                              {renderPart(m[2])}
                             </div>
                           );
                         }
-                        return <div key={i} dangerouslySetInnerHTML={{ __html: renderMath(`$${p.trim()}$`) }} />;
+                        return <div key={i}>{renderPart(p)}</div>;
                       })}
                     </div>
                   </span>
