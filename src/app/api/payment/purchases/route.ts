@@ -113,8 +113,13 @@ export async function GET(request: NextRequest) {
     purchases.push(...filtered);
   }
 
-  // Build response
-  const result = purchases.map((p: any) => {
+  // Build response — deduplicate by subject_id (keep latest)
+  const seen = new Set<string>();
+  const result = [];
+  for (const p of purchases) {
+    const key = p.subject_id || `_all_${p.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     const sub = p.subject_id ? subjectMap[p.subject_id] : null;
     const expiresAt = p.expires_at ? new Date(p.expires_at) : null;
     const daysLeft = expiresAt

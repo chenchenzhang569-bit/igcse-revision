@@ -17,6 +17,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-chemistry-4ch1": "chemistry", "chemistry-4ch1": "chemistry",
   "edexcel-biology-4bi1": "biology", "biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics", "mathematics-4ma1": "mathematics",
+  "caie-additional-mathematics-0606": "additional-maths",
   "caie-physics": "physics", "caie-chemistry": "chemistry",
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
@@ -113,7 +114,11 @@ export default async function SubtopicPage({
 }) {
   const { slug, topicSlug, subtopicSlug } = await params;
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
-  const subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
+  let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
+  // For additional-maths: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
+  if (subjectKey === "additional-maths") {
+    subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
+  }
   const topicDisplay = TOPIC_DISPLAY[topicSlug] || topicSlug;
 
   if (!subtopic) {
@@ -152,6 +157,14 @@ export default async function SubtopicPage({
     if (topicRow && pmtCode) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "no-store" });
+        const subData = await subRes.json();
+        if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
+      } catch {}
+    }
+    // Fallback for additional-maths: lookup by subtopic slug
+    if (!subtopicId && topicRow && subjectKey === "additional-maths") {
+      try {
+        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
       } catch {}

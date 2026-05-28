@@ -86,6 +86,10 @@ const SME_SECTION_MAP: Record<string, string> = {
   "section-pythagoras-and-trigonometry":"Pythagoras & Trigonometry",
   "section-transformations":"Transformations","section-probability":"Probability",
   "section-statistics":"Statistics",
+  // 0606 Additional Mathematics sections
+  "algebra-and-functions":"Algebra & Functions","coordinate-geometry":"Coordinate Geometry",
+  "trigonometry":"Trigonometry","sequences-and-series":"Sequences & Series",
+  "vectors":"Vectors","calculus":"Calculus",
   // slice(3) partials for 3+ word names
   "and-graphs":"Coordinate Geometry & Graphs","and-volumes":"Lengths, Areas & Volumes",
   // Legacy subtopic slugs (backward compat)
@@ -287,7 +291,8 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  if (key === "maths" && subjectId) {
+  const useDbTopics = (key === "maths" || key === "additional-maths") && subjectId;
+  if (useDbTopics) {
     try {
       const supabase = createClient();
       const { data: dbTopics } = await supabase
@@ -296,15 +301,16 @@ export default async function SubjectPage({
         .eq("subject_id", subjectId)
         .order("sort_order");
       if (dbTopics && dbTopics.length > 0) {
+        const slugSplitIndex = key === "additional-maths" ? 4 : 3;
         // Build parent topic id → section name map
         const topicIdToSection = new Map<string, string>();
         for (const t of dbTopics) {
-          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
+          const smeSlug = t.slug.split("-").slice(slugSplitIndex).join("-") || t.slug;
           topicIdToSection.set(t.id, SME_SECTION_MAP[smeSlug] || "Other");
         }
         // Count subtopics per section from subtopics table
         const sectionSubCounts = new Map<string, number>();
-        for (const secName of SME_SECTION_ORDER) sectionSubCounts.set(secName, 0);
+        for (const secName of new Set<string>(topicIdToSection.values())) sectionSubCounts.set(secName, 0);
         try {
           const { data: subRows } = await supabase
             .from("subtopics")
@@ -322,7 +328,7 @@ export default async function SubjectPage({
         const grouped = new Map<string, Topic[]>();
         const added = new Set<string>();
         for (const t of dbTopics) {
-          const smeSlug = t.slug.split("-").slice(3).join("-") || t.slug;
+          const smeSlug = t.slug.split("-").slice(slugSplitIndex).join("-") || t.slug;
           const sectionName = SME_SECTION_MAP[smeSlug] || "Other";
           if (!grouped.has(sectionName)) grouped.set(sectionName, []);
           if (!added.has(smeSlug)) {

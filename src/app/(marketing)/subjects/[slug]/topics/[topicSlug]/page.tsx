@@ -18,6 +18,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-chemistry-4ch1": "chemistry",
   "edexcel-biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics",
+  "caie-additional-mathematics-0606": "additional-maths",
   "physics-0625": "physics", "chemistry-0620": "chemistry",
   "biology-0610": "biology", "mathematics-0580": "mathematics",
   "physics-4ph1": "physics", "chemistry-4ch1": "chemistry",
@@ -74,6 +75,13 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "section-pythagoras-and-trigonometry": "Pythagoras & Trigonometry",
   "section-transformations": "Transformations", "section-probability": "Probability",
   "section-statistics": "Statistics",
+  // 0606 Additional Mathematics
+  "algebra-and-functions": "Algebra & Functions",
+  "coordinate-geometry": "Coordinate Geometry",
+  "trigonometry": "Trigonometry",
+  "sequences-and-series": "Sequences & Series",
+  "vectors": "Vectors",
+  "calculus": "Calculus",
 };
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -91,8 +99,9 @@ export default async function TopicPage({
   const { tab, sub } = await searchParams;
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const isMaths = subjectKey === "maths" || subjectKey === "mathematics";
-  const subtopics = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
+  const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
+  let subtopics: any[] = isMaths ? [] : getSubtopics(subjectKey, topicSlug);
+  // For additional-maths, fetch subtopics from DB
   // Math: default to notes tab; others: default to subtopics, but allow ?tab= override
   const activeTab = tab || (isMaths ? "notes" : "subtopics");
 
@@ -120,6 +129,21 @@ export default async function TopicPage({
       topicId = topics[0].id;
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
+      }
+      // For additional-maths: fetch subtopics from DB
+      if (subjectKey === "additional-maths") {
+        const stRes = await fetch(
+          `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
+          { headers: baseHeaders, cache: "no-store" }
+        );
+        const stData = await stRes.json();
+        if (Array.isArray(stData)) {
+          subtopics = stData.map((s: any) => ({
+            slug: s.slug,
+            displayName: s.display_name || s.name,
+            pmtCode: "",
+          }));
+        }
       }
       // Fetch subtopic name if sub param present
       if (sub) {
