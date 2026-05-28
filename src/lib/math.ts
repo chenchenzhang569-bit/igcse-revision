@@ -83,6 +83,8 @@ function cleanSmeMathMarkup(math: string): string {
   // ── Powers (MUST run before standalone "over" — "end exponent" words must be consumed first) ──
   result = result.replace(/to\s*the\s*power\s*of\s*negative\s*(.+?)\s*end\s*exponent/g, "^{-{$1}}");
   result = result.replace(/to\s*the\s*power\s*of\s*(.+?)\s*end\s*exponent/g, "^{$1}");
+  result = result.replace(/to\s*the\s*power\s*of\s*degree/g, "^{\\circ}");
+  result = result.replace(/to\s*the\s*power\s*of\s+(\w+)/g, "^{$1}");
   result = result.replace(/\bend\s*exponent\b/g, "");
   result = result.replace(/\bend\s*subscript\b/g, "");
   result = result.replace(/superscript/g, "^");
