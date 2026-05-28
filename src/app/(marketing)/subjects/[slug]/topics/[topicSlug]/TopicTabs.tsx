@@ -641,7 +641,7 @@ export function TopicTabs({
                           Show Answer
                         </summary>
                         <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.answer_text)}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text)}</ReactMarkdown>
                         </div>
                       </details>
                     )}
