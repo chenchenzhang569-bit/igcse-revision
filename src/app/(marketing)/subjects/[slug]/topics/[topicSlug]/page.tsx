@@ -197,8 +197,31 @@ export default async function TopicPage({
         {isMaths && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
       </div>
 
-      {/* Tabs: only for Math */}
-      {isMaths && (
+      {/* For additional-maths: show subtopics directly, no tabs */}
+      {subjectKey === "additional-maths" && subtopics.length > 0 && (
+        <div className="mt-8">
+          <p className="text-gray-500 mb-4">{subtopics.length} subtopics</p>
+          <div className="space-y-3">
+            {subtopics.map((st: any) => (
+              <Link
+                key={st.slug}
+                href={`/subjects/${slug}/topics/${topicSlug}/${st.slug}`}
+                className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-accent-300 transition-all group flex items-center gap-4"
+              >
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-primary-900 group-hover:text-accent-500 transition">
+                    {st.displayName}
+                  </h3>
+                </div>
+                <span className="text-gray-300 group-hover:text-accent-500 transition">→</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tabs: only for 0580 Math (not additional-maths) */}
+      {isMaths && subjectKey !== "additional-maths" && (
       <div className="flex gap-1 mt-8 border-b">
         <Link
           href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("notes")}`}
