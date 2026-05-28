@@ -3,15 +3,35 @@ import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
 
-export async function GET(request: NextRequest) {
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll() { return request.cookies.getAll(); }, setAll() {} } }
-  );
+function parseJwt(token: string) {
+  try {
+    const base64 = token.split(".")[1];
+    return JSON.parse(Buffer.from(base64, "base64").toString());
+  } catch { return null; }
+}
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ purchases: [], upgradePrice: 25000 }, { status: 200 });
+export async function GET(request: NextRequest) {
+  // Try Authorization: Bearer header first (for cross-origin clients like WeChat)
+  const authHeader = request.headers.get("authorization");
+  let userId: string | null = null;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    const payload = parseJwt(token);
+    userId = payload?.sub || null;
+  }
+
+  // Fallback to cookie-based auth
+  if (!userId) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll() { return request.cookies.getAll(); }, setAll() {} } }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id || null;
+  }
+
+  if (!userId) return NextResponse.json({ purchases: [], upgradePrice: 25000 }, { status: 200 });
 
   const admin = createAdminClient();
 

@@ -109,9 +109,13 @@ export default function DashboardPage() {
       .catch(() => setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] }))
       .finally(() => setLoading(false));
 
-    // Fetch subscriptions
-    fetch("/api/payment/purchases")
-      .then(r => r.json())
+    // Fetch subscriptions (with auth token)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const token = session?.access_token;
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      return fetch("/api/payment/purchases", { credentials: "include", headers });
+    }).then(r => r.json())
       .then(d => {
         setPurchases(d.purchases || []);
         setUpgradePrice(d.hasAllSubject ? null : d.upgradePrice);
