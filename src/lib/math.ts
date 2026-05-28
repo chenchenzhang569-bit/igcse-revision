@@ -97,9 +97,9 @@ function cleanSmeMathMarkup(math: string): string {
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
   result = result.replace(/cube\s*root\s*of\b/g, "\\sqrt[3]{");
-  result = result.replace(/(?<!\\)\bsqrt\b/g, "\\sqrt{");
   result = result.replace(/\bend\s*root\b/g, "}");
   result = result.replace(/\bend\s*sqrt\b/g, "}");
+  result = result.replace(/(?<!\\)\bsqrt\b/g, "\\sqrt{");
   
   // ── Inequalities ──
   result = result.replace(/less-than or slanted equal to/g, "\\leq");
