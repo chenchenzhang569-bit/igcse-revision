@@ -45,14 +45,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard?payment=error", request.url));
   }
 
-  // 1. 尝试 queryTrade（生产环境可靠）
+  const isSandbox = (process.env.ALIPAY_GATEWAY || "").includes("sandbox");
+
+  if (isSandbox) {
+    // 沙箱环境：queryTrade 不支持，验签可能失败
+    // 直接信任 return URL 的 trade_status
+    const tradeStatus = params.trade_status;
+    if (tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") {
+      await markPaid(tradeNo);
+      return NextResponse.redirect(new URL("/dashboard?payment=success", request.url));
+    }
+    return NextResponse.redirect(new URL("/dashboard?payment=cancelled", request.url));
+  }
+
+  // 生产环境：queryTrade API 验证
   const status = await queryTrade(tradeNo);
   if (status === "TRADE_SUCCESS" || status === "TRADE_FINISHED") {
     await markPaid(tradeNo);
     return NextResponse.redirect(new URL("/dashboard?payment=success", request.url));
   }
 
-  // 2. 沙箱 fallback：验签 + 信任 return URL 的 trade_status
+  // 生产 fallback：验签
   const tradeStatus = params.trade_status;
   if ((tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") && verifyNotify({ ...params })) {
     await markPaid(tradeNo);
