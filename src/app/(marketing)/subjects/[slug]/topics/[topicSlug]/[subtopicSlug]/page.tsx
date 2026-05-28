@@ -144,7 +144,7 @@ export default async function SubtopicPage({
     let topicRow: any = null;
     const pmtCode = subtopic?.pmtCode || "";
     
-    const tRes = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+    const tRes = await fetch(`${API}/topics?select=id&slug=ilike.*${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
     topicRow = Array.isArray(tData) && tData.length > 0 ? tData[0] : null;
     
