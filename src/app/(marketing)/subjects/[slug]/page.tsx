@@ -308,18 +308,20 @@ export default async function SubjectPage({
           const smeSlug = t.slug.split("-").slice(slugSplitIndex).join("-") || t.slug;
           topicIdToSection.set(t.id, SME_SECTION_MAP[smeSlug] || "Other");
         }
-        // Count subtopics per section from subtopics table
+        // Count subtopics per section from subtopics table (use fetch, not Supabase client)
         const sectionSubCounts = new Map<string, number>();
         for (const secName of new Set<string>(topicIdToSection.values())) sectionSubCounts.set(secName, 0);
         try {
-          const { data: subRows } = await supabase
-            .from("subtopics")
-            .select("topic_id")
-            .in("topic_id", Array.from(topicIdToSection.keys()));
-          if (subRows) {
-            for (const row of subRows) {
-              const sec = topicIdToSection.get(row.topic_id);
-              if (sec) sectionSubCounts.set(sec, (sectionSubCounts.get(sec) || 0) + 1);
+          const topicIds = Array.from(topicIdToSection.keys());
+          for (const tid of topicIds) {
+            const subRes = await fetch(
+              `${API}/subtopics?select=topic_id&topic_id=eq.${tid}`,
+              { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+            );
+            const subData = await subRes.json();
+            if (Array.isArray(subData)) {
+              const sec = topicIdToSection.get(tid);
+              if (sec) sectionSubCounts.set(sec, (sectionSubCounts.get(sec) || 0) + subData.length);
             }
           }
         } catch (_) { /* keep zeros */ }
