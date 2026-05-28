@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard?payment=error", request.url));
   }
 
-  const isSandbox = (process.env.ALIPAY_GATEWAY || "").includes("sandbox");
+  const gateway = process.env.ALIPAY_GATEWAY || "";
+  const isSandbox = !gateway || gateway.includes("sandbox");
 
   if (isSandbox) {
     // 沙箱环境：queryTrade 不支持，验签可能失败
