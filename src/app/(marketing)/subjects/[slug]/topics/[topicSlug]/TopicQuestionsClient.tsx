@@ -217,7 +217,7 @@ function normalizeAlgebraic(expr: string): string {
   if (!/[a-z]/i.test(expr)) return expr;       // no variables → skip
   if (!/[+\-]/.test(expr)) return expr;        // no operators → skip
   
-  let s = expr.replace(/\s+/g, '');
+  let s = expr.replace(/\s+/g, '').replace(/\\/g, '');  // strip spaces + backslashes for grading
   if (s[0] !== '+' && s[0] !== '-') s = '+' + s;
   
   const terms: string[] = [];
