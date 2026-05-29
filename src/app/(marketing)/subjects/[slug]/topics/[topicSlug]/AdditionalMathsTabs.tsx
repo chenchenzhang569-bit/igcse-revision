@@ -42,9 +42,7 @@ export default function AdditionalMathsTabs({
   slug: string;
   topicSlug: string;
 }) {
-  const [tab, setTab] = useState<"notes" | "questions">(
-    structuredQuestions.length > 0 ? "questions" : "notes"
-  );
+  const [tab, setTab] = useState<"notes" | "questions">("notes");
 
   return (
     <div className="mt-6">

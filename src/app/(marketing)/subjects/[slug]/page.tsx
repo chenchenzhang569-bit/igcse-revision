@@ -294,7 +294,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "additional-maths") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();
@@ -304,7 +304,7 @@ export default async function SubjectPage({
         .eq("subject_id", subjectId)
         .order("sort_order");
       if (dbTopics && dbTopics.length > 0) {
-        const slugSplitIndex = key === "additional-maths" ? 4 : 3;
+        const slugSplitIndex = key === "0606" ? 4 : 3;
         // Build parent topic id → section name map
         const topicIdToSection = new Map<string, string>();
         for (const t of dbTopics) {
