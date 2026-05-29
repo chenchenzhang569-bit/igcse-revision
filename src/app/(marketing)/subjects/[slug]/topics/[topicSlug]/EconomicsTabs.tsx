@@ -93,8 +93,10 @@ export default function EconomicsTabs({
   const groupOrder = ["easy", "medium", "hard"];
 
   function isTableQuestion(text: string): boolean {
-    // Markdown table OR HTML <table> (already converted)
-    return (text.includes("|") && text.includes("---") || text.includes("<table>")) && /[A-D][.)\s:]/.test(text) && !/^[A-D][.)]/m.test(text);
+    // HTML <table> — always a table question (no need to check for option markers)
+    if (text.includes("<table>")) return true;
+    // Legacy markdown table: must have A-D references AND no option lines (A./B./C./D.)
+    return (text.includes("|") && text.includes("---")) && /[A-D][.)\s:]/.test(text) && !/^[A-D][.)]/m.test(text);
   }
 
   function selectAnswer(qId: string, answer: string, difficulty: string) {
