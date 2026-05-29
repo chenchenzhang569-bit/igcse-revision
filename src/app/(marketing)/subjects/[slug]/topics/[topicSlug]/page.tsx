@@ -154,7 +154,9 @@ export default async function TopicPage({
           subtopics = stData.map((s: any) => ({
             slug: s.slug,
             displayName: s.display_name || s.name,
-            pmtCode: `${topicSortOrder}.${s.sort_order}`,
+            // pmtCode only for additional-maths (numbers not in display_name);
+            // economics display_names already include numbering like "1.1 ..."
+            pmtCode: subjectKey === "additional-maths" ? `${topicSortOrder}.${s.sort_order}` : undefined,
           }));
         }
       }
@@ -356,8 +358,8 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
         </div>
       )}
 
-      {/* Subtopics tab — ONLY for non-additional-maths */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && (
+      {/* Subtopics tab — ONLY for non-additional-maths, non-economics (those show subtopics directly above) */}
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
