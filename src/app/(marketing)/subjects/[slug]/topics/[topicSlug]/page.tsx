@@ -19,6 +19,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics",
   "caie-additional-mathematics-0606": "additional-maths",
+  "caie-economics-0455": "economics",
   "physics-0625": "physics", "chemistry-0620": "chemistry",
   "biology-0610": "biology", "mathematics-0580": "mathematics",
   "physics-4ph1": "physics", "chemistry-4ch1": "chemistry",
@@ -82,6 +83,13 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "sequences-series": "Sequences & Series",
   "vectors": "Vectors",
   "calculus": "Calculus",
+  // 0455 Economics
+  "1-the-basic-economic-problem": "1. The Basic Economic Problem",
+  "2-the-allocation-of-resources": "2. The Allocation of Resources",
+  "3-microeconomic-decision-makers": "3. Microeconomic Decision-Makers",
+  "4-government-and-the-macroeconomy": "4. Government & the Macroeconomy",
+  "5-economic-development": "5. Economic Development",
+  "6-international-trade-and-globalisation": "6. International Trade & Globalisation",
 };
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -100,10 +108,11 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  let subtopics: any[] = subjectKey === "additional-maths" ? [] : getSubtopics(subjectKey, topicSlug);
-  // For additional-maths, fetch subtopics from DB
-  // Math: default to notes tab; additional-maths defaults to subtopics; others: default to subtopics
-  const activeTab = tab || (subjectKey === "additional-maths" ? "subtopics" : isMaths ? "notes" : "subtopics");
+  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics";
+  let subtopics: any[] = isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
+  // For additional-maths/economics, fetch subtopics from DB
+  // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
+  const activeTab = tab || (isSimpleSubject ? "subtopics" : isMaths ? "notes" : "subtopics");
 
   // Build tab URL preserving ?sub= param
   const tabUrl = (tabName: string) => {
@@ -120,8 +129,8 @@ export default async function TopicPage({
   let subtopicNotes: any[] = [];
   let subtopicDisplay: string | null = null;
   try {
-    const topicSearchPattern = subjectKey === "additional-maths"
-      ? `*0606-${encodeURIComponent(topicSlug)}`
+    const topicSearchPattern = isSimpleSubject
+      ? `*${subjectKey === "additional-maths" ? "0606" : "0455"}-${encodeURIComponent(topicSlug)}`
       : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(
       `${API}/topics?slug=ilike.${topicSearchPattern}&select=id,name,sort_order&limit=1`,
@@ -134,8 +143,8 @@ export default async function TopicPage({
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
       }
-      // For additional-maths: fetch subtopics from DB
-      if (subjectKey === "additional-maths") {
+      // For additional-maths/economics: fetch subtopics from DB
+      if (isSimpleSubject) {
         const stRes = await fetch(
           `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
           { headers: baseHeaders, cache: "no-store" }
@@ -201,8 +210,8 @@ export default async function TopicPage({
         {isMaths && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
       </div>
 
-      {/* For additional-maths: show subtopics directly, no tabs */}
-      {subjectKey === "additional-maths" && subtopics.length > 0 && (
+      {/* For additional-maths/economics: show subtopics directly, no tabs */}
+      {isSimpleSubject && subtopics.length > 0 && (
         <div className="mt-8">
           <p className="text-gray-500 mb-4">{subtopics.length} subtopics</p>
           <div className="space-y-3">

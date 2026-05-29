@@ -71,6 +71,14 @@ const TOPIC_LIST: Record<string, { name: string; displayName: string; slug: stri
     { name: "Vectors", displayName: "Vectors", slug: "vectors", sort: 5 },
     { name: "Calculus", displayName: "Calculus", slug: "calculus", sort: 6 },
   ],
+  economics: [
+    { name: "1. The Basic Economic Problem", displayName: "1. The Basic Economic Problem", slug: "1-the-basic-economic-problem", sort: 1 },
+    { name: "2. The Allocation of Resources", displayName: "2. The Allocation of Resources", slug: "2-the-allocation-of-resources", sort: 2 },
+    { name: "3. Microeconomic Decision-Makers", displayName: "3. Microeconomic Decision-Makers", slug: "3-microeconomic-decision-makers", sort: 3 },
+    { name: "4. Government & the Macroeconomy", displayName: "4. Government & the Macroeconomy", slug: "4-government-and-the-macroeconomy", sort: 4 },
+    { name: "5. Economic Development", displayName: "5. Economic Development", slug: "5-economic-development", sort: 5 },
+    { name: "6. International Trade & Globalisation", displayName: "6. International Trade & Globalisation", slug: "6-international-trade-and-globalisation", sort: 6 },
+  ],
 };
 
 const INFO: Record<string, { board: string; code: string; name: string; icon: string; key: string }> = {
@@ -79,6 +87,7 @@ const INFO: Record<string, { board: string; code: string; name: string; icon: st
   "caie-biology-0610":     { board: "CAIE", code: "0610", name: "Biology",     icon: "🧬", key: "biology" },
   "caie-mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐", key: "mathematics" },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "📊", key: "additional-mathematics" },
+  "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📈", key: "economics" },
   "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics" },
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry" },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology" },

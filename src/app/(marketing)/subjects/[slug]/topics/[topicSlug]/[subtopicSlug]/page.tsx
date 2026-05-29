@@ -19,6 +19,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology-4bi1": "biology", "biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics", "mathematics-4ma1": "mathematics",
   "caie-additional-mathematics-0606": "additional-maths",
+  "caie-economics-0455": "economics",
   "caie-physics": "physics", "caie-chemistry": "chemistry",
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
@@ -116,8 +117,8 @@ export default async function SubtopicPage({
   const { slug, topicSlug, subtopicSlug } = await params;
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
-  // For additional-maths: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
-  if (subjectKey === "additional-maths") {
+  // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
+  if (subjectKey === "additional-maths" || subjectKey === "economics") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -173,8 +174,8 @@ export default async function SubtopicPage({
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
       } catch {}
     }
-    // Fallback for additional-maths: lookup by subtopic slug
-    if (!subtopicId && topicRow && subjectKey === "additional-maths") {
+    // Fallback for additional-maths/economics: lookup by subtopic slug
+    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics")) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id,sort_order&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
         const subData = await subRes.json();

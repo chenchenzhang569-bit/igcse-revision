@@ -79,6 +79,14 @@ const ADDITIONAL_MATHEMATICS: Topic[] = [
   { name: "Vectors", displayName: "Vectors", slug: "vectors", sort: 5 },
   { name: "Calculus", displayName: "Calculus", slug: "calculus", sort: 6 },
 ];
+const ECONOMICS: Topic[] = [
+  { name: "1. The Basic Economic Problem", displayName: "1. The Basic Economic Problem", slug: "1-the-basic-economic-problem", sort: 1 },
+  { name: "2. The Allocation of Resources", displayName: "2. The Allocation of Resources", slug: "2-the-allocation-of-resources", sort: 2 },
+  { name: "3. Microeconomic Decision-Makers", displayName: "3. Microeconomic Decision-Makers", slug: "3-microeconomic-decision-makers", sort: 3 },
+  { name: "4. Government & the Macroeconomy", displayName: "4. Government & the Macroeconomy", slug: "4-government-and-the-macroeconomy", sort: 4 },
+  { name: "5. Economic Development", displayName: "5. Economic Development", slug: "5-economic-development", sort: 5 },
+  { name: "6. International Trade & Globalisation", displayName: "6. International Trade & Globalisation", slug: "6-international-trade-and-globalisation", sort: 6 },
+];
 
 // SME math section mapping (slug → section name)
 const SME_SECTION_MAP: Record<string, string> = {
@@ -93,6 +101,13 @@ const SME_SECTION_MAP: Record<string, string> = {
   "algebra-functions":"Algebra & Functions","coordinate-geometry":"Coordinate Geometry",
   "trigonometry":"Trigonometry","sequences-series":"Sequences & Series",
   "vectors":"Vectors","calculus":"Calculus",
+  // 0455 Economics sections
+  "1-the-basic-economic-problem":"1. The Basic Economic Problem",
+  "2-the-allocation-of-resources":"2. The Allocation of Resources",
+  "3-microeconomic-decision-makers":"3. Microeconomic Decision-Makers",
+  "4-government-and-the-macroeconomy":"4. Government & the Macroeconomy",
+  "5-economic-development":"5. Economic Development",
+  "6-international-trade-and-globalisation":"6. International Trade & Globalisation",
   // slice(3) partials for 3+ word names
   "and-graphs":"Coordinate Geometry & Graphs","and-volumes":"Lengths, Areas & Volumes",
   // Legacy subtopic slugs (backward compat)
@@ -141,6 +156,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "0606", topics: ADDITIONAL_MATHEMATICS },
+  "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📊", key: "economics", topics: ECONOMICS },
   // Old format aliases (without board prefix)
   "physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -159,6 +175,8 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-chemistry":{ board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
   "edexcel-biology":  { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
   "edexcel-mathematics":{ board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "economics-0455":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
+  "caie-economics":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
 };
 
 export default async function SubjectPage({
@@ -294,7 +312,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "0606") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606" || key === "economics") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();
