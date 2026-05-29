@@ -91,6 +91,10 @@ export default function EconomicsTabs({
   }
   const groupOrder = ["easy", "medium", "hard"];
 
+  function isTableQuestion(text: string): boolean {
+    return text.includes("|") && text.includes("---") && /[A-D][.)\s:]/.test(text) && !/^[A-D][.)]/m.test(text);
+  }
+
   function selectAnswer(qId: string, answer: string, difficulty: string) {
     if (submittedLevels.has(difficulty)) return;
     setUserAnswers((prev) => ({ ...prev, [qId]: answer }));
@@ -151,6 +155,64 @@ export default function EconomicsTabs({
       : "bg-red-50 text-red-600";
     const diffLabel =
       q.difficulty === "easy" ? "Easy" : q.difficulty === "medium" ? "Medium" : "Hard";
+
+    // Table questions: fix markdown and show stem with table + compact buttons
+    if (isTableQuestion(text)) {
+      const tlines = text.split('\n');
+      const fixed: string[] = [];
+      for (const line of tlines) {
+        if (line.includes('---')) continue;
+        if (line.includes('|')) {
+          const parts = line.split('|').map((s: string) => s.trim());
+          if (/^[A-D]$/.test(parts[0])) {
+            fixed.push('| ' + parts.join(' | ') + ' |');
+          } else {
+            const cols = parts.filter((p: string) => p.length > 0);
+            fixed.push('|  | ' + cols.join(' | ') + ' |');
+            fixed.push('|---|' + cols.map(() => '---').join('|') + '|');
+          }
+        } else {
+          fixed.push(line);
+        }
+      }
+      const cleanText = fixed.join('\n');
+
+      return (
+        <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
+          <div className="px-5 pt-5 pb-3">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
+              <span className={`text-xs px-2 py-0.5 rounded font-medium ${diffColor}`}>{diffLabel}</span>
+              <span className="text-xs text-gray-400">{q.marks} mark{q.marks !== 1 ? "s" : ""}</span>
+              <div className="ml-auto flex items-center gap-1">
+                <BookmarkButton questionId={q.id} />
+                <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-[#001C71] transition" title="Report issue">🔧</button>
+              </div>
+            </div>
+            <MixedContent text={cleanText} className="text-gray-800 prose prose-sm max-w-none" />
+          </div>
+          <div className="px-5 pb-5 flex flex-wrap gap-2">
+            {["A", "B", "C", "D"].map((label) => {
+              const selected = userAnswer === label;
+              let cls = "border-gray-200 hover:bg-gray-50";
+              if (showResults) {
+                if (label === q.answer_text) cls = "bg-green-50 border-green-400";
+                else if (selected) cls = "bg-red-50 border-red-400";
+                else cls = "border-gray-200 opacity-60";
+              } else if (selected) cls = "bg-primary-50 border-primary-400";
+              return (
+                <button key={label} onClick={() => selectAnswer(q.id, label, difficulty)} disabled={showResults}
+                  className={`flex-1 p-3 rounded-lg border text-center font-bold transition ${cls}`}>
+                  {label}
+                  {showResults && label === q.answer_text && " ✓"}
+                  {showResults && selected && !isCorrect && " ✗"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
 
     // Get options from question_text (A./B./C./D. lines)
     const labels = ["A", "B", "C", "D"];
@@ -330,30 +392,31 @@ export default function EconomicsTabs({
                   : level === "medium" ? "bg-yellow-50 border-yellow-200"
                   : "bg-red-50 border-red-200";
                 return (
-                  <div key={level} className={`rounded-xl border p-4 sm:p-6 ${levelColor}`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-primary-900">
-                        {levelLabel} ({groupedMcqs[level].length})
-                      </h3>
-                      <div className="flex gap-2">
-                        {showResults ? (
-                          <button onClick={() => handleResetLevel(level)}
-                            className="px-4 py-1.5 text-sm rounded-lg border bg-white text-gray-600 hover:bg-gray-100 transition">
-                            Retry
-                          </button>
-                        ) : (
-                          <button onClick={() => handleSubmitLevel(level)}
-                            disabled={!allAnswered}
-                            className={`px-4 py-1.5 text-sm rounded-lg font-medium transition ${
-                              allAnswered ? "bg-accent-500 text-white hover:bg-accent-600" : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            }`}>
-                            Submit
-                          </button>
-                        )}
-                      </div>
+                  <div key={level} className={`rounded-xl border ${levelColor}`}>
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-inherit">
+                      <span className="font-semibold text-sm">{levelLabel} ({groupedMcqs[level].length} questions)</span>
+                      {showResults && (
+                        <span className="text-sm font-bold">
+                          Score: {groupedMcqs[level].filter(q => userAnswers[q.id] === q.answer_text).length}/{groupedMcqs[level].length} ({Math.round((groupedMcqs[level].filter(q => userAnswers[q.id] === q.answer_text).length / groupedMcqs[level].length) * 100)}%)
+                        </span>
+                      )}
                     </div>
-                    <div className="space-y-3">
+                    <div className="p-3 space-y-3">
                       {groupedMcqs[level].map((q, i) => renderMcqQuestion(q, i, showResults, level))}
+                    </div>
+                    <div className="px-5 py-3 border-t border-inherit flex justify-center">
+                      {!showResults ? (
+                        <button onClick={() => handleSubmitLevel(level)}
+                          disabled={!allAnswered}
+                          className="text-sm bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                          ✅ Submit {levelLabel}
+                        </button>
+                      ) : (
+                        <button onClick={() => handleResetLevel(level)}
+                          className="text-sm bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition">
+                          🔄 Retry {levelLabel}
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
