@@ -999,6 +999,7 @@ function MathInput({
   const isDrawing = useRef(false);
   const [showSymbols, setShowSymbols] = useState(false);
   const [showHandwrite, setShowHandwrite] = useState(false);
+  const [drawingData, setDrawingData] = useState<string | null>(null);
   const [ocrLoading, setOcrLoading] = useState(false);
 
   const insertSymbol = (sym: string) => {
@@ -1060,7 +1061,14 @@ function MathInput({
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const finishHandwrite = async () => {
+  const saveAsImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setDrawingData(canvas.toDataURL("image/png"));
+    setShowHandwrite(false);
+  };
+
+  const runOCR = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     setOcrLoading(true);
@@ -1092,6 +1100,12 @@ function MathInput({
         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50 resize-y"
         autoFocus
       />
+      {drawingData && (
+        <div className="mt-2 relative inline-block">
+          <img src={drawingData} alt="Handwritten answer" className="max-w-full max-h-48 rounded border" />
+          <button onClick={() => setDrawingData(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600">×</button>
+        </div>
+      )}
       <div className="flex items-center gap-2 mt-1.5">
         {/* Handwrite toggle */}
         {!disabled && (
@@ -1153,7 +1167,10 @@ function MathInput({
           />
           <div className="flex gap-2 mt-2">
             <button onClick={clearCanvas} className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 text-gray-600">Clear</button>
-            <button onClick={finishHandwrite} className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">Done</button>
+            <button onClick={saveAsImage} className="px-3 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">📷 Save Image</button>
+            <button onClick={runOCR} disabled={ocrLoading} className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">
+              {ocrLoading ? "识别中..." : "🔤 OCR"}
+            </button>
           </div>
         </div>
       )}
