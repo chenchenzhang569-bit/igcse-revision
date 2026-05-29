@@ -99,7 +99,7 @@ function cleanSmeMathMarkup(math: string): string {
   // because they're mathematically significant (e.g. (...)^n)
   result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "(\\\\frac{$1}{$2})");
   // .+? captures multi-word expressions including {braces} and spaces
-  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided)|\$|$)/g, "\\\\frac{$1}{$2}");
+  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|less|greater|or|radians|to)|\$|$)/g, "\\\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
