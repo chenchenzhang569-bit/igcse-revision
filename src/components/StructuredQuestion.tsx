@@ -447,7 +447,7 @@ function DrawingPad({ onInsertImage, onInsertText, onClose }: {
           </div>
           <div className="flex items-center gap-1">
             <button onClick={clear} className="text-[11px] px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition shrink-0">Clear</button>
-            <button onClick={handleInsertImage} className="text-[11px] px-2 py-1 bg-primary-600 text-white hover:bg-primary-700 rounded transition font-medium shrink-0">Insert</button>
+            <button onClick={handleInsertImage} className="text-[11px] px-2 py-1 bg-primary-600 text-white hover:bg-primary-700 rounded transition font-medium shrink-0">Done ✓</button>
             <button onClick={handleRecognize} disabled={ocrBusy}
               className="text-[11px] px-2 py-1 bg-amber-500 text-white hover:bg-amber-600 rounded transition font-medium shrink-0 disabled:opacity-60">
               {ocrBusy ? "..." : "OCR→"}
@@ -518,9 +518,9 @@ function AnswerInput({
         className="w-full p-3 pr-20 text-sm border border-gray-300 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition" />
       <div className="absolute right-2 top-2 flex items-center gap-0.5">
         <button type="button" onClick={() => setShowDrawing(true)}
-          className="flex items-center gap-0.5 px-1.5 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
           title="Draw diagram or write">
-          🖊️
+          ✏️ Handwrite
         </button>
         <SymbolToolbar onInsert={insertSymbol} />
       </div>
