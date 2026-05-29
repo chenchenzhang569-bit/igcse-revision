@@ -478,6 +478,7 @@ function AnswerInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showDrawing, setShowDrawing] = useState(false);
   const [drawings, setDrawings] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const insertSymbol = useCallback((symbol: string) => {
     const el = textareaRef.current;
@@ -527,7 +528,23 @@ function AnswerInput({
           title="Draw diagrams / graphs">
           🎨 Draw
         </button>
+        <button type="button" onClick={() => setShowPreview(!showPreview)}
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded border transition ${
+            showPreview ? 'bg-primary-50 text-primary-700 border-primary-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border-gray-300'
+          }`}
+          title="Preview rendered answer">
+          👁️ Preview
+        </button>
       </div>
+
+      {/* Preview panel */}
+      {showPreview && value.trim() && (
+        <div className="mt-3 p-3 bg-primary-50/50 border border-primary-200 rounded-lg">
+          <div className="text-xs text-primary-500 font-medium mb-1">Preview</div>
+          <div className="text-sm text-gray-800 whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: renderMath(value) }} />
+        </div>
+      )}
 
       {/* Drawing previews */}
       {drawings.length > 0 && (
