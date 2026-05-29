@@ -136,6 +136,7 @@ export function MockExamsTab({
           const syllabusNames: Record<string, string> = {
             "0580": "CIE Math 0580",
             "0607": "International Math 0607",
+            "0606": "Additional Math 0606",
           };
           const grouped: Record<string, SetData[]> = {};
           for (const s of sets) {
