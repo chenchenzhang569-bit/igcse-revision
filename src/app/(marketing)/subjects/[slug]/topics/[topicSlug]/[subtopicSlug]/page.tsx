@@ -179,11 +179,15 @@ export default async function SubtopicPage({
     // Fallback for additional-maths/economics: lookup by subtopic slug
     if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics")) {
       try {
-        const subRes = await fetch(`${API}/subtopics?select=id,sort_order&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+        const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) {
           subtopicId = subData[0].id;
           subtopic.pmtCode = `${topicRow.sort_order || 1}.${subData[0].sort_order || 1}`;
+          // Strip section number from displayName (already shown as pmtCode)
+          const fullName = subData[0].display_name || subtopic.displayName;
+          const match = fullName.match(/^\d+\.\d+\s+(.*)/);
+          if (match) subtopic.displayName = match[1];
         }
       } catch {}
     }
