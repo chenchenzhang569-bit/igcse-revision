@@ -280,6 +280,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
   const [bugModalOpen, setBugModalOpen] = useState(false);
+  const [markSchemeVisible, setMarkSchemeVisible] = useState<Record<string, boolean>>({});
 
   // Fetch bookmarked question IDs for "Saved" filter
   useEffect(() => {
@@ -838,8 +839,25 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </div>
         ) : null}
 
-        {/* Grade result for this question */}
-        {isGraded && (
+        {/* For structured questions: mark scheme toggle button */}
+        {!isMcq && q.explanation && (
+            <div className="mt-3">
+              <button
+                onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
+              >
+                📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
+              </button>
+              {markSchemeVisible[q.id] && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')}</ReactMarkdown>
+                </div>
+              )}
+            </div>
+        )}
+
+        {/* Grade result for MCQ questions */}
+        {isMcq && isGraded && (
           <div className={`mt-4 p-4 rounded-lg border text-sm ${
             isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
           }`}>
@@ -917,8 +935,9 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
             ← Prev
           </button>
 
+          {/* Submit — only for groups with MCQ questions */}
           <div className="flex gap-2">
-            {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
+            {currentIdx === currentQs.length - 1 && !allGradedInGroup && currentQs.some(q => q.question_type === "multiple_choice" || q.question_text.includes("\nA) ")) && (
               <button onClick={handleSubmitGroup}
                 className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition text-sm">
                 Submit
