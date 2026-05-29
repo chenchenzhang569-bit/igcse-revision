@@ -53,6 +53,7 @@ function cleanSmeMathMarkup(math: string): string {
   let result = math;
   
   // ── Noise words: remove immediately ──
+  result = result.replace(/[\u2013\u2014\u2212]/g, "-");  // Unicode dashes → ASCII minus
   result = result.replace(/\bstraight\b/g, "");
   result = result.replace(/\bbold\b/g, "");
   result = result.replace(/\bitalic\b/g, "");
