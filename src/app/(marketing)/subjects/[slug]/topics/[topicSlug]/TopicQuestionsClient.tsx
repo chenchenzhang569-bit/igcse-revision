@@ -1114,7 +1114,7 @@ function MathInput({
             onClick={() => setShowHandwrite(!showHandwrite)}
             className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500 transition"
           >
-            ✏️ Handwrite
+            🎨 Draw
           </button>
         )}
         {/* Symbol toggle — only show if not hidden */}

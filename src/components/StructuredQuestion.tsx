@@ -520,7 +520,7 @@ function AnswerInput({
         <button type="button" onClick={() => setShowDrawing(true)}
           className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
           title="Draw diagram or write">
-          ✏️ Handwrite
+          🎨 Draw
         </button>
         <SymbolToolbar onInsert={insertSymbol} />
       </div>
