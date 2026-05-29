@@ -356,9 +356,11 @@ export default async function SubjectPage({
           if (!grouped.has(sectionName)) grouped.set(sectionName, []);
           if (!added.has(smeSlug)) {
             added.add(smeSlug);
+            // Strip leading number prefix like "1. " from DB name for display
+            const cleanName = t.name.replace(/^\d+\.\s+/, '');
             grouped.get(sectionName)!.push({
               name: sectionName,
-              displayName: t.name,
+              displayName: cleanName,
               slug: smeSlug,
               sort: t.sort_order,
             });
