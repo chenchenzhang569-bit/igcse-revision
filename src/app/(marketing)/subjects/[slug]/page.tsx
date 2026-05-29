@@ -80,12 +80,12 @@ const ADDITIONAL_MATHEMATICS: Topic[] = [
   { name: "Calculus", displayName: "Calculus", slug: "calculus", sort: 6 },
 ];
 const ECONOMICS: Topic[] = [
-  { name: "1. The Basic Economic Problem", displayName: "1. The Basic Economic Problem", slug: "1-the-basic-economic-problem", sort: 1 },
-  { name: "2. The Allocation of Resources", displayName: "2. The Allocation of Resources", slug: "2-the-allocation-of-resources", sort: 2 },
-  { name: "3. Microeconomic Decision-Makers", displayName: "3. Microeconomic Decision-Makers", slug: "3-microeconomic-decision-makers", sort: 3 },
-  { name: "4. Government & the Macroeconomy", displayName: "4. Government & the Macroeconomy", slug: "4-government-and-the-macroeconomy", sort: 4 },
-  { name: "5. Economic Development", displayName: "5. Economic Development", slug: "5-economic-development", sort: 5 },
-  { name: "6. International Trade & Globalisation", displayName: "6. International Trade & Globalisation", slug: "6-international-trade-and-globalisation", sort: 6 },
+  { name: "1. The Basic Economic Problem", displayName: "The Basic Economic Problem", slug: "1-the-basic-economic-problem", sort: 1 },
+  { name: "2. The Allocation of Resources", displayName: "The Allocation of Resources", slug: "2-the-allocation-of-resources", sort: 2 },
+  { name: "3. Microeconomic Decision-Makers", displayName: "Microeconomic Decision-Makers", slug: "3-microeconomic-decision-makers", sort: 3 },
+  { name: "4. Government & the Macroeconomy", displayName: "Government & the Macroeconomy", slug: "4-government-and-the-macroeconomy", sort: 4 },
+  { name: "5. Economic Development", displayName: "Economic Development", slug: "5-economic-development", sort: 5 },
+  { name: "6. International Trade & Globalisation", displayName: "International Trade & Globalisation", slug: "6-international-trade-and-globalisation", sort: 6 },
 ];
 
 // SME math section mapping (slug → section name)

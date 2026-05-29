@@ -10,3 +10,4 @@ znotes_content/
 znotes_generate*.py
 znotes_playwright.py
 tsconfig.tsbuildinfo
+scripts/scrape_economics_p2.py

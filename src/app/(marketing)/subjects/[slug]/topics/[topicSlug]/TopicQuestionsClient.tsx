@@ -999,7 +999,7 @@ function MathInput({
   const isDrawing = useRef(false);
   const [showSymbols, setShowSymbols] = useState(false);
   const [showHandwrite, setShowHandwrite] = useState(false);
-  const [drawingData, setDrawingData] = useState<string | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
 
   const insertSymbol = (sym: string) => {
     if (disabled) return;
@@ -1058,15 +1058,26 @@ function MathInput({
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setDrawingData(null);
   };
 
-  const finishHandwrite = () => {
+  const finishHandwrite = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dataUrl = canvas.toDataURL("image/png");
-    setDrawingData(dataUrl);
-    setShowHandwrite(false);
+    setOcrLoading(true);
+    try {
+      const Tesseract = (await import("tesseract.js")).default;
+      const { data: { text } } = await Tesseract.recognize(canvas, "eng");
+      const recognized = text.trim();
+      if (recognized) {
+        onChange(value ? value + "\n" + recognized : recognized);
+      }
+    } catch (e) {
+      console.error("OCR failed:", e);
+    } finally {
+      setOcrLoading(false);
+      setShowHandwrite(false);
+      clearCanvas();
+    }
   };
 
   return (
@@ -1081,12 +1092,6 @@ function MathInput({
         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50 resize-y"
         autoFocus
       />
-      {drawingData && (
-        <div className="mt-2 relative inline-block">
-          <img src={drawingData} alt="Handwritten answer" className="max-w-full max-h-48 rounded border" />
-          <button onClick={() => setDrawingData(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600">×</button>
-        </div>
-      )}
       <div className="flex items-center gap-2 mt-1.5">
         {/* Handwrite toggle */}
         {!disabled && (
