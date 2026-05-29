@@ -96,7 +96,7 @@ function cleanSmeMathMarkup(math: string): string {
   // No-space variant: xover16 → \frac{x}{16}
   result = result.replace(/\b(\w+)over(\w+)\b/g, "\\frac{$1}{$2}");
   // .+? captures multi-word expressions including {braces} and spaces
-  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|$))/g, "\\frac{$1}{$2}");
+  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|close|right|end|\)|$))/g, "\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
