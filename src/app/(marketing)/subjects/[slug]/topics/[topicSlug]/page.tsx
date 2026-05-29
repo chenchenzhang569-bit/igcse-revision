@@ -151,13 +151,18 @@ export default async function TopicPage({
         );
         const stData = await stRes.json();
         if (Array.isArray(stData)) {
-          subtopics = stData.map((s: any) => ({
-            slug: s.slug,
-            displayName: s.display_name || s.name,
-            // pmtCode only for additional-maths (numbers not in display_name);
-            // economics display_names already include numbering like "1.1 ..."
-            pmtCode: subjectKey === "additional-maths" ? `${topicSortOrder}.${s.sort_order}` : undefined,
-          }));
+          subtopics = stData.map((s: any) => {
+            const fullName = s.display_name || s.name;
+            // Extract section number prefix like "1.1" from "1.1 The Nature..."
+            const match = fullName.match(/^(\d+\.\d+)\s+(.*)/);
+            return {
+              slug: s.slug,
+              displayName: match ? match[2] : fullName,
+              pmtCode: subjectKey === "additional-maths"
+                ? `${topicSortOrder}.${s.sort_order}`
+                : (match ? match[1] : undefined),
+            };
+          });
         }
       }
       // Fetch subtopic name if sub param present

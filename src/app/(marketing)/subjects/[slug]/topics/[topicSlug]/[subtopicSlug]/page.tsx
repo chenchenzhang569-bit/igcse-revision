@@ -156,6 +156,8 @@ export default async function SubtopicPage({
     
     const topicSearchPat = subjectKey === "additional-maths"
       ? `*0606-${encodeURIComponent(topicSlug)}`
+      : subjectKey === "economics"
+      ? `*0455-${encodeURIComponent(topicSlug)}`
       : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(`${API}/topics?select=id,sort_order&slug=ilike.${topicSearchPat}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
@@ -252,7 +254,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      {subjectKey === "additional-maths" ? (
+      {(subjectKey === "additional-maths" || subjectKey === "economics") ? (
         <AdditionalMathsTabs
           notes={notes}
           structuredQuestions={structuredQs}
