@@ -1,4 +1,4 @@
-// force-redeploy: 2026-05-28 fix CM
+// force-redeploy: 2026-05-28 fix CM v3
 import type { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
