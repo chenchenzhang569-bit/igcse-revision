@@ -1,4 +1,5 @@
 "use client";
+// v2: HTML table rendering — detect <table> + dangerouslySetInnerHTML, skip MixedContent math split
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
