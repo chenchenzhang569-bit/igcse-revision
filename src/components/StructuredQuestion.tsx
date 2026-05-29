@@ -340,10 +340,11 @@ function SymbolToolbar({ onInsert }: { onInsert: (symbol: string) => void }) {
 }
 
 // ─── Drawing Pad ────────────────────────────────────────────────────────────
-function DrawingPad({ onInsertImage, onInsertText, onClose }: {
+function DrawingPad({ onInsertImage, onInsertText, onClose, mode = "draw" }: {
   onInsertImage: (dataUri: string) => void;
   onInsertText: (text: string) => void;
   onClose: () => void;
+  mode?: "draw" | "handwrite";
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -477,6 +478,7 @@ function AnswerInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showDrawing, setShowDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<"draw" | "handwrite">("draw");
   const [drawings, setDrawings] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -518,12 +520,12 @@ function AnswerInput({
         placeholder={placeholder} rows={Math.max(2, marks + 1)}
         className="w-full p-3 pr-20 text-sm border border-gray-300 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition" />
       <div className="absolute right-2 top-2 flex items-center gap-0.5">
-        <button type="button" onClick={() => setShowDrawing(true)}
+        <button type="button" onClick={() => { setDrawMode("handwrite"); setShowDrawing(true); }}
           className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
           title="Write answer by hand — OCR to text">
           ✏️ Handwrite
         </button>
-        <button type="button" onClick={() => setShowDrawing(true)}
+        <button type="button" onClick={() => { setDrawMode("draw"); setShowDrawing(true); }}
           className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
           title="Draw diagrams / graphs">
           🎨 Draw
@@ -566,6 +568,7 @@ function AnswerInput({
           onInsertImage={addDrawing}
           onInsertText={insertText}
           onClose={() => setShowDrawing(false)}
+          mode={drawMode}
         />
       )}
     </div>
