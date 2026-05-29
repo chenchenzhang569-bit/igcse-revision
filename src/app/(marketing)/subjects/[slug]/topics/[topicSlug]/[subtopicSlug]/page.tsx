@@ -198,7 +198,7 @@ export default async function SubtopicPage({
       if (Array.isArray(allQs)) {
         for (const q of allQs) {
           const txt = q.question_text || "";
-          const hasAbcd = /\b[A-D]\b[.)\s:]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
           const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
           if (hasAbcd || ansIsLetter) {
             mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
