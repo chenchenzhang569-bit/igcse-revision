@@ -75,7 +75,10 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bvertical\s*line\b/g, "|");
   
   // ── Fractions (pipeline: fraction numerator ... / denominator ... end fraction) ──
-  result = result.replace(/fraction\s*numerator\s*/g, "\\frac{");
+  // Pre-process: square root inside a closing group (frac/subscript/exponent) without own end root
+  // → need }} to close both \sqrt and the parent group
+  result = result.replace(/square\s*root\s*of\s+(.+?)(?:\s+end\s*root)?\s+end\s*(?:fraction|subscript|exponent)/g, "\\\\sqrt{$1}}");
+  result = result.replace(/fraction\s*numerator\s*/g, "\\\\frac{");
   result = result.replace(/\/denominator\s*/g, "}{");
   result = result.replace(/over\s*denominator\s*/g, "}{");
   result = result.replace(/\bend\s*fraction\b/g, "}");
@@ -86,13 +89,14 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/to\s*the\s*power\s*of\s*degree/g, "^{\\circ}");
   result = result.replace(/to\s*the\s*power\s*of\s+([^$\s]+)/g, "^{$1}");
   result = result.replace(/\bend\s*exponent\b/g, "");
-  result = result.replace(/\bend\s*subscript\b/g, "");
   result = result.replace(/superscript/g, "^");
+  result = result.replace(/begin\s*subscript/g, "_{");
+  result = result.replace(/\bend\s*subscript\b/g, "}");
   result = result.replace(/subscript/g, "_");
   result = result.replace(/\bsquared\b/g, "^2");
   result = result.replace(/\bcubed\b/g, "^3");
   
-  // ── Inequalities ──
+  // ── Inequalities (MUST run before standalone "over" so "less than" etc. become symbols) ──
   result = result.replace(/less-than or slanted equal to/g, "\\leq");
   result = result.replace(/greater-than or slanted equal to/g, "\\geq");
   result = result.replace(/less or equal than/g, "\\leq");
@@ -105,11 +109,14 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bminus\b/g, "-");
   result = result.replace(/\bplus\b/g, "+");
   result = result.replace(/\bequals\b/g, "=");
-  result = result.replace(/\btimes\b/g, "\\times");
+  // cross+times before individual rules to avoid double \times
+  result = result.replace(/cross\s+times\b/g, "\\times");
+  result = result.replace(/\bcross\b/g, "\\times");
+  result = result.replace(/(?<!\\)\btimes\b/g, "\\times");
   result = result.replace(/\bdivided\s*by\b/g, "\\div");
   
-  // ── Standalone "over" fraction (AFTER powers & operators: "to the power of" & "equals" already consumed) ──
-  // Pre-pass: handle fraction on right side of = (e.g., "y = 2 cos x over 3" → "y = \frac{2 cos x}{3}")
+  // ── Standalone "over" fraction (AFTER powers & operators: "end exponent" & "equals" already consumed) ──
+  // Pre-pass: fraction on right side of = (e.g., "y = 2 cos x over 3" → "y = \frac{2 cos x}{3}")
   result = result.replace(/(=\s*)(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\^\\])|[-+=<>\^\\]|\$|$)/g, "$1\\\\frac{$2}{$3}");
   // No-space variant: xover16 → \frac{x}{16}
   result = result.replace(/\b(\w+)over(\w+)\b/g, "\\\\frac{$1}{$2}");
@@ -117,7 +124,7 @@ function cleanSmeMathMarkup(math: string): string {
   // because they're mathematically significant (e.g. (...)^n)
   result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "(\\\\frac{$1}{$2})");
   // .+? captures multi-word expressions including {braces} and spaces
-  // Lookahead includes words AND operator symbols (=, -, +) since they now run before this
+  // Lookahead uses symbols (=, -, +, <, >, \, ^) because operators now run before this
   result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\^\\])|[-+=<>\^\\]|\$|$)/g, "\\\\frac{$1}{$2}");
   
   // ── Roots ──
@@ -151,6 +158,8 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/(?<!\\)\bdelta(?![a-zA-Z])/g, "\\delta");
   result = result.replace(/(?<!\\)\bomega(?![a-zA-Z])/g, "\\omega");
   result = result.replace(/(?<!\\)\bphi(?![a-zA-Z])/g, "\\phi");
+  result = result.replace(/(?<!\\)\blambda(?![a-zA-Z])/g, "\\lambda");
+  result = result.replace(/(?<!\\)\bmu(?![a-zA-Z])/g, "\\mu");
   result = result.replace(/\belement\s*of\b/g, "\\in");
   result = result.replace(/\breal\s*numbers\b/g, "\\mathbb{R}");
   result = result.replace(/rightwards\s*arrow\s*from\s*bar/g, "\\mapsto");
