@@ -63,6 +63,14 @@ const TOPIC_LIST: Record<string, { name: string; displayName: string; slug: stri
     { name: "Probability", displayName: "Probability", slug: "probability", sort: 8 },
     { name: "Statistics", displayName: "Statistics", slug: "statistics", sort: 9 },
   ],
+  "additional-mathematics": [
+    { name: "Algebra and Functions", displayName: "Algebra & Functions", slug: "algebra-and-functions", sort: 1 },
+    { name: "Coordinate Geometry", displayName: "Coordinate Geometry", slug: "coordinate-geometry", sort: 2 },
+    { name: "Trigonometry", displayName: "Trigonometry", slug: "trigonometry", sort: 3 },
+    { name: "Sequences and Series", displayName: "Sequences & Series", slug: "sequences-and-series", sort: 4 },
+    { name: "Vectors", displayName: "Vectors", slug: "vectors", sort: 5 },
+    { name: "Calculus", displayName: "Calculus", slug: "calculus", sort: 6 },
+  ],
 };
 
 const INFO: Record<string, { board: string; code: string; name: string; icon: string; key: string }> = {
@@ -70,6 +78,7 @@ const INFO: Record<string, { board: string; code: string; name: string; icon: st
   "caie-chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry" },
   "caie-biology-0610":     { board: "CAIE", code: "0610", name: "Biology",     icon: "🧬", key: "biology" },
   "caie-mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐", key: "mathematics" },
+  "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "📊", key: "additional-mathematics" },
   "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics" },
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry" },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology" },
