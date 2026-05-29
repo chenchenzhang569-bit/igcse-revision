@@ -107,6 +107,13 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "mensuration": "Mensuration", "trigonometry": "Trigonometry",
   "vectors-transformations": "Vectors & Transformations",
   "probability": "Probability", "statistics": "Statistics",
+  // 0455 Economics topics
+  "1-the-basic-economic-problem": "1. The Basic Economic Problem",
+  "2-the-allocation-of-resources": "2. The Allocation of Resources",
+  "3-microeconomic-decision-makers": "3. Microeconomic Decision-Makers",
+  "4-government-and-the-macroeconomy": "4. Government & the Macroeconomy",
+  "5-economic-development": "5. Economic Development",
+  "6-international-trade-and-globalisation": "6. International Trade & Globalisation",
 };
 
 export default async function SubtopicPage({
