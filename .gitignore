@@ -11,3 +11,4 @@ znotes_generate*.py
 znotes_playwright.py
 tsconfig.tsbuildinfo
 scripts/scrape_economics_p2.py
+scripts/fix_econ_p2_difficulty.py
