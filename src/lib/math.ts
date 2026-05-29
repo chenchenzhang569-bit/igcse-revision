@@ -94,9 +94,12 @@ function cleanSmeMathMarkup(math: string): string {
   
   // ── Standalone "over" fraction (AFTER powers: end exponent already consumed, won't be confused) ──
   // No-space variant: xover16 → \frac{x}{16}
-  result = result.replace(/\b(\w+)over(\w+)\b/g, "\\frac{$1}{$2}");
+  result = result.replace(/\b(\w+)over(\w+)\b/g, "\\\\frac{$1}{$2}");
+  // Parenthesized fraction: (X over Y) → \frac{X}{Y} — handles case where
+  // open/close-parentheses surround the whole fraction (parens are discarded)
+  result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "\\\\frac{$1}{$2}");
   // .+? captures multi-word expressions including {braces} and spaces
-  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|close|right|end|\)|$))/g, "\\frac{$1}{$2}");
+  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided)|\$|$)/g, "\\\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
