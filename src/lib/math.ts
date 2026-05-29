@@ -116,16 +116,16 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bdivided\s*by\b/g, "\\div");
   
   // ── Standalone "over" fraction (AFTER powers & operators: "end exponent" & "equals" already consumed) ──
+  // Parenthesized fraction FIRST: (X over Y) → (\frac{X}{Y}) — keep outer parens
+  // MUST run before = pre-pass so parens don't get split across numerator/denominator
+  result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "(\\\\frac{$1}{$2})");
   // Pre-pass: fraction on right side of = (e.g., "y = 2 cos x over 3" → "y = \frac{2 cos x}{3}")
-  result = result.replace(/(=\s*)(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\^\\])|[-+=<>\^\\]|\$|$)/g, "$1\\\\frac{$2}{$3}");
+  result = result.replace(/(=\s*)(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\\^\\])|[-+=<>\\^\\]|\$|$)/g, "$1\\\\frac{$2}{$3}");
   // No-space variant: xover16 → \frac{x}{16}
   result = result.replace(/\b(\w+)over(\w+)\b/g, "\\\\frac{$1}{$2}");
-  // Parenthesized fraction: (X over Y) → (\frac{X}{Y}) — keep outer parens
-  // because they're mathematically significant (e.g. (...)^n)
-  result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "(\\\\frac{$1}{$2})");
-  // .+? captures multi-word expressions including {braces} and spaces
+  // Generic over: .+? captures multi-word expressions including {braces} and spaces
   // Lookahead uses symbols (=, -, +, <, >, \, ^) because operators now run before this
-  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\^\\])|[-+=<>\^\\]|\$|$)/g, "\\\\frac{$1}{$2}");
+  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\\^\\])|[-+=<>\\^\\]|\$|$)/g, "\\\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
