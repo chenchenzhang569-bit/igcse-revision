@@ -98,14 +98,21 @@ export default function AdditionalMathsTabs({
                     </div>
                   )}
                   {note.file_url && (
-                    <a
-                      href={note.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
-                    >
-                      📥 Download
-                    </a>
+                    <>
+                      <iframe
+                        src={note.file_url}
+                        className="w-full h-[600px] border rounded-lg mb-3"
+                        title={note.title}
+                      />
+                      <a
+                        href={note.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
+                      >
+                        📥 Download
+                      </a>
+                    </>
                   )}
                 </div>
               ))
