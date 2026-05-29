@@ -141,6 +141,13 @@ function cleanSmeMathMarkup(math: string): string {
   
   // ── Constants & Notation ──
   result = result.replace(/(?<!\\)\bpi(?![a-zA-Z])/g, "\\pi");
+  result = result.replace(/(?<!\\)\btheta(?![a-zA-Z])/g, "\\theta");
+  result = result.replace(/(?<!\\)\balpha(?![a-zA-Z])/g, "\\alpha");
+  result = result.replace(/(?<!\\)\bbeta(?![a-zA-Z])/g, "\\beta");
+  result = result.replace(/(?<!\\)\bgamma(?![a-zA-Z])/g, "\\gamma");
+  result = result.replace(/(?<!\\)\bdelta(?![a-zA-Z])/g, "\\delta");
+  result = result.replace(/(?<!\\)\bomega(?![a-zA-Z])/g, "\\omega");
+  result = result.replace(/(?<!\\)\bphi(?![a-zA-Z])/g, "\\phi");
   result = result.replace(/\belement\s*of\b/g, "\\in");
   result = result.replace(/\breal\s*numbers\b/g, "\\mathbb{R}");
   result = result.replace(/rightwards\s*arrow\s*from\s*bar/g, "\\mapsto");
@@ -152,6 +159,11 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\\\}/g, "}");
   result = result.replace(/\^\{-\{\}(\d+)\}/g, "^{-{$1}}");
   result = result.replace(/\bcolon\b/g, ":");
+  result = result.replace(/\bcomma\b/g, ",");
+  result = result.replace(/\bdegree\b/g, "^{\\circ}");
+  // Close \sqrt when followed by one } but no second } — happens when
+  // end fraction closes the frac but sqrt lacked its own end root
+  result = result.replace(/(\\sqrt\{[^}]+\})(?!\})/g, "$1}");
   result = result.replace(/([a-zA-Z])\s+bar\b/g, "\\bar{$1}");
   result = result.replace(/\s+/g, " ");
   
