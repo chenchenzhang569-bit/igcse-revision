@@ -92,7 +92,8 @@ export default function EconomicsTabs({
   const groupOrder = ["easy", "medium", "hard"];
 
   function isTableQuestion(text: string): boolean {
-    return text.includes("|") && text.includes("---") && /[A-D][.)\s:]/.test(text) && !/^[A-D][.)]/m.test(text);
+    // Markdown table OR HTML <table> (already converted)
+    return (text.includes("|") && text.includes("---") || text.includes("<table>")) && /[A-D][.)\s:]/.test(text) && !/^[A-D][.)]/m.test(text);
   }
 
   function selectAnswer(qId: string, answer: string, difficulty: string) {
@@ -156,26 +157,39 @@ export default function EconomicsTabs({
     const diffLabel =
       q.difficulty === "easy" ? "Easy" : q.difficulty === "medium" ? "Medium" : "Hard";
 
-    // Table questions: fix markdown and show stem with table + compact buttons
+    // Table questions: show stem with table + compact answer buttons
     if (isTableQuestion(text)) {
-      const tlines = text.split('\n');
-      const fixed: string[] = [];
-      for (const line of tlines) {
-        if (line.includes('---')) continue;
-        if (line.includes('|')) {
-          const parts = line.split('|').map((s: string) => s.trim());
-          if (/^[A-D]$/.test(parts[0])) {
-            fixed.push('| ' + parts.join(' | ') + ' |');
+      const hasHtmlTable = text.includes("<table>");
+      
+      // Extract stem (before table) and table HTML
+      let stemText = text;
+      let tableHtml = "";
+      if (hasHtmlTable) {
+        const tableStart = text.indexOf("<table>");
+        const tableEnd = text.indexOf("</table>") + "</table>".length;
+        stemText = text.slice(0, tableStart).trim();
+        tableHtml = text.slice(tableStart, tableEnd);
+      } else {
+        // Legacy markdown table — reconstruct
+        const tlines = text.split('\n');
+        const fixed: string[] = [];
+        for (const line of tlines) {
+          if (line.includes('---')) continue;
+          if (line.includes('|')) {
+            const parts = line.split('|').map((s: string) => s.trim());
+            if (/^[A-D]$/.test(parts[0])) {
+              fixed.push('| ' + parts.join(' | ') + ' |');
+            } else {
+              const cols = parts.filter((p: string) => p.length > 0);
+              fixed.push('|  | ' + cols.join(' | ') + ' |');
+              fixed.push('|---|' + cols.map(() => '---').join('|') + '|');
+            }
           } else {
-            const cols = parts.filter((p: string) => p.length > 0);
-            fixed.push('|  | ' + cols.join(' | ') + ' |');
-            fixed.push('|---|' + cols.map(() => '---').join('|') + '|');
+            fixed.push(line);
           }
-        } else {
-          fixed.push(line);
         }
+        stemText = fixed.join('\n');
       }
-      const cleanText = fixed.join('\n');
 
       return (
         <div key={q.id} className="bg-white border rounded-xl overflow-hidden">
@@ -189,7 +203,10 @@ export default function EconomicsTabs({
                 <button onClick={() => setBugModalOpen(true)} className="text-gray-400 hover:text-[#001C71] transition" title="Report issue">🔧</button>
               </div>
             </div>
-            <MixedContent text={cleanText} className="text-gray-800 prose prose-sm max-w-none" />
+            {stemText && <MixedContent text={stemText} className="text-gray-800 prose prose-sm max-w-none mb-3" />}
+            {hasHtmlTable && (
+              <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: tableHtml }} />
+            )}
           </div>
           <div className="px-5 pb-5 flex flex-wrap gap-2">
             {["A", "B", "C", "D"].map((label) => {

@@ -46,7 +46,8 @@ export function MixedContent({ text, className }: { text: string; className?: st
     const result: { type: "md" | "math"; content: string; display?: boolean }[] = [];
     const fixedText = fixMathNotation(text);
 
-    const regex = /\$\$\s*([\s\S]*?)\s*\$\$|\$([^$\n]+?)\$/g;
+    // Skip $ followed by ), digit, space, or preceded by ( — these are currency ($20, ($), $ billion), not math
+    const regex = /\$\$\s*([\s\S]*?)\s*\$\$|(?<![(\d])\$(?![)\d\s])[^$\n]+\$/g;
     let lastIdx = 0;
     let m: RegExpExecArray | null;
     while ((m = regex.exec(fixedText)) !== null) {
