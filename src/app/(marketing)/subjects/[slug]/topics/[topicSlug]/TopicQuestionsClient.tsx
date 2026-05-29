@@ -789,6 +789,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                       value={subAns}
                       onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
                       disabled={isGraded}
+                      hideSymbols={!/\$/.test(sp.text)}
                     />
                   </div>
                 );
@@ -803,6 +804,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               value={userAns}
               onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
               disabled={isGraded}
+              hideSymbols={!/\$/.test(stem)}
             />
           </>
         ) : null}
@@ -967,16 +969,16 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
 
 /* ─── Math Symbol Input ─── */
 function MathInput({
-  value, onChange, disabled,
+  value, onChange, disabled, hideSymbols,
 }: {
-  value: string; onChange: (v: string) => void; disabled: boolean;
+  value: string; onChange: (v: string) => void; disabled: boolean; hideSymbols?: boolean;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showSymbols, setShowSymbols] = useState(false);
 
   const insertSymbol = (sym: string) => {
     if (disabled) return;
-    const el = inputRef.current;
+    const el = textareaRef.current;
     if (!el) { onChange(value + sym); return; }
     const start = el.selectionStart ?? value.length;
     const end = el.selectionEnd ?? value.length;
@@ -990,20 +992,18 @@ function MathInput({
 
   return (
     <div>
-      <div className="flex gap-2">
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Type your answer..."
-          disabled={disabled}
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50"
-          autoFocus
-        />
-      </div>
-      {/* Symbol toggle */}
-      {!disabled && (
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Type your answer..."
+        disabled={disabled}
+        rows={3}
+        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50 resize-y"
+        autoFocus
+      />
+      {/* Symbol toggle — only show if not hidden */}
+      {!disabled && !hideSymbols && (
         <div className="relative mt-1.5">
           <button
             type="button"
