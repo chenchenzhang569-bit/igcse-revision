@@ -848,11 +848,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 ? (
                   <span>
                     ✅ Correct! (+{q.marks} mark{q.marks > 1 ? "s" : ""})
-                    {(q.clean_answer_text || q.answer_text) && (
+                    {(q.clean_answer_text || q.answer_text || q.explanation) && (
                       <details className="mt-1 font-normal">
                         <summary className="text-green-600 cursor-pointer text-xs hover:text-green-800">Show answer</summary>
                         <div className="mt-1 space-y-1">
-                          {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
+                          {(q.clean_answer_text || q.answer_text || q.explanation || "").split("||").map((p: string, i: number) => {
                             const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                             const renderPart = (content: string) => {
                               const t = content.trim();
@@ -880,7 +880,7 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
                   <span>
                     ❌ Incorrect. The answer is:
                     <div className="mt-1 space-y-1 font-normal">
-                      {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
+                      {(q.clean_answer_text || q.answer_text || q.explanation || "").split("||").map((p: string, i: number) => {
                         const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                         const renderPart = (content: string) => {
                           const t = content.trim();
