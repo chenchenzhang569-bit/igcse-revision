@@ -120,13 +120,13 @@ function cleanSmeMathMarkup(math: string): string {
   // Parenthesized fraction FIRST: (X over Y) → (\frac{X}{Y}) — keep outer parens
   // MUST run before = pre-pass so parens don't get split across numerator/denominator
   result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "(\\\\frac{$1}{$2})");
-  // Pre-pass: fraction on right side of = (e.g., "y = 2 cos x over 3" → "y = \frac{2 cos x}{3}")
-  result = result.replace(/(=\s*)(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\\^\\])|[-+=<>\\^\\]|\$|$)/g, "$1\\\\frac{$2}{$3}");
+  // Pre-pass: fraction on right side of = — limit to 1-3 words, don't cross operators
+  result = result.replace(/(=\s*)([^\s=<>+\-\\]+(?:\s+[^\s=<>+\-\\]+){0,2}?)\s+over\s+([^\s=<>+\-\\]+(?:\s+[^\s=<>+\-\\]+){0,2}?)(?=\s+(?:or|radians|to|for|[-+=<>\\^\\])|[-+=<>\\^\\]|\$|$)/g, "$1\\\\frac{$2}{$3}");
   // No-space variant: xover16 → \frac{x}{16}
   result = result.replace(/\b(\w+)over(\w+)\b/g, "\\\\frac{$1}{$2}");
-  // Generic over: .+? captures multi-word expressions including {braces} and spaces
+  // Generic over: limit LHS/RHS to 1-3 words not crossing operator boundaries
   // Lookahead uses symbols (=, -, +, <, >, \, ^) because operators now run before this
-  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\\^\\])|[-+=<>\\^\\]|\$|$)/g, "\\\\frac{$1}{$2}");
+  result = result.replace(/([^\s=<>+\-\\]+(?:\s+[^\s=<>+\-\\]+){0,2}?)\s+over\s+([^\s=<>+\-\\]+(?:\s+[^\s=<>+\-\\]+){0,2}?)(?=\s+(?:or|radians|to|for|[-+=<>\\^\\])|[-+=<>\\^\\]|\$|$)/g, "\\\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
@@ -183,6 +183,10 @@ function cleanSmeMathMarkup(math: string): string {
 export function renderMath(text: string): string {
   let result = text;
   result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />');
+
+  // Normalize Unicode dashes BEFORE matching $...$ blocks,
+  // so $– pi$ matches the inline math regex lookahead
+  result = result.replace(/[\u2013\u2014\u2212]/g, "-");
 
   result = result.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_, math) => {
     try {
