@@ -142,6 +142,7 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/(?<!\\)\bsin(?![a-zA-Z])/g, "\\sin");
   result = result.replace(/(?<!\\)\btan(?![a-zA-Z])/g, "\\tan");
   result = result.replace(/(?<!\\)\bsec(?![a-zA-Z])/g, "\\sec");
+  result = result.replace(/(?<!\\)\bcosec(?![a-zA-Z])/g, "\\csc");
   result = result.replace(/(?<!\\)\bcsc(?![a-zA-Z])/g, "\\csc");
   result = result.replace(/(?<!\\)\bcot(?![a-zA-Z])/g, "\\cot");
   result = result.replace(/(?<!\\)\blog(?![a-zA-Z])/g, "\\log");
