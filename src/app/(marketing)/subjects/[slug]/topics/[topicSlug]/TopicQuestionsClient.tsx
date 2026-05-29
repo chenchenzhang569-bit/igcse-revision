@@ -7,6 +7,8 @@ import { createBrowserClient } from "@supabase/ssr";
 import { renderMath } from "@/lib/math";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal, { type BugContext } from "@/components/ReportBugModal";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Question {
   id: string;
