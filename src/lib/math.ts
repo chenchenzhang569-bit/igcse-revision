@@ -92,14 +92,33 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bsquared\b/g, "^2");
   result = result.replace(/\bcubed\b/g, "^3");
   
-  // ── Standalone "over" fraction (AFTER powers: end exponent already consumed, won't be confused) ──
+  // ── Inequalities ──
+  result = result.replace(/less-than or slanted equal to/g, "\\leq");
+  result = result.replace(/greater-than or slanted equal to/g, "\\geq");
+  result = result.replace(/less or equal than/g, "\\leq");
+  result = result.replace(/greater or equal than/g, "\\geq");
+  result = result.replace(/greater\s+than\b/g, ">");
+  result = result.replace(/less\s+than\b/g, "<");
+  
+  // ── Operators (MUST run before standalone "over" so equals/minus/plus are symbols) ──
+  result = result.replace(/\bnegative\s+(?=[\w\\])/g, "-");
+  result = result.replace(/\bminus\b/g, "-");
+  result = result.replace(/\bplus\b/g, "+");
+  result = result.replace(/\bequals\b/g, "=");
+  result = result.replace(/\btimes\b/g, "\\times");
+  result = result.replace(/\bdivided\s*by\b/g, "\\div");
+  
+  // ── Standalone "over" fraction (AFTER powers & operators: "to the power of" & "equals" already consumed) ──
+  // Pre-pass: handle fraction on right side of = (e.g., "y = 2 cos x over 3" → "y = \frac{2 cos x}{3}")
+  result = result.replace(/(=\s*)(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\^\\])|[-+=<>\^\\]|\$|$)/g, "$1\\\\frac{$2}{$3}");
   // No-space variant: xover16 → \frac{x}{16}
   result = result.replace(/\b(\w+)over(\w+)\b/g, "\\\\frac{$1}{$2}");
   // Parenthesized fraction: (X over Y) → (\frac{X}{Y}) — keep outer parens
   // because they're mathematically significant (e.g. (...)^n)
   result = result.replace(/\(([^)]+?)\s+over\s+([^)]+?)\)/g, "(\\\\frac{$1}{$2})");
   // .+? captures multi-word expressions including {braces} and spaces
-  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|less|greater|or|radians|to)|\$|$)/g, "\\\\frac{$1}{$2}");
+  // Lookahead includes words AND operator symbols (=, -, +) since they now run before this
+  result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:or|radians|to|for|[-+=<>\^\\])|[-+=<>\^\\]|\$|$)/g, "\\\\frac{$1}{$2}");
   
   // ── Roots ──
   result = result.replace(/square\s*root\s*of\b/g, "\\sqrt{");
@@ -109,22 +128,6 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/(?<!\\)\bsqrt\b/g, "\\sqrt{");
   // Auto-close unclosed \sqrt{... patterns (no matching } found anywhere after)
   result = result.replace(/(\\sqrt(?:\[[^\]]*\])?\{)(?![^}]*\})\s*([^}\s]{1,30})/g, '$1$2}');
-  
-  // ── Inequalities ──
-  result = result.replace(/less-than or slanted equal to/g, "\\leq");
-  result = result.replace(/greater-than or slanted equal to/g, "\\geq");
-  result = result.replace(/less or equal than/g, "\\leq");
-  result = result.replace(/greater or equal than/g, "\\geq");
-  result = result.replace(/greater\s+than\b/g, ">");
-  result = result.replace(/less\s+than\b/g, "<");
-  
-  // ── Operators ──
-  result = result.replace(/\bnegative\s+(?=[\w\\])/g, "-");
-  result = result.replace(/\bminus\b/g, "-");
-  result = result.replace(/\bplus\b/g, "+");
-  result = result.replace(/\bequals\b/g, "=");
-  result = result.replace(/\btimes\b/g, "\\times");
-  result = result.replace(/\bdivided\s*by\b/g, "\\div");
   
   // ── Functions ──
   result = result.replace(/(?<!\\)\bcos(?![a-zA-Z])/g, "\\cos");
@@ -161,9 +164,6 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bcolon\b/g, ":");
   result = result.replace(/\bcomma\b/g, ",");
   result = result.replace(/\bdegree\b/g, "^{\\circ}");
-  // Close \sqrt when followed by one } but no second } — happens when
-  // end fraction closes the frac but sqrt lacked its own end root
-  result = result.replace(/(\\sqrt\{[^}]+\})(?!\})/g, "$1}");
   result = result.replace(/([a-zA-Z])\s+bar\b/g, "\\bar{$1}");
   result = result.replace(/\s+/g, " ");
   
