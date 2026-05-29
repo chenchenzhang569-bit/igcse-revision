@@ -1113,6 +1113,18 @@ function MathInput({
             type="button"
             onClick={() => setShowHandwrite(!showHandwrite)}
             className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500 transition"
+            title="Write answer by hand — OCR to text"
+          >
+            ✏️ Handwrite
+          </button>
+        )}
+        {/* Draw toggle */}
+        {!disabled && (
+          <button
+            type="button"
+            onClick={() => setShowHandwrite(!showHandwrite)}
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500 transition"
+            title="Draw diagrams / graphs"
           >
             🎨 Draw
           </button>

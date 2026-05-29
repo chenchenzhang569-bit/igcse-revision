@@ -519,10 +519,14 @@ function AnswerInput({
       <div className="absolute right-2 top-2 flex items-center gap-0.5">
         <button type="button" onClick={() => setShowDrawing(true)}
           className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
-          title="Draw diagram or write">
+          title="Write answer by hand — OCR to text">
+          ✏️ Handwrite
+        </button>
+        <button type="button" onClick={() => setShowDrawing(true)}
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
+          title="Draw diagrams / graphs">
           🎨 Draw
         </button>
-        <SymbolToolbar onInsert={insertSymbol} />
       </div>
 
       {/* Drawing previews */}
