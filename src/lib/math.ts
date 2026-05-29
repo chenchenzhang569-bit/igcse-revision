@@ -129,6 +129,8 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/(?<!\\)\bcsc(?![a-zA-Z])/g, "\\csc");
   result = result.replace(/(?<!\\)\bcot(?![a-zA-Z])/g, "\\cot");
   result = result.replace(/(?<!\\)\blog(?![a-zA-Z])/g, "\\log");
+  // Wrap bare \log subscripts: \log _ X → \log_{X}
+  result = result.replace(/\\log _ ([^\s+\-=\(\)]+)/g, '\\log_{$1}');
   result = result.replace(/(?<=\d)ln(?![a-zA-Z])/g, "\\ln");
   result = result.replace(/(?<!\\)\bln(?![a-zA-Z])/g, "\\ln");
   
@@ -166,7 +168,7 @@ export function renderMath(text: string): string {
     }
   });
 
-  result = result.replace(/\$(?=[a-zA-Z0-9\\\{\-\(])(.+?)(?<!\\)\$/g, (_, math) => {
+  result = result.replace(/\$(?=[\- a-zA-Z0-9\\{\\\(])(.+?)(?<!\\)\$/g, (_, math) => {
     try {
       return katex.renderToString(cleanSmeMathMarkup(math.trim()), {
         displayMode: false,
