@@ -93,6 +93,8 @@ function cleanSmeMathMarkup(math: string): string {
   result = result.replace(/\bcubed\b/g, "^3");
   
   // ── Standalone "over" fraction (AFTER powers: end exponent already consumed, won't be confused) ──
+  // No-space variant: xover16 → \frac{x}{16}
+  result = result.replace(/\b(\w+)over(\w+)\b/g, "\\frac{$1}{$2}");
   // .+? captures multi-word expressions including {braces} and spaces
   result = result.replace(/(.+?)\s+over\s+(.+?)(?=\s+(?:equals|minus|plus|times|divided|$))/g, "\\frac{$1}{$2}");
   
