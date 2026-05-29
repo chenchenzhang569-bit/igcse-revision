@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
 import AdditionalMathsTabs from "../AdditionalMathsTabs";
+import EconomicsTabs from "../EconomicsTabs";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -265,9 +266,19 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      {(subjectKey === "additional-maths" || subjectKey === "economics") ? (
+      {(subjectKey === "additional-maths") ? (
         <AdditionalMathsTabs
           notes={notes}
+          structuredQuestions={structuredQs}
+          subtopicId={subtopicId}
+          subtopicName={subtopic.displayName}
+          slug={slug}
+          topicSlug={topicSlug}
+        />
+      ) : subjectKey === "economics" ? (
+        <EconomicsTabs
+          notes={notes}
+          mcqs={mcqs}
           structuredQuestions={structuredQs}
           subtopicId={subtopicId}
           subtopicName={subtopic.displayName}
