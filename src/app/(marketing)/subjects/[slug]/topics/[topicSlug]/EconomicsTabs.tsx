@@ -245,22 +245,37 @@ export default function EconomicsTabs({
       stem = text.trim();
     }
 
-    // Extract display texts for each option
+    // Extract display texts and images for each option
     const displayTexts: Record<string, string> = {};
+    const optionImages: Record<string, string | null> = {};
+    let hasOptionImages = false;
+    
     for (const opt of optionLines) {
       const trimmed = opt.trim();
       const label = trimmed.charAt(0);
       if (labels.includes(label)) {
-        displayTexts[label] = trimmed.slice(2).trim();
+        const rawText = trimmed.slice(2).trim();
+        // Check if option contains an image
+        const optImgMatch = rawText.match(/!\[.*?\]\(([^)]+)\)/);
+        if (optImgMatch) {
+          optionImages[label] = optImgMatch[1];
+          hasOptionImages = true;
+          displayTexts[label] = rawText.replace(optImgMatch[0], "").trim();
+        } else {
+          optionImages[label] = null;
+          displayTexts[label] = rawText;
+        }
       }
     }
 
-    // Extract image
+    // Extract stem image (only if options don't have their own images)
     let embeddedImageUrl: string | null = null;
-    const imgMatch = stem.match(/!\[.*?\]\(([^)]+)\)/);
-    if (imgMatch) {
-      embeddedImageUrl = imgMatch[1];
-      stem = stem.replace(imgMatch[0], "").trim();
+    if (!hasOptionImages) {
+      const imgMatch = stem.match(/!\[.*?\]\(([^)]+)\)/);
+      if (imgMatch) {
+        embeddedImageUrl = imgMatch[1];
+        stem = stem.replace(imgMatch[0], "").trim();
+      }
     }
 
     return (
@@ -290,6 +305,7 @@ export default function EconomicsTabs({
         <div className="px-5 pb-5 space-y-2">
           {labels.map((label) => {
             const optText = displayTexts[label] || "";
+            const optImg = optionImages[label] || null;
             const selected = userAnswer === label;
             let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
             if (showResults) {
@@ -297,17 +313,20 @@ export default function EconomicsTabs({
               else if (selected) cls = "bg-red-50 border-red-400";
               else cls = "border-gray-200 opacity-60";
             } else if (selected) cls = "bg-primary-50 border-primary-400";
-            const hasText = !!optText;
+            const hasText = !!optText || !!optImg;
             return (
               <button key={label} onClick={() => selectAnswer(q.id, label, difficulty)} disabled={showResults}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border transition ${cls} ${hasText ? "text-left" : "justify-center"}`}>
-                <span className={`${hasText ? "w-8 h-8" : "w-12 h-12 text-lg"} rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                <span className={`${hasText && !optImg ? "w-8 h-8" : "w-12 h-12 text-lg"} rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                   showResults && label === q.answer_text ? "bg-green-500 text-white"
                   : showResults && selected ? "bg-red-500 text-white"
                   : selected ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-600"
                 }`}>{label}</span>
                 {hasText && <span className="text-sm">{optText}</span>}
+                {optImg && (
+                  <img src={optImg} alt={`Option ${label}`} className="max-w-full h-auto max-h-48 rounded" />
+                )}
                 {showResults && label === q.answer_text && <span className="ml-auto text-green-600 text-sm">✓ Correct</span>}
                 {showResults && selected && !isCorrect && <span className="ml-auto text-red-600 text-sm">✗</span>}
               </button>
