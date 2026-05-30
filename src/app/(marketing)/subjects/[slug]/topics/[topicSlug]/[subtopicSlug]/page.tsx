@@ -1,4 +1,4 @@
-// fix: anon-key subtopic filtering + all subjects
+// fix: anon-key subtopic filtering + all subjects — force-redeploy 2026-05-27
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
