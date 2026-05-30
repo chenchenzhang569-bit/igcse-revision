@@ -478,7 +478,6 @@ function AnswerInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showDrawing, setShowDrawing] = useState(false);
-  const [drawMode, setDrawMode] = useState<"draw" | "handwrite">("draw");
   const [drawings, setDrawings] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [drawingsCollapsed, setDrawingsCollapsed] = useState(false);
@@ -559,6 +558,7 @@ function AnswerInput({
           onInsertText={insertText}
           onClose={() => setShowDrawing(false)}
         />
+      )}
     </div>
   );
 }
