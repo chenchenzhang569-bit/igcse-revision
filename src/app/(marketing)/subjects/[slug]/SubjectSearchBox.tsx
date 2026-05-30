@@ -35,6 +35,8 @@ const SLUG_TO_KEY: Record<string, string> = {
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
+  "caie-economics-0455": "economics",
+  "caie-computer-science-0478": "computer-science",
 };
 
 interface SearchResult {

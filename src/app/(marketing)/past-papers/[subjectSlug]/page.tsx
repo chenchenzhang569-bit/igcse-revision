@@ -79,6 +79,18 @@ const TOPIC_LIST: Record<string, { name: string; displayName: string; slug: stri
     { name: "5. Economic Development", displayName: "5. Economic Development", slug: "5-economic-development", sort: 5 },
     { name: "6. International Trade & Globalisation", displayName: "6. International Trade & Globalisation", slug: "6-international-trade-and-globalisation", sort: 6 },
   ],
+  "computer-science": [
+    { name: "1. Data Representation", displayName: "Data Representation", slug: "data-representation", sort: 1 },
+    { name: "2. Data Transmission", displayName: "Data Transmission", slug: "data-transmission", sort: 2 },
+    { name: "3. Hardware", displayName: "Hardware", slug: "hardware", sort: 3 },
+    { name: "4. Software", displayName: "Software", slug: "software", sort: 4 },
+    { name: "5. The Internet & its Uses", displayName: "The Internet & its Uses", slug: "the-internet-its-uses", sort: 5 },
+    { name: "6. Automated & Emerging Technologies", displayName: "Automated & Emerging Technologies", slug: "automated-emerging-technologies", sort: 6 },
+    { name: "7. Algorithm Design & Problem-Solving", displayName: "Algorithm Design & Problem-Solving", slug: "algorithm-design-problem-solving", sort: 7 },
+    { name: "8. Programming", displayName: "Programming", slug: "programming", sort: 8 },
+    { name: "9. Databases", displayName: "Databases", slug: "databases", sort: 9 },
+    { name: "10. Boolean Logic", displayName: "Boolean Logic", slug: "boolean-logic", sort: 10 },
+  ],
 };
 
 const INFO: Record<string, { board: string; code: string; name: string; icon: string; key: string }> = {
@@ -88,6 +100,7 @@ const INFO: Record<string, { board: string; code: string; name: string; icon: st
   "caie-mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐", key: "mathematics" },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "📊", key: "additional-mathematics" },
   "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📈", key: "economics" },
+  "caie-computer-science-0478":     { board: "CAIE", code: "0478", name: "Computer Science",   icon: "💻", key: "computer-science" },
   "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics" },
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry" },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology" },

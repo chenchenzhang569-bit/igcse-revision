@@ -7,6 +7,7 @@ const subjects = [
   { name: "CAIE Mathematics 0580", slug: "caie-mathematics-0580", icon: "📐" },
   { name: "CAIE Additional Mathematics 0606", slug: "caie-additional-mathematics-0606", icon: "📊" },
   { name: "CAIE Economics 0455", slug: "caie-economics-0455", icon: "📈" },
+  { name: "CAIE Computer Science 0478", slug: "caie-computer-science-0478", icon: "💻" },
 ];
 
 export default function PastPapersPage() {
