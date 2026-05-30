@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name } = await request.json();
+    const { email, password, name, inviteCode } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -69,6 +69,34 @@ export async function POST(request: Request) {
         secure: process.env.NODE_ENV === "production",
       });
     });
+
+    // Process invite code
+    if (inviteCode && data.user) {
+      const adminClient = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { cookies: { getAll() { return []; }, setAll() {} } }
+      );
+
+      // Find inviter by invite code
+      const { data: inviter } = await adminClient
+        .from("profiles")
+        .select("id, invite_count")
+        .eq("invite_code", inviteCode)
+        .maybeSingle();
+
+      if (inviter) {
+        // Link this user to inviter
+        await adminClient.from("profiles").update({
+          invited_by: inviter.id,
+        }).eq("id", data.user.id);
+
+        // Increment inviter's count
+        await adminClient.from("profiles").update({
+          invite_count: (inviter.invite_count || 0) + 1,
+        }).eq("id", inviter.id);
+      }
+    }
 
     return response;
   } catch (err) {
