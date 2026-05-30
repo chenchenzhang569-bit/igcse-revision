@@ -1,6 +1,8 @@
-// force-redeploy-v16
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 const boards = [
   {
@@ -32,32 +34,31 @@ const boards = [
 ];
 
 export default function HomePage() {
+  const t = useT();
+
   return (
     <div>
       {/* Hero */}
       <section className="bg-primary-900 px-4 sm:px-6 py-14 sm:py-20">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-          {/* Left: text */}
           <div className="flex-1">
             <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
-              Master IGCSE, Achieve More
+              {t("home", "heroTitle")}
             </h2>
             <p className="text-white/70 text-sm md:text-base mb-2 leading-relaxed">
-              The most comprehensive IGCSE revision platform for CAIE and Edexcel.
+              {t("home", "heroSub")}
             </p>
             <p className="text-white/50 text-sm md:text-base mb-8 leading-relaxed">
-              Access expertly curated past papers, topic questions, and revision notes — 
-              all organized by subject and topic so you can focus on what matters most.
+              {t("home", "heroDesc")}
             </p>
             <Link
               href="/subjects"
               className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
             >
-              Start Revising
+              {t("home", "ctaStart")}
             </Link>
           </div>
 
-          {/* Right: video */}
           <div className="flex-1 w-full max-w-[540px]">
             <video
               className="w-full rounded-lg shadow-2xl"
@@ -83,7 +84,6 @@ export default function HomePage() {
               key={board.slug}
               className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 md:p-8 hover:shadow-lg transition-all duration-300"
             >
-              {/* Logo */}
               <div className="mb-4">
                 <div className={`${board.logoHeight} relative max-w-[200px] sm:max-w-[240px] ${board.slug === "edexcel" ? "-mt-1" : ""}`}>
                   <Image
@@ -95,7 +95,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Subject tags */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {board.subjects.map((s) => (
                   <Link
@@ -108,12 +107,11 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Explore more */}
               <Link
                 href={`/subjects?board=${board.name}`}
                 className="inline-block text-accent-500 font-poppins font-extrabold uppercase text-xs sm:text-sm tracking-wider transition-colors"
               >
-                Explore {board.name} Subjects →
+                {t("home", board.name === "CAIE" ? "exploreCAIE" : "exploreEdexcel")}
               </Link>
             </div>
           ))}

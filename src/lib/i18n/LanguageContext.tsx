@@ -30,8 +30,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("lang", next);
   };
 
-  const t = (section: string, key: string): string => {
-    return dicts[lang]?.[section]?.[key] ?? key;
+  const t = (section: string, key: string, params?: Record<string, string>): string => {
+    let text = dicts[lang]?.[section]?.[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        text = text.replace(`{${k}}`, v);
+      }
+    }
+    return text;
   };
 
   return (

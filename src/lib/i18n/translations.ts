@@ -15,8 +15,11 @@ export const translations: Record<string, Record<string, string>> = {
   home: {
     heroTitle: "IGCSE 刷题平台",
     heroSub: "按知识点分类的中文刷题工具 · 含 SME 模考题 · 自动批改",
+    heroDesc: "精选题库、历年真题、知识点总结——按科目和章节分类，精准突破薄弱环节。",
     ctaStart: "开始免费试用",
     ctaBrowse: "浏览科目",
+    exploreCAIE: "浏览 CAIE 科目 →",
+    exploreEdexcel: "浏览 Edexcel 科目 →",
     featuresTitle: "为什么选择我们",
     f1Title: "完整题库",
     f1Desc: "涵盖 CAIE & Edexcel 主流科目，PMT + SME 双源题目",
@@ -190,8 +193,11 @@ export const en: Record<string, Record<string, string>> = {
   home: {
     heroTitle: "IGCSE Revision Platform",
     heroSub: "Topic-based practice with SME mock exams & auto-grading",
+    heroDesc: "Curated question bank, past papers, and revision notes — organized by subject and topic so you can focus on what matters.",
     ctaStart: "Start Free Trial",
     ctaBrowse: "Browse Subjects",
+    exploreCAIE: "Explore CAIE Subjects →",
+    exploreEdexcel: "Explore Edexcel Subjects →",
     featuresTitle: "Why Choose Us",
     f1Title: "Complete Question Bank",
     f1Desc: "CAIE & Edexcel subjects, PMT + SME dual source",
