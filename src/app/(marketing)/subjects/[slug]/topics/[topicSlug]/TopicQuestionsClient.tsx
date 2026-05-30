@@ -997,9 +997,9 @@ function MathInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
-  const [showSymbols, setShowSymbols] = useState(false);
   const [showHandwrite, setShowHandwrite] = useState(false);
   const [drawingData, setDrawingData] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
 
   const insertSymbol = (sym: string) => {
@@ -1100,7 +1100,24 @@ function MathInput({
         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50 resize-y"
         autoFocus
       />
-      {drawingData && (
+      {/* Preview panel — text + drawings together */}
+      {showPreview && (value.trim() || drawingData) && (
+        <div className="mt-3 p-3 bg-primary-50/50 border border-primary-200 rounded-lg">
+          <div className="text-xs text-primary-500 font-medium mb-1">Preview</div>
+          {value.trim() && (
+            <div className="text-sm text-gray-800 whitespace-pre-wrap mb-2"
+              dangerouslySetInnerHTML={{ __html: renderMath(value) }} />
+          )}
+          {drawingData && (
+            <div className="flex flex-wrap gap-2">
+              <img src={drawingData} alt="Drawing" className="max-h-32 rounded border" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Drawing thumbnail (hidden when preview open) */}
+      {!showPreview && drawingData && (
         <div className="mt-2 relative inline-block">
           <img src={drawingData} alt="Handwritten answer" className="max-w-full max-h-48 rounded border" />
           <button onClick={() => setDrawingData(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600">×</button>
@@ -1118,47 +1135,18 @@ function MathInput({
             ✏️ Handwrite
           </button>
         )}
-        {/* Draw toggle */}
+        {/* Preview toggle */}
         {!disabled && (
           <button
             type="button"
-            onClick={() => setShowHandwrite(!showHandwrite)}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500 transition"
-            title="Draw diagrams / graphs"
+            onClick={() => setShowPreview(!showPreview)}
+            className={`flex items-center gap-1 px-2 py-1 text-xs rounded border transition ${
+              showPreview ? 'bg-primary-50 text-primary-700 border-primary-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-500 border-gray-200'
+            }`}
+            title="Preview rendered answer"
           >
-            🎨 Draw
+            👁️ Preview
           </button>
-        )}
-        {/* Symbol toggle — only show if not hidden */}
-        {!disabled && !hideSymbols && (
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowSymbols(!showSymbols)}
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500 transition"
-            >
-              <span className="font-mono">Ω</span> Symbols
-            </button>
-            {showSymbols && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowSymbols(false)} />
-                <div className="absolute top-full mt-1 left-0 z-50 bg-white border rounded-lg shadow-lg p-2.5 min-w-[220px]">
-                  <div className="flex gap-1 flex-wrap">
-                    {MATH_SYMBOLS.map((sym) => (
-                      <button
-                        key={sym}
-                        type="button"
-                        onClick={() => { insertSymbol(sym); setShowSymbols(false); }}
-                        className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-100 hover:border-gray-300 text-gray-600 transition"
-                      >
-                        {sym}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
         )}
       </div>
       {/* Handwrite drawing pad */}
