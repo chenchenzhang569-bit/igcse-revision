@@ -481,6 +481,7 @@ function AnswerInput({
   const [drawMode, setDrawMode] = useState<"draw" | "handwrite">("draw");
   const [drawings, setDrawings] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [drawingsCollapsed, setDrawingsCollapsed] = useState(false);
 
   const insertSymbol = useCallback((symbol: string) => {
     const el = textareaRef.current;
@@ -520,15 +521,10 @@ function AnswerInput({
         placeholder={placeholder} rows={Math.max(2, marks + 1)}
         className="w-full p-3 pr-20 text-sm border border-gray-300 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition" />
       <div className="absolute right-2 top-2 flex items-center gap-0.5">
-        <button type="button" onClick={() => { setDrawMode("handwrite"); setShowDrawing(true); }}
+        <button type="button" onClick={() => setShowDrawing(true)}
           className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
           title="Write answer by hand — OCR to text">
           ✏️ Handwrite
-        </button>
-        <button type="button" onClick={() => { setDrawMode("draw"); setShowDrawing(true); }}
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
-          title="Draw diagrams / graphs">
-          🎨 Draw
         </button>
         <button type="button" onClick={() => setShowPreview(!showPreview)}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded border transition ${
@@ -539,27 +535,21 @@ function AnswerInput({
         </button>
       </div>
 
-      {/* Preview panel */}
-      {showPreview && value.trim() && (
+      {/* Preview panel — text + drawings together */}
+      {showPreview && (value.trim() || drawings.length > 0) && (
         <div className="mt-3 p-3 bg-primary-50/50 border border-primary-200 rounded-lg">
           <div className="text-xs text-primary-500 font-medium mb-1">Preview</div>
-          <div className="text-sm text-gray-800 whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: renderMath(value) }} />
-        </div>
-      )}
-
-      {/* Drawing previews */}
-      {drawings.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {drawings.map((d, i) => (
-            <div key={i} className="relative group">
-              <img src={d} alt={`drawing ${i + 1}`} className="max-h-24 rounded border" />
-              <button onClick={() => removeDrawing(i)}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                ✕
-              </button>
+          {value.trim() && (
+            <div className="text-sm text-gray-800 whitespace-pre-wrap mb-2"
+              dangerouslySetInnerHTML={{ __html: renderMath(value) }} />
+          )}
+          {drawings.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {drawings.map((d, i) => (
+                <img key={i} src={d} alt={`drawing ${i + 1}`} className="max-h-32 rounded border" />
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -568,9 +558,7 @@ function AnswerInput({
           onInsertImage={addDrawing}
           onInsertText={insertText}
           onClose={() => setShowDrawing(false)}
-          mode={drawMode}
         />
-      )}
     </div>
   );
 }
