@@ -20,6 +20,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-mathematics-4ma1": "mathematics",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
+  "caie-computer-science-0478": "computer-science",
   "physics-0625": "physics", "chemistry-0620": "chemistry",
   "biology-0610": "biology", "mathematics-0580": "mathematics",
   "physics-4ph1": "physics", "chemistry-4ch1": "chemistry",
@@ -90,6 +91,17 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "4-government-and-the-macroeconomy": "4. Government & the Macroeconomy",
   "5-economic-development": "5. Economic Development",
   "6-international-trade-and-globalisation": "6. International Trade & Globalisation",
+  // 0478 Computer Science
+  "data-representation": "Data Representation",
+  "data-transmission": "Data Transmission",
+  "hardware": "Hardware",
+  "software": "Software",
+  "the-internet-its-uses": "The Internet & its Uses",
+  "automated-emerging-technologies": "Automated & Emerging Technologies",
+  "algorithm-design-problem-solving": "Algorithm Design & Problem-Solving",
+  "programming": "Programming",
+  "databases": "Databases",
+  "boolean-logic": "Boolean Logic",
 };
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -108,7 +120,7 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics";
+  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science";
   let subtopics: any[] = isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
   // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
@@ -130,7 +142,7 @@ export default async function TopicPage({
   let subtopicDisplay: string | null = null;
   try {
     const topicSearchPattern = isSimpleSubject
-      ? `*${subjectKey === "additional-maths" ? "0606" : "0455"}-${encodeURIComponent(topicSlug)}`
+      ? `*${subjectKey === "additional-maths" ? "0606" : subjectKey === "computer-science" ? "0478" : "0455"}-${encodeURIComponent(topicSlug)}`
       : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(
       `${API}/topics?slug=ilike.${topicSearchPattern}&select=id,name,sort_order&limit=1`,
@@ -364,7 +376,7 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
       )}
 
       {/* Subtopics tab — ONLY for non-additional-maths, non-economics (those show subtopics directly above) */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && (
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">

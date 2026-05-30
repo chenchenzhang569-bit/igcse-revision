@@ -21,6 +21,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-mathematics-4ma1": "mathematics", "mathematics-4ma1": "mathematics",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
+  "caie-computer-science-0478": "computer-science",
   "caie-physics": "physics", "caie-chemistry": "chemistry",
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
@@ -126,7 +127,7 @@ export default async function SubtopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
-  if (subjectKey === "additional-maths" || subjectKey === "economics") {
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -166,6 +167,8 @@ export default async function SubtopicPage({
       ? `*0606-${encodeURIComponent(topicSlug)}`
       : subjectKey === "economics"
       ? `*0455-${encodeURIComponent(topicSlug)}`
+      : subjectKey === "computer-science"
+      ? `*0478-${encodeURIComponent(topicSlug)}`
       : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(`${API}/topics?select=id,sort_order&slug=ilike.${topicSearchPat}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
@@ -185,7 +188,7 @@ export default async function SubtopicPage({
       } catch {}
     }
     // Fallback for additional-maths/economics: lookup by subtopic slug
-    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics")) {
+    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science")) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
         const subData = await subRes.json();

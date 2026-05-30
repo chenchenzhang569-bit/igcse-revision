@@ -88,6 +88,19 @@ const ECONOMICS: Topic[] = [
   { name: "6. International Trade & Globalisation", displayName: "International Trade & Globalisation", slug: "6-international-trade-and-globalisation", sort: 6 },
 ];
 
+const COMPUTER_SCIENCE: Topic[] = [
+  { name: "1. Data Representation", displayName: "Data Representation", slug: "data-representation", sort: 1 },
+  { name: "2. Data Transmission", displayName: "Data Transmission", slug: "data-transmission", sort: 2 },
+  { name: "3. Hardware", displayName: "Hardware", slug: "hardware", sort: 3 },
+  { name: "4. Software", displayName: "Software", slug: "software", sort: 4 },
+  { name: "5. The Internet & its Uses", displayName: "The Internet & its Uses", slug: "the-internet-its-uses", sort: 5 },
+  { name: "6. Automated & Emerging Technologies", displayName: "Automated & Emerging Technologies", slug: "automated-emerging-technologies", sort: 6 },
+  { name: "7. Algorithm Design & Problem-Solving", displayName: "Algorithm Design & Problem-Solving", slug: "algorithm-design-problem-solving", sort: 7 },
+  { name: "8. Programming", displayName: "Programming", slug: "programming", sort: 8 },
+  { name: "9. Databases", displayName: "Databases", slug: "databases", sort: 9 },
+  { name: "10. Boolean Logic", displayName: "Boolean Logic", slug: "boolean-logic", sort: 10 },
+];
+
 // SME math section mapping (slug → section name)
 const SME_SECTION_MAP: Record<string, string> = {
   // Parent topic slugs (new structure)
@@ -108,6 +121,17 @@ const SME_SECTION_MAP: Record<string, string> = {
   "4-government-and-the-macroeconomy":"4. Government & the Macroeconomy",
   "5-economic-development":"5. Economic Development",
   "6-international-trade-and-globalisation":"6. International Trade & Globalisation",
+  // 0478 Computer Science
+  "data-representation":"1. Data Representation",
+  "data-transmission":"2. Data Transmission",
+  "hardware":"3. Hardware",
+  "software":"4. Software",
+  "the-internet-its-uses":"5. The Internet & its Uses",
+  "automated-emerging-technologies":"6. Automated & Emerging Technologies",
+  "algorithm-design-problem-solving":"7. Algorithm Design & Problem-Solving",
+  "programming":"8. Programming",
+  "databases":"9. Databases",
+  "boolean-logic":"10. Boolean Logic",
   // slice(3) partials for 3+ word names
   "and-graphs":"Coordinate Geometry & Graphs","and-volumes":"Lengths, Areas & Volumes",
   // Legacy subtopic slugs (backward compat)
@@ -157,6 +181,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "0606", topics: ADDITIONAL_MATHEMATICS },
   "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📊", key: "economics", topics: ECONOMICS },
+  "caie-computer-science-0478":     { board: "CAIE", code: "0478", name: "Computer Science",   icon: "💻", key: "computer-science", topics: COMPUTER_SCIENCE },
   // Old format aliases (without board prefix)
   "physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -312,7 +337,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "0606" || key === "economics") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();
