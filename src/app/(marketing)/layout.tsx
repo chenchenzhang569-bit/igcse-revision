@@ -4,17 +4,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useAuth, AuthProvider } from "@/contexts/AuthContext";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/subjects", label: "Revision" },
-  { href: "/past-papers", label: "Past Paper" },
-  { href: "/mock-exams", label: "Mock Exam" },
-  { href: "/pricing", label: "Purchase" },
+const navKeys = [
+  { href: "/", key: "home" },
+  { href: "/subjects", key: "subjects" },
+  { href: "/past-papers", key: "pastPapers" },
+  { href: "/mock-exams", key: "mockExams" },
+  { href: "/pricing", key: "pricing" },
 ];
 
 function Header() {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -33,72 +36,68 @@ function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-5">
-          {navLinks.map((link) => (
+          {navKeys.map((link) => (
             <Link
-              key={link.label}
+              key={link.key}
               href={link.href}
               className="text-[0.95rem] lg:text-[1.15rem] font-extrabold text-primary-900 hover:text-accent-500 transition-colors"
             >
-              {link.label}
+              {t("nav", link.key)}
             </Link>
           ))}
         </nav>
 
-        {/* Auth + hamburger */}
+        {/* Auth + toggle + hamburger */}
         <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageToggle />
           {user ? (
             <>
-              {/* Desktop */}
               <div className="hidden lg:flex items-center gap-2">
                 <Link
                   href="/dashboard"
                   className="font-poppins font-extrabold uppercase tracking-wider text-xs text-primary-900 border-2 border-primary-900 px-3 py-1.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
                 >
-                  Dashboard
+                  {t("nav", "dashboard")}
                 </Link>
                 <button
                   onClick={signOut}
                   className="font-poppins font-extrabold uppercase tracking-wider text-xs text-accent-500 border-2 border-accent-500 px-3 py-1.5 rounded hover:bg-accent-600 hover:text-white transition-colors"
                 >
-                  Sign Out
+                  {t("nav", "logout")}
                 </button>
               </div>
-              {/* Mobile */}
               <div className="flex lg:hidden items-center gap-1 mr-1">
                 <Link href="/dashboard" className="font-poppins font-extrabold text-xs text-primary-900 px-1 py-1">
-                  Dashboard
+                  {t("nav", "dashboard")}
                 </Link>
                 <button onClick={signOut} className="font-poppins font-extrabold text-xs text-accent-500 px-1 py-1">
-                  Sign Out
+                  {t("nav", "logout")}
                 </button>
               </div>
             </>
           ) : (
             <>
-              {/* Mobile auth */}
               <div className="flex lg:hidden items-center gap-1 mr-1">
                 <Link href="/login" className="font-poppins font-extrabold text-xs text-primary-900 px-1 py-1">
-                  Login
+                  {t("nav", "login")}
                 </Link>
                 <span className="text-gray-300 text-xs">|</span>
                 <Link href="/register" className="font-poppins font-extrabold text-xs text-accent-500 px-1 py-1">
-                  Register
+                  {t("nav", "signup")}
                 </Link>
               </div>
-
-              {/* Desktop auth */}
               <div className="hidden lg:flex items-center gap-2">
                 <Link
                   href="/login"
                   className="font-poppins font-extrabold uppercase tracking-wider text-xs text-primary-900 border-2 border-primary-900 px-3 py-1.5 rounded hover:bg-primary-900 hover:text-white transition-colors"
                 >
-                  Login
+                  {t("nav", "login")}
                 </Link>
                 <Link
                   href="/register"
                   className="font-poppins font-extrabold uppercase tracking-wider text-xs bg-accent-500 border-2 border-accent-500 hover:bg-accent-600 hover:border-accent-600 text-white px-3 py-1.5 rounded transition-colors"
                 >
-                  Register
+                  {t("nav", "signup")}
                 </Link>
               </div>
             </>
@@ -124,14 +123,14 @@ function Header() {
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-2">
-          {navLinks.map((link) => (
+          {navKeys.map((link) => (
             <Link
-              key={link.label}
+              key={link.key}
               href={link.href}
               onClick={() => setMenuOpen(false)}
               className="block text-base font-extrabold text-primary-900 hover:text-accent-500 transition-colors py-1"
             >
-              {link.label}
+              {t("nav", link.key)}
             </Link>
           ))}
         </div>
@@ -146,14 +145,21 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">{children}</main>
-        <footer className="bg-primary-900 text-white py-8 sm:py-10 text-center px-4">
-          <p className="font-poppins text-xl sm:text-2xl font-bold mb-2">IGMaster</p>
-          <p className="text-white/60 mb-5 text-sm">Targeted Preparation for IGCSE Success.</p>
-          <p className="text-xs text-white/40">
-            &copy; 2026 Master IGCSE Revision. All rights reserved.
-          </p>
-        </footer>
+        <Footer />
       </div>
     </AuthProvider>
+  );
+}
+
+function Footer() {
+  const { t } = useLanguage();
+  return (
+    <footer className="bg-primary-900 text-white py-8 sm:py-10 text-center px-4">
+      <p className="font-poppins text-xl sm:text-2xl font-bold mb-2">IGMaster</p>
+      <p className="text-white/60 mb-5 text-sm">{t("home", "heroSub")}</p>
+      <p className="text-xs text-white/40">
+        &copy; 2026 IGMaster. {t("footer", "copyright")}.
+      </p>
+    </footer>
   );
 }
