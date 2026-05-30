@@ -5,6 +5,7 @@ import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
 import AdditionalMathsTabs from "../AdditionalMathsTabs";
 import EconomicsTabs from "../EconomicsTabs";
+import ComputerScienceTabs from "../ComputerScienceTabs";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
@@ -283,6 +284,15 @@ export default async function SubtopicPage({
           notes={notes}
           mcqs={mcqs}
           structuredQuestions={structuredQs}
+          subtopicId={subtopicId}
+          subtopicName={subtopic.displayName}
+          slug={slug}
+          topicSlug={topicSlug}
+        />
+      ) : subjectKey === "computer-science" ? (
+        <ComputerScienceTabs
+          notes={notes}
+          qpPairs={[...mcqPairs, ...structPairs] as any}
           subtopicId={subtopicId}
           subtopicName={subtopic.displayName}
           slug={slug}
