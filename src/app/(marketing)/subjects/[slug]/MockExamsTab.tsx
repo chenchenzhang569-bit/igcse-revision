@@ -17,6 +17,15 @@ const PAPER_ICONS: Record<string, string> = {
   Practical: "🔬",
 };
 
+const CS_SET_LABELS: Record<number, string> = {
+  11: "Set A · Paper 1",
+  12: "Set A · Paper 2",
+  21: "Set B · Paper 1",
+  22: "Set B · Paper 2",
+  31: "Set C · Paper 1",
+  32: "Set C · Paper 2",
+};
+
 type SetData = {
   id: string;
   set_number: number;
@@ -33,6 +42,7 @@ type PaperData = {
   total_marks: number;
   slug: string;
   questionCount: number;
+  pdf_url?: string;
 };
 
 export function MockExamsTab({
@@ -66,7 +76,7 @@ export function MockExamsTab({
         const setIds = setRows.map((s: any) => s.id);
         const { data: paperRows, error: paperErr } = await supabase
           .from("mock_exam_papers")
-          .select("id, set_id, paper_type, paper_number, minutes, total_marks, slug")
+          .select("id, set_id, paper_type, paper_number, minutes, total_marks, slug, pdf_url")
           .in("set_id", setIds)
           .order("paper_type");
 
@@ -132,7 +142,68 @@ export function MockExamsTab({
       )}
 
       {sets.length > 0 && (() => {
-          // Group sets by syllabus (for maths: 0580 vs 0607)
+          const isCS = subjectKey === "computer-science";
+
+          if (isCS) {
+            // Group CS sets by tens digit: 11,12→A | 21,22→B | 31,32→C
+            const csGroups: Record<number, SetData[]> = {};
+            for (const s of sets) {
+              const g = Math.floor(s.set_number / 10);
+              if (!csGroups[g]) csGroups[g] = [];
+              csGroups[g].push(s);
+            }
+            const csLabels: Record<number, string> = { 1: "Set A", 2: "Set B", 3: "Set C" };
+
+            return (
+              <div className="space-y-5">
+                {Object.entries(csGroups).sort(([a], [b]) => Number(a) - Number(b)).map(([gKey, gSets]) => {
+                  const label = csLabels[Number(gKey)] || `Group ${gKey}`;
+                  const allPapers = gSets.flatMap(s => s.papers);
+                  return (
+                    <div key={gKey} className="bg-white border rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-800">{label}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 border-blue-200 text-blue-700">Core</span>
+                        </div>
+                      </div>
+                      <div className="divide-y">
+                        {allPapers.map((paper) => (
+                          <div key={paper.id} className="flex items-center justify-between px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">{PAPER_ICONS[paper.paper_type] || "📄"}</span>
+                              <div>
+                                <span className="font-medium text-gray-800">
+                                  {CS_SET_LABELS[gSets.find(s => s.id === paper.set_id)?.set_number || 0] || paper.paper_number}
+                                </span>
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                  {paper.minutes} min · {paper.total_marks} marks
+                                </div>
+                              </div>
+                            </div>
+                            {paper.pdf_url ? (
+                              <a
+                                href={paper.pdf_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
+                              >
+                                📥 Paper
+                              </a>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Coming soon</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          // Non-CS: original rendering (maths grouping, clickable paper links)
           const syllabusNames: Record<string, string> = {
             "0580": "CIE Math 0580",
             "0607": "International Math 0607",
