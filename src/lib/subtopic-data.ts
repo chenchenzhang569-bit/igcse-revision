@@ -300,11 +300,153 @@ const MATHEMATICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
 };
 
 // Master lookup
+// Computer Science 0478
+const CS_SUBTOPICS: Record<string, SubtopicDef[]> = {
+  "data-representation": [
+    { slug: "caie-computer-science-0478-data-representation-number-systems", name: "Number Systems", displayName: "Number Systems", pmtCode: "1.1" },
+    { slug: "caie-computer-science-0478-data-representation-text-sound-images", name: "Text, Sound & Images", displayName: "Text, Sound & Images", pmtCode: "1.2" },
+    { slug: "caie-computer-science-0478-data-representation-data-storage-compression", name: "Data Storage & Compression", displayName: "Data Storage & Compression", pmtCode: "1.3" },
+  ],
+  "data-transmission": [
+    { slug: "caie-computer-science-0478-data-transmission-types-methods-data-transmission", name: "Types & Methods of Data Transmission", displayName: "Types & Methods of Data Transmission", pmtCode: "2.1" },
+    { slug: "caie-computer-science-0478-data-transmission-error-detection", name: "Methods of Error Detection", displayName: "Methods of Error Detection", pmtCode: "2.2" },
+    { slug: "caie-computer-science-0478-data-transmission-encryption", name: "Encryption", displayName: "Encryption", pmtCode: "2.3" },
+  ],
+  "hardware": [
+    { slug: "caie-computer-science-0478-hardware-computer-architecture", name: "Computer Architecture", displayName: "Computer Architecture", pmtCode: "3.1" },
+    { slug: "caie-computer-science-0478-hardware-input-output-devices", name: "Input & Output Devices", displayName: "Input & Output Devices", pmtCode: "3.2" },
+    { slug: "caie-computer-science-0478-hardware-data-storage", name: "Data Storage", displayName: "Data Storage", pmtCode: "3.3" },
+    { slug: "caie-computer-science-0478-hardware-network-hardware", name: "Network Hardware", displayName: "Network Hardware", pmtCode: "3.4" },
+  ],
+  "software": [
+    { slug: "caie-computer-science-0478-software-types-software-interrupts", name: "Types of Software & Interrupts", displayName: "Types of Software & Interrupts", pmtCode: "4.1" },
+    { slug: "caie-computer-science-0478-software-programming-languages-translators-ides", name: "Types of Programming Language, Translators & IDEs", displayName: "Types of Programming Language, Translators & IDEs", pmtCode: "4.2" },
+  ],
+  "the-internet-its-uses": [
+    { slug: "caie-computer-science-0478-the-internet-its-uses-internet-www", name: "The Internet & the World Wide Web", displayName: "The Internet & the World Wide Web", pmtCode: "5.1" },
+    { slug: "caie-computer-science-0478-the-internet-its-uses-digital-currency", name: "Digital Currency", displayName: "Digital Currency", pmtCode: "5.2" },
+    { slug: "caie-computer-science-0478-the-internet-its-uses-cyber-security", name: "Cyber Security", displayName: "Cyber Security", pmtCode: "5.3" },
+  ],
+  "automated-emerging-technologies": [
+    { slug: "caie-computer-science-0478-automated-emerging-technologies-automated-systems", name: "Automated Systems", displayName: "Automated Systems", pmtCode: "6.1" },
+    { slug: "caie-computer-science-0478-automated-emerging-technologies-robotics", name: "Robotics", displayName: "Robotics", pmtCode: "6.2" },
+    { slug: "caie-computer-science-0478-automated-emerging-technologies-artificial-intelligence", name: "Artificial Intelligence", displayName: "Artificial Intelligence", pmtCode: "6.3" },
+  ],
+  "algorithm-design-problem-solving": [
+    { slug: "caie-computer-science-0478-algorithm-design-problem-solving-development-life-cycle", name: "Development Life Cycle", displayName: "Development Life Cycle", pmtCode: "7.1" },
+    { slug: "caie-computer-science-0478-algorithm-design-problem-solving-computer-sub-systems", name: "Computer Sub-Systems", displayName: "Computer Sub-Systems", pmtCode: "7.2" },
+    { slug: "caie-computer-science-0478-algorithm-design-problem-solving-algorithms", name: "Algorithms", displayName: "Algorithms", pmtCode: "7.3" },
+    { slug: "caie-computer-science-0478-algorithm-design-problem-solving-standard-methods-solution", name: "Standard Methods of a Solution", displayName: "Standard Methods of a Solution", pmtCode: "7.4" },
+    { slug: "caie-computer-science-0478-algorithm-design-problem-solving-validation-verification", name: "Validation & Verification", displayName: "Validation & Verification", pmtCode: "7.5" },
+    { slug: "caie-computer-science-0478-algorithm-design-problem-solving-identifying-errors", name: "Identifying Errors", displayName: "Identifying Errors", pmtCode: "7.6" },
+  ],
+  "programming": [
+    { slug: "caie-computer-science-0478-programming-programming-concepts", name: "Programming Concepts", displayName: "Programming Concepts", pmtCode: "8.1" },
+    { slug: "caie-computer-science-0478-programming-arrays", name: "Arrays", displayName: "Arrays", pmtCode: "8.2" },
+    { slug: "caie-computer-science-0478-programming-file-handling", name: "File Handling", displayName: "File Handling", pmtCode: "8.3" },
+  ],
+  "databases": [
+    { slug: "caie-computer-science-0478-databases-databases", name: "Databases", displayName: "Databases", pmtCode: "9.1" },
+    { slug: "caie-computer-science-0478-databases-sql", name: "SQL", displayName: "SQL", pmtCode: "9.2" },
+  ],
+  "boolean-logic": [
+    { slug: "caie-computer-science-0478-boolean-logic-boolean-logic", name: "Boolean Logic", displayName: "Boolean Logic", pmtCode: "10.1" },
+  ],
+};
+
+// Economics 0455
+const ECONOMICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
+  "1-the-basic-economic-problem": [
+    { slug: "caie-economics-0455-1-the-basic-economic-problem-1-1-the-nature-of-the-basic-economic-problem", name: "The Nature of the Basic Economic Problem", displayName: "The Nature of the Basic Economic Problem", pmtCode: "1.1" },
+    { slug: "caie-economics-0455-1-the-basic-economic-problem-1-2-factors-of-production", name: "Factors of Production", displayName: "Factors of Production", pmtCode: "1.2" },
+    { slug: "caie-economics-0455-1-the-basic-economic-problem-1-3-opportunity-cost", name: "Opportunity Cost", displayName: "Opportunity Cost", pmtCode: "1.3" },
+    { slug: "caie-economics-0455-1-the-basic-economic-problem-1-4-production-possibility-curve-ppc-diagrams", name: "Production Possibility Curve (PPC) Diagrams", displayName: "Production Possibility Curve (PPC) Diagrams", pmtCode: "1.4" },
+  ],
+  "2-the-allocation-of-resources": [
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-1-the-role-of-markets-in-allocating-resources", name: "The Role of Markets in Allocating Resources", displayName: "The Role of Markets in Allocating Resources", pmtCode: "2.1" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-10-mixed-economic-system", name: "Mixed Economic System", displayName: "Mixed Economic System", pmtCode: "2.10" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-2-demand", name: "Demand", displayName: "Demand", pmtCode: "2.2" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-3-supply", name: "Supply", displayName: "Supply", pmtCode: "2.3" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-4-price-determination", name: "Price Determination", displayName: "Price Determination", pmtCode: "2.4" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-5-price-changes", name: "Price Changes", displayName: "Price Changes", pmtCode: "2.5" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-6-price-elasticity-of-demand-ped", name: "Price Elasticity of Demand (PED)", displayName: "Price Elasticity of Demand (PED)", pmtCode: "2.6" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-7-price-elasticity-of-supply-pes", name: "Price Elasticity of Supply (PES)", displayName: "Price Elasticity of Supply (PES)", pmtCode: "2.7" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-8-market-economic-system", name: "Market Economic System", displayName: "Market Economic System", pmtCode: "2.8" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-9-market-failure", name: "Market Failure", displayName: "Market Failure", pmtCode: "2.9" },
+  ],
+  "3-microeconomic-decision-makers": [
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-1-money-and-banking", name: "Money & Banking", displayName: "Money & Banking", pmtCode: "3.1" },
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-2-households", name: "Households", displayName: "Households", pmtCode: "3.2" },
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-3-workers", name: "Workers", displayName: "Workers", pmtCode: "3.3" },
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-4-firms", name: "Firms", displayName: "Firms", pmtCode: "3.4" },
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-5-firms-and-production", name: "Firms & Production", displayName: "Firms & Production", pmtCode: "3.5" },
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-6-firms-costs-revenue-and-objectives", name: "Firms' Costs, Revenue & Objectives", displayName: "Firms' Costs, Revenue & Objectives", pmtCode: "3.6" },
+    { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-7-types-of-markets", name: "Types of Markets", displayName: "Types of Markets", pmtCode: "3.7" },
+  ],
+  "4-government-and-the-macroeconomy": [
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-1-government-macroeconomic-intervention", name: "Government Macroeconomic Intervention", displayName: "Government Macroeconomic Intervention", pmtCode: "4.1" },
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-2-fiscal-policy", name: "Fiscal Policy", displayName: "Fiscal Policy", pmtCode: "4.2" },
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-3-monetary-policy", name: "Monetary Policy", displayName: "Monetary Policy", pmtCode: "4.3" },
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-4-supply-side-policy", name: "Supply-Side Policy", displayName: "Supply-Side Policy", pmtCode: "4.4" },
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-5-economic-growth", name: "Economic Growth", displayName: "Economic Growth", pmtCode: "4.5" },
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-6-employment-and-unemployment", name: "Employment & Unemployment", displayName: "Employment & Unemployment", pmtCode: "4.6" },
+    { slug: "caie-economics-0455-4-government-and-the-macroeconomy-4-7-inflation", name: "Inflation", displayName: "Inflation", pmtCode: "4.7" },
+  ],
+  "5-economic-development": [
+    { slug: "caie-economics-0455-5-economic-development-5-1-living-standards", name: "Living Standards", displayName: "Living Standards", pmtCode: "5.1" },
+    { slug: "caie-economics-0455-5-economic-development-5-2-poverty", name: "Poverty", displayName: "Poverty", pmtCode: "5.2" },
+    { slug: "caie-economics-0455-5-economic-development-5-3-population", name: "Population", displayName: "Population", pmtCode: "5.3" },
+    { slug: "caie-economics-0455-5-economic-development-5-4-differences-in-economic-development-between-countries", name: "Differences in Economic Development Between Countries", displayName: "Differences in Economic Development Between Countries", pmtCode: "5.4" },
+  ],
+  "6-international-trade-and-globalisation": [
+    { slug: "caie-economics-0455-6-international-trade-and-globalisation-6-1-specialisation-and-free-trade", name: "Specialisation & Free Trade", displayName: "Specialisation & Free Trade", pmtCode: "6.1" },
+    { slug: "caie-economics-0455-6-international-trade-and-globalisation-6-2-globalisation-and-trade-restrictions", name: "Globalisation & Trade Restrictions", displayName: "Globalisation & Trade Restrictions", pmtCode: "6.2" },
+    { slug: "caie-economics-0455-6-international-trade-and-globalisation-6-3-foreign-exchange-rates", name: "Foreign Exchange Rates", displayName: "Foreign Exchange Rates", pmtCode: "6.3" },
+    { slug: "caie-economics-0455-6-international-trade-and-globalisation-6-4-current-account-of-the-balance-of-payments", name: "Current Account of the Balance of Payments", displayName: "Current Account of the Balance of Payments", pmtCode: "6.4" },
+  ],
+};
+
+// Additional Mathematics 0606
+const ADDITIONAL_MATHS_SUBTOPICS: Record<string, SubtopicDef[]> = {
+  "algebra-functions": [
+    { slug: "equations-inequalities-and-graphs", name: "Equations, Inequalities & Graphs", displayName: "Equations, Inequalities & Graphs", pmtCode: "2.1" },
+    { slug: "factors-of-polynomials", name: "Factors of Polynomials", displayName: "Factors of Polynomials", pmtCode: "2.2" },
+    { slug: "functions", name: "Functions", displayName: "Functions", pmtCode: "2.3" },
+    { slug: "logarithmic-and-exponential-functions", name: "Logarithmic & Exponential Functions", displayName: "Logarithmic & Exponential Functions", pmtCode: "2.4" },
+    { slug: "quadratic-functions", name: "Quadratic Functions", displayName: "Quadratic Functions", pmtCode: "2.5" },
+    { slug: "simultaneous-equations", name: "Simultaneous Equations", displayName: "Simultaneous Equations", pmtCode: "2.6" },
+  ],
+  "calculus": [
+    { slug: "calculus-for-kinematics", name: "Calculus for Kinematics", displayName: "Calculus for Kinematics", pmtCode: "5.1" },
+    { slug: "differentiation", name: "Differentiation", displayName: "Differentiation", pmtCode: "5.2" },
+    { slug: "integration", name: "Integration", displayName: "Integration", pmtCode: "5.3" },
+  ],
+  "coordinate-geometry": [
+    { slug: "coordinate-geometry-of-the-circle", name: "Coordinate Geometry of the Circle", displayName: "Coordinate Geometry of the Circle", pmtCode: "4.1" },
+    { slug: "straight-line-graphs", name: "Straight Line Graphs", displayName: "Straight Line Graphs", pmtCode: "4.2" },
+  ],
+  "sequences-series": [
+    { slug: "arithmetic-and-geometric-progressions", name: "Arithmetic & Geometric Progressions", displayName: "Arithmetic & Geometric Progressions", pmtCode: "6.1" },
+    { slug: "binomial-theorem", name: "Binomial Theorem", displayName: "Binomial Theorem", pmtCode: "6.2" },
+    { slug: "permutations-and-combinations", name: "Permutations & Combinations", displayName: "Permutations & Combinations", pmtCode: "6.3" },
+  ],
+  "trigonometry": [
+    { slug: "circular-measure", name: "Circular Measure", displayName: "Circular Measure", pmtCode: "3.1" },
+    { slug: "trigonometry", name: "Trigonometry", displayName: "Trigonometry", pmtCode: "3.2" },
+  ],
+  "vectors": [
+    { slug: "vectors-in-two-dimensions", name: "Vectors in Two Dimensions", displayName: "Vectors in Two Dimensions", pmtCode: "5.4" },
+  ],
+};
+
 export const SUBTOPIC_DATA: Record<string, Record<string, SubtopicDef[]>> = {
   physics: PHYSICS_SUBTOPICS,
   chemistry: CHEMISTRY_SUBTOPICS,
   biology: BIOLOGY_SUBTOPICS,
   mathematics: MATHEMATICS_SUBTOPICS,
+  "computer-science": CS_SUBTOPICS,
+  economics: ECONOMICS_SUBTOPICS,
+  "additional-maths": ADDITIONAL_MATHS_SUBTOPICS,
 };
 
 export function getSubtopics(subjectKey: string, topicSlug: string): SubtopicDef[] {
