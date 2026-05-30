@@ -130,7 +130,7 @@ export default function PastPapersPage({ params }: { params: { subjectSlug: stri
         if (!subjectId) { setError("Subject not found in database"); setLoading(false); return; }
 
         const { data: raw } = await supabase
-          .from("past_papers").select("year, season").eq("subject_id", subjectId).neq("year", 0).limit(5000);
+          .from("past_papers").select("year, season").eq("subject_id", subjectId).neq("year", 0).neq("season", "SME").limit(5000);
         if (!raw || raw.length === 0) { setError("No papers in database"); setLoading(false); return; }
 
         const groups: Record<string, { year: number; season: string; count: number }> = {};
