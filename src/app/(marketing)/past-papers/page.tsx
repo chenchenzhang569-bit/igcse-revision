@@ -5,6 +5,8 @@ const subjects = [
   { name: "CAIE Chemistry 0620", slug: "caie-chemistry-0620", icon: "🧪" },
   { name: "CAIE Biology 0610", slug: "caie-biology-0610", icon: "🧬" },
   { name: "CAIE Mathematics 0580", slug: "caie-mathematics-0580", icon: "📐" },
+  { name: "CAIE Additional Mathematics 0606", slug: "caie-additional-mathematics-0606", icon: "📊" },
+  { name: "CAIE Economics 0455", slug: "caie-economics-0455", icon: "📈" },
 ];
 
 export default function PastPapersPage() {

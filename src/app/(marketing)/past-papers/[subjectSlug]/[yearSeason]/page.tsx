@@ -14,6 +14,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "caie-biology-0610":     { board: "CAIE", code: "0610", name: "Biology",     icon: "🧬" },
   "caie-mathematics-0580": { board: "CAIE", code: "0580", name: "Mathematics", icon: "📐" },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "📊" },
+  "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📈" },
   "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️" },
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪" },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬" },
