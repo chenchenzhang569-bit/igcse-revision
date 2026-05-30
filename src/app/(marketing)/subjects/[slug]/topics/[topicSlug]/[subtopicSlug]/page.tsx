@@ -323,27 +323,27 @@ export default async function SubtopicPage({
         if (!prevSub && !nextSub) return null;
 
         return (
-          <div className="mt-10 flex justify-between items-start gap-4">
+          <div className="mt-6 flex justify-between items-start gap-4">
             {prevSub ? (
-              <div className="flex flex-col items-start gap-1.5">
+              <div className="flex flex-col items-start gap-1">
                 <Link
                   href={`/subjects/${slug}/topics/${topicSlug}/${prevSub.slug}`}
-                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-4 py-2 transition group"
+                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-3 py-1 transition group"
                 >
                   <span className="group-hover:-translate-x-1 transition-transform">←</span>
-                  <span className="text-sm font-bold">Previous</span>
+                  <span className="text-xs font-bold">Previous</span>
                 </Link>
                 <span className="text-xs font-medium text-[#001C71]">{prevSub.pmtCode} {prevSub.displayName}</span>
               </div>
             ) : <div />}
 
             {nextSub ? (
-              <div className="flex flex-col items-end gap-1.5">
+              <div className="flex flex-col items-end gap-1">
                 <Link
                   href={`/subjects/${slug}/topics/${topicSlug}/${nextSub.slug}`}
-                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-4 py-2 transition group"
+                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-3 py-1 transition group"
                 >
-                  <span className="text-sm font-bold">Next</span>
+                  <span className="text-xs font-bold">Next</span>
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </Link>
                 <span className="text-xs font-medium text-[#001C71] text-right">{nextSub.pmtCode} {nextSub.displayName}</span>

@@ -124,13 +124,34 @@ export default function ComputerScienceTabs({
                     </span>
                   )}
                 </div>
-                {note.file_name && (
-                  <button
-                    onClick={() => downloadNote(note)}
-                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
-                  >
-                    📥 Download {note.file_name}
-                  </button>
+                {note.file_url && (
+                  <>
+                    {/* Preview only for Summary notes, not Definitions */}
+                    {note.title.includes("Summary") && (
+                      /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(note.file_url) ? (
+                        <div className="border rounded-lg overflow-hidden mb-3 bg-gray-50 flex justify-center">
+                          <img
+                            src={note.file_url}
+                            alt={note.title}
+                            className="max-w-full h-auto"
+                            style={{ maxHeight: "80vh" }}
+                          />
+                        </div>
+                      ) : (
+                        <iframe
+                          src={note.file_url}
+                          className="w-full h-[600px] border rounded-lg mb-3"
+                          title={note.title}
+                        />
+                      )
+                    )}
+                    <button
+                      onClick={() => downloadNote(note)}
+                      className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
+                    >
+                      📥 Download
+                    </button>
+                  </>
                 )}
               </div>
             ))}
