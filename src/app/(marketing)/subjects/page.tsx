@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ interface Subject {
 }
 
 export default function SubjectsPage() {
+  const t = useT();
   const [activeBoard, setActiveBoard] = useState<"CAIE" | "Edexcel">("CAIE");
   const [subjects, setSubjects] = useState<Subject[]>([]);
 
@@ -54,7 +56,7 @@ export default function SubjectsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">All Subjects</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">{t("subjects", "title")}</h1>
         <p className="text-gray-500 text-lg">CAIE &amp; Edexcel IGCSE</p>
       </div>
 
@@ -115,12 +117,12 @@ export default function SubjectsPage() {
 
       {/* CTA */}
       <div className="text-center mt-16 pt-12 border-t">
-        <p className="text-gray-500 mb-4">Covering all CAIE &amp; Edexcel IGCSE subjects</p>
+        <p className="text-gray-500 mb-4">{t("pricing", "featureAllBoards")}</p>
         <Link
           href="/pricing"
           className="inline-block bg-accent-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-accent-600 transition"
         >
-          Get Full Access →
+          {t("common", "startNow")} →
         </Link>
       </div>
     </div>

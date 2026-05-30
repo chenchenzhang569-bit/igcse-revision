@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 const PRICE_PER_SUBJECT = 50;
 const PRICE_ALL = 250;
@@ -11,56 +12,39 @@ const ORIGINAL_ALL = 500;
 
 const plans = [
   {
-    name: "Free Trial",
+    nameKey: "freeTrial" as const,
     price: "¥0",
     original: "",
-    period: "7 days. One subject of your choice.",
-    features: [
-      "Full access to one subject",
-      "Complete topic notes + questions",
-      "Past papers with mark schemes",
-      "Mock exam downloads",
-      "No credit card required",
-    ],
-    cta: "Start Free Trial",
+    periodKey: "freeTrialDesc" as const,
+    featureKeys: ["featureNotes", "featureQuestions", "featurePastPapers", "featureMockExams", "featurePreview"] as const,
+    ctaKey: "freeTrialCta" as const,
     type: "trial" as const,
     popular: false,
   },
   {
-    name: "Single Subject",
+    nameKey: "singleSubject" as const,
     price: `¥${PRICE_PER_SUBJECT}`,
     original: `¥${ORIGINAL_PER}`,
-    period: "One-time payment. 12 months access.",
-    features: [
-      "Complete topic notes",
-      "Practice questions with answers",
-      "Past papers with mark schemes",
-      "Mock exam downloads",
-      "Free preview available",
-    ],
-    cta: "Choose Subject",
+    periodKey: "singleSubjectDesc" as const,
+    featureKeys: ["featureNotes", "featureQuestions", "featurePastPapers", "featureMockExams", "featurePreview"] as const,
+    ctaKey: "singleSubjectCta" as const,
     type: "single" as const,
     popular: false,
   },
   {
-    name: "All Subjects",
+    nameKey: "allSubjects" as const,
     price: `¥${PRICE_ALL}`,
     original: `¥${ORIGINAL_ALL}`,
-    period: "All exam boards. All subjects. 12 months access.",
-    features: [
-      "Every subject across all exam boards",
-      "CAIE + Edexcel included",
-      "Full notes + questions + past papers",
-      "Mock exam downloads",
-      "Free preview available",
-    ],
-    cta: "Get Everything",
+    periodKey: "allSubjectsDesc" as const,
+    featureKeys: ["featureAllBoards", "featureAllSubjects", "featureNotes", "featureQuestions", "featurePastPapers", "featureMockExams", "featurePreview"] as const,
+    ctaKey: "allSubjectsCta" as const,
     type: "all" as const,
     popular: true,
   },
 ];
 
 export default function PricingPage() {
+  const t = useT();
   const router = useRouter();
   const [subjects, setSubjects] = useState<{ id: string; display_name: string; slug: string; code: string; board_name: string }[]>([]);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
@@ -126,15 +110,15 @@ export default function PricingPage() {
     <div className="max-w-5xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">
-          Simple, Transparent Pricing
+          {t("pricing", "title")}
         </h1>
-        <p className="text-gray-500 text-lg">Try free for 7 days. Pay per subject. No subscriptions.</p>
+        <p className="text-gray-500 text-lg">{t("pricing", "subtitle")}</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {plans.map((plan) => (
           <div
-            key={plan.name}
+            key={plan.nameKey}
             className={`relative bg-white border rounded-2xl p-6 ${
               plan.popular
                 ? "border-primary-500 shadow-xl ring-2 ring-primary-100"
@@ -153,8 +137,8 @@ export default function PricingPage() {
                 New User
               </span>
             )}
-            <h3 className="text-lg font-bold text-primary-900 mb-1">{plan.name}</h3>
-            <p className="text-xs text-gray-400 mb-4 min-h-[32px]">{plan.period}</p>
+            <h3 className="text-lg font-bold text-primary-900 mb-1">{t("pricing", plan.nameKey)}</h3>
+            <p className="text-xs text-gray-400 mb-4 min-h-[32px]">{t("pricing", plan.periodKey)}</p>
             <div className="flex items-baseline gap-2 mb-6">
               {plan.type === "all" && upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? (
                 <>
@@ -176,10 +160,10 @@ export default function PricingPage() {
               )}
             </div>
             <ul className="space-y-2 mb-8 text-sm">
-              {plan.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-gray-600">
+              {plan.featureKeys.map((fk) => (
+                <li key={fk} className="flex items-start gap-2 text-gray-600">
                   <span className={`mt-0.5 shrink-0 ${plan.type === "trial" ? "text-green-500" : "text-accent-500"}`}>✓</span>
-                  {f}
+                  {t("pricing", fk)}
                 </li>
               ))}
             </ul>
@@ -198,7 +182,7 @@ export default function PricingPage() {
             >
               {plan.type === "trial" && hasTrial ? "Trial Used" :
                plan.type === "all" && upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? `Upgrade ¥${upgradePrice / 100}` :
-               plan.cta} →
+               t("pricing", plan.ctaKey)} →
             </button>
           </div>
         ))}
@@ -209,12 +193,12 @@ export default function PricingPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-bold text-primary-900 mb-2">
-              {pickerMode === "trial" ? "🎁 Choose Your Free Subject" : "Choose a Subject"}
+              {pickerMode === "trial" ? t("pricing", "freeTrial") : t("pricing", "singleSubject")}
             </h3>
             <p className="text-sm text-gray-500 mb-4">
               {pickerMode === "trial"
-                ? "7-day full access to one subject. No credit card needed."
-                : `Pay once — ¥${PRICE_PER_SUBJECT}. 12 months access.`}
+                ? t("pricing", "freeTrialDesc")
+                : t("pricing", "singleSubjectDesc")}
             </p>
             <div className="max-h-96 overflow-y-auto">
               {(() => {
@@ -249,7 +233,7 @@ export default function PricingPage() {
                         >
                           <span className="text-sm font-medium text-gray-800">{formattedLabel(s)}</span>
                           <span className={`text-xs font-semibold ml-2 shrink-0 ${pickerMode === "trial" ? "text-green-600" : "text-accent-500"}`}>
-                            {pickerMode === "trial" ? "Free" : `¥${PRICE_PER_SUBJECT}`}
+                            {pickerMode === "trial" ? t("common", "free") : `¥${PRICE_PER_SUBJECT}`}
                           </span>
                         </button>
                       ))}
@@ -258,23 +242,22 @@ export default function PricingPage() {
                 ));
               })()}
               {subjects.length === 0 && (
-                <p className="text-gray-400 text-sm text-center py-4">Loading subjects...</p>
+                <p className="text-gray-400 text-sm text-center py-4">{t("common", "loading")}</p>
               )}
             </div>
             <button
               onClick={() => setShowSubjectPicker(false)}
               className="mt-4 w-full py-2 text-sm text-gray-500 hover:text-gray-700"
             >
-              Cancel
+              {t("common", "cancel")}
             </button>
           </div>
         </div>
       )}
 
       <div className="text-center mt-16 pt-12 border-t">
-        <h3 className="text-lg font-semibold text-primary-900 mb-2">Questions?</h3>
         <p className="text-gray-500">
-          Preview content for free on every subject before you buy.
+          {t("pricing", "featurePreview")}
         </p>
       </div>
     </div>
