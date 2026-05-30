@@ -186,7 +186,7 @@ export default function DashboardPage() {
                 href="/pricing"
                 className="inline-flex items-center gap-1 text-sm font-bold text-white bg-accent-500 hover:bg-accent-600 px-5 py-2 rounded-lg transition shrink-0"
               >
-                Upgrade to All Subjects ¥{upgradePrice / 100} →
+                {t("dashboard", "upgradeAll")} ¥{upgradePrice / 100} →
               </Link>
             )}
           </div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                 <span className="text-white">{p.subject_name}</span>
                 <span className="text-white/40 mx-0.5">·</span>
                 {p.expired ? (
-                  <span className="text-red-300">Expired</span>
+                  <span className="text-red-300">{t("dashboard", "expired")}</span>
                 ) : p.days_left != null && p.days_left <= 14 ? (
                   <span className="text-amber-300 font-bold">⚠ {p.days_left}d</span>
                 ) : (
@@ -219,7 +219,7 @@ export default function DashboardPage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
           <svg className="w-7 h-7 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-          Subject Progress
+          {t("dashboard", "subjectProgress")}
         </h2>
         {s.subjects.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
@@ -227,13 +227,13 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fontWeight: 600, fill: "#374151" }} width={90} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name === "Practiced" ? "Subtopic practiced" : "Subtopic remaining"]} />
+              <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v: number, name: string) => [v, name === "Practiced" ? t("dashboard", "subtopicPracticed") : t("dashboard", "subtopicRemaining")]} />
               <Bar dataKey="Practiced" fill="#FF8C00" radius={[0, 4, 4, 0]} barSize={18} />
               <Bar dataKey="Remaining" fill="#001C71" radius={[0, 4, 4, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your progress</p>
+          <p className="text-sm text-gray-400 py-4 text-center font-medium">{t("dashboard", "noSubjectProgress")}</p>
         )}
       </div>
 
@@ -241,7 +241,7 @@ export default function DashboardPage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
           <svg className="w-7 h-7 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
-          Overall Accuracy
+          {t("dashboard", "overallAccuracy")}
         </h2>
         {(() => {
           const DEFAULT_SLUGS = [
@@ -270,7 +270,7 @@ export default function DashboardPage() {
           const selectedSlugs = [...practicedSlugs, ...unpracticedSlugs, ...remainingSlugs, ...defaultSlugs].slice(0, 3);
 
           if (selectedSlugs.length === 0) {
-            return <p className="text-sm text-gray-400 py-4 text-center font-medium">No data yet — answer questions to see your accuracy</p>;
+            return <p className="text-sm text-gray-400 py-4 text-center font-medium">{t("dashboard", "noAccuracy")}</p>;
           }
 
           const DONUT_COLORS = ["#FF8C00", "#001C71", "#059669"];
@@ -308,7 +308,7 @@ export default function DashboardPage() {
                         </Pie>
                         <Tooltip
                           contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }}
-                          formatter={(v: number, name: string) => [v, name === "Correct" ? "Correct" : name === "Incorrect" ? "Incorrect" : "Ready"]}
+                          formatter={(v: number, name: string) => [v, name === "Correct" ? t("dashboard", "correct") : name === "Incorrect" ? t("dashboard", "incorrect") : t("dashboard", "ready")]}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <h2 className="text-lg font-extrabold mb-5" style={{ color: "#001C71" }}>
           <svg className="w-7 h-7 inline mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          Recent Activity
+          {t("dashboard", "recentActivity")}
         </h2>
         {s.recent.length > 0 ? (
           <div className="space-y-1">
@@ -352,13 +352,13 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400 shrink-0 font-semibold">{timeAgo(a.created_at)}</span>
+                  <span className="text-xs text-gray-400 shrink-0 font-semibold">{timeAgo(a.created_at, t)}</span>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 py-4 text-center font-medium">No activity yet — start answering questions</p>
+          <p className="text-sm text-gray-400 py-4 text-center font-medium">{t("dashboard", "noActivity")}</p>
         )}
       </div>
 
@@ -366,11 +366,11 @@ export default function DashboardPage() {
   );
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (section: string, key: string) => string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diff = Math.floor((now - then) / 1000);
-  if (diff < 60) return "just now";
+  if (diff < 60) return t("dashboard", "justNow");
   if (diff < 3600) return `${Math.floor(diff / 60)}m`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
   return `${Math.floor(diff / 86400)}d`;
