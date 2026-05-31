@@ -15,7 +15,7 @@ export const translations: Record<string, Record<string, string>> = {
   home: {
     heroTitle: "IGCSE 备考平台",
     heroSub: "攻克每一科，拿下每场考试",
-    heroDesc: "完整的备考生态系统，帮学生掌握概念、填补知识空白、取得最佳 IGCSE 成绩。",
+    heroDesc: "完整的备考生态系统，帮学生掌握概念、填补空白、取得IGCSE最佳成绩。",
     heroFeat1: "知识点笔记",
     heroFeat2: "每日练习题目",
     heroFeat3: "薄弱项题库",

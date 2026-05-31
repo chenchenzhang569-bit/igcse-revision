@@ -84,7 +84,7 @@ export default function HomePage() {
       </section>
 
       {/* Exam Board Selector */}
-      <section className="w-full px-3 sm:px-5 mt-8 sm:mt-10 relative z-10 pb-6 sm:pb-8">
+      <section className="w-full px-3 sm:px-5 -mt-6 sm:-mt-8 relative z-10 pb-6 sm:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
           {boards.map((board) => (
             <div
