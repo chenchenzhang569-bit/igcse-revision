@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-export const dynamic = "force-dynamic";
+import { useState, useEffect, Suspense } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useT } from "@/lib/i18n/LanguageContext";
-
 import { useSearchParams } from "next/navigation";
 
 type Stats = {
@@ -21,7 +18,7 @@ type Stats = {
 
 type Subject = { id: string; display_name: string; slug: string };
 
-export default function InvitePage() {
+function InviteContent() {
   const t = useT();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +41,7 @@ export default function InvitePage() {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
         if (!inviteParam) window.location.href = "/login";
-        else setLoading(false); // show invite banner instead of redirect
+        else setLoading(false);
         return;
       }
       setUser(data.session.user);
@@ -53,7 +50,6 @@ export default function InvitePage() {
 
   useEffect(() => {
     if (!user) return;
-    // Fetch stats
     fetch("/api/invite/stats")
       .then((r) => r.json())
       .then((d) => {
@@ -61,12 +57,10 @@ export default function InvitePage() {
         setStats(d);
         setLoading(false);
       });
-    
-    // Fetch subjects
+
     fetch("/api/subjects")
       .then((r) => r.json())
       .then((d: Subject[]) => {
-        // Dedupe by display_name, prefer CAIE
         const seen = new Set<string>();
         const deduped: Subject[] = [];
         for (const s of d) {
@@ -117,7 +111,6 @@ export default function InvitePage() {
 
   if (loading) return <div className="text-center py-20 text-gray-400">{t("common", "loading")}</div>;
 
-  // Show invite banner for non-logged-in users with a code
   if (inviteParam && !user) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
@@ -141,7 +134,6 @@ export default function InvitePage() {
       <h1 className="text-2xl font-bold text-primary-900 mb-2">{t("invite", "title")}</h1>
       <p className="text-gray-500 mb-8">{t("invite", "subtitle")}</p>
 
-      {/* Stats Card */}
       <div className="bg-white border rounded-xl p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">
           {stats.isTopInviter && (
@@ -156,7 +148,6 @@ export default function InvitePage() {
           )}
         </div>
 
-        {/* Progress bar */}
         <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
           <div
             className="bg-primary-600 h-2 rounded-full transition-all"
@@ -169,7 +160,6 @@ export default function InvitePage() {
           <span><strong className="text-gray-800">{stats.paidCount}</strong> {t("invite", "paidLabel")}</span>
         </div>
 
-        {/* Badge */}
         {stats.rewardClaimed && (
           <div className="mt-4 flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
             <span className="text-2xl">🏆</span>
@@ -181,7 +171,6 @@ export default function InvitePage() {
         )}
       </div>
 
-      {/* Invite Link */}
       <div className="bg-white border rounded-xl p-6 mb-6">
         <h2 className="font-semibold text-gray-800 mb-3">{t("invite", "inviteLink")}</h2>
         <div className="flex gap-2">
@@ -200,12 +189,11 @@ export default function InvitePage() {
         <p className="text-xs text-gray-400 mt-2">{t("invite", "shareHint")}</p>
       </div>
 
-      {/* Claim Reward */}
       {stats.canClaim && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-6">
           <h2 className="font-semibold text-green-800 mb-1">🎉 {t("invite", "claimTitle")}</h2>
           <p className="text-sm text-green-600 mb-4">{t("invite", "claimDesc")}</p>
-          
+
           <select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
@@ -230,5 +218,13 @@ export default function InvitePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400">Loading...</div>}>
+      <InviteContent />
+    </Suspense>
   );
 }
