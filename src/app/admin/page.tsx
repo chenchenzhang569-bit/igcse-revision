@@ -10,6 +10,7 @@ import { CSS } from "@dnd-kit/utilities";
 import WidgetCard from "./widgets/WidgetCard";
 import QuestionDistWidget from "./widgets/QuestionDistWidget";
 import PdfDistWidget from "./widgets/PdfDistWidget";
+import SubjectQAWidget from "./widgets/SubjectQAWidget";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -31,7 +32,7 @@ type DashboardData = {
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
 const ORDER_STORAGE_KEY = "admin_widget_order";
 
-const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "funnel", "dau", "signups", "sources", "questions", "pdfs", "db"];
+const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "funnel", "dau", "signups", "sources", "questions", "pdfs", "qa", "db"];
 
 function loadOrder(): string[] {
   try { const v = localStorage.getItem(ORDER_STORAGE_KEY); return v ? JSON.parse(v) : DEFAULT_ORDER; } catch { return DEFAULT_ORDER; }
@@ -232,6 +233,7 @@ export default function AdminDashboardPage() {
       );
       case "questions": return <QuestionDistWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("questions")} />;
       case "pdfs": return <PdfDistWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("pdfs")} />;
+      case "qa": return <SubjectQAWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("qa")} />;
       case "db": return (
         <WidgetCard title="🔍 DB 质量" defaultView="card" views={["card", "table"]} widgetId={id} onToggle={() => toggleWidget(id)} hidden={false}>
           {(view) => view === "table" ? (

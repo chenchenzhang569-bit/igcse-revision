@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 interface Document {
@@ -212,8 +213,14 @@ export default function AdminUploadPage() {
   const [token, setToken] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subtopics, setSubtopics] = useState<Subtopic[]>([]);
-  const [selSubject, setSelSubject] = useState("");
-  const [selSubtopic, setSelSubtopic] = useState("");
+
+  // Read URL params for navigation from subject QA widget
+  const searchParams = useSearchParams();
+  const urlSubject = searchParams.get("subject_id") || "";
+  const urlSubtopic = searchParams.get("subtopic_id") || "";
+
+  const [selSubject, setSelSubject] = useState(urlSubject);
+  const [selSubtopic, setSelSubtopic] = useState(urlSubtopic);
   const [subtopicSearch, setSubtopicSearch] = useState("");
   const [noteType, setNoteType] = useState("notes");
 
