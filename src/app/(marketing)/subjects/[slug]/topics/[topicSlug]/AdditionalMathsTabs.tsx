@@ -34,6 +34,7 @@ export default function AdditionalMathsTabs({
   subtopicName,
   slug,
   topicSlug,
+  bugContext,
 }: {
   notes: Note[];
   structuredQuestions: Question[];
@@ -41,6 +42,7 @@ export default function AdditionalMathsTabs({
   subtopicName: string;
   slug: string;
   topicSlug: string;
+  bugContext?: { board: string; subject: string; code: string; topicName: string };
 }) {
   const [tab, setTab] = useState<"notes" | "questions">("notes");
 
@@ -123,7 +125,7 @@ export default function AdditionalMathsTabs({
         <TopicQuestionsClient
           topicId={subtopicId}
           preloadedQuestions={structuredQuestions}
-          bugContext={{
+          bugContext={bugContext || {
             board: "CAIE",
             subject: "Additional Mathematics",
             code: "0606",

@@ -270,7 +270,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      {(subjectKey === "additional-maths") ? (
+      {(subjectKey === "additional-maths" || subjectKey === "mathematics") ? (
         <AdditionalMathsTabs
           notes={notes}
           structuredQuestions={structuredQs}
@@ -278,6 +278,12 @@ export default async function SubtopicPage({
           subtopicName={subtopic.displayName}
           slug={slug}
           topicSlug={topicSlug}
+          bugContext={{
+            board: params.slug?.startsWith("edexcel") ? "Edexcel" : "CAIE",
+            subject: subjectKey === "additional-maths" ? "Additional Mathematics" : "Mathematics",
+            code: subjectKey === "additional-maths" ? "0606" : "0580",
+            topicName: topicDisplay,
+          }}
         />
       ) : subjectKey === "economics" ? (
         <EconomicsTabs
@@ -328,7 +334,7 @@ export default async function SubtopicPage({
               <div className="flex flex-col items-start gap-1">
                 <Link
                   href={`/subjects/${slug}/topics/${topicSlug}/${prevSub.slug}`}
-                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-3 py-1 transition group"
+                  className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-3 py-1 transition group w-[88px]"
                 >
                   <span className="group-hover:-translate-x-1 transition-transform">←</span>
                   <span className="text-xs font-bold">Previous</span>
@@ -341,7 +347,7 @@ export default async function SubtopicPage({
               <div className="flex flex-col items-end gap-1">
                 <Link
                   href={`/subjects/${slug}/topics/${topicSlug}/${nextSub.slug}`}
-                  className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-3 py-1 transition group"
+                  className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg px-3 py-1 transition group w-[88px]"
                 >
                   <span className="text-xs font-bold">Next</span>
                   <span className="group-hover:translate-x-1 transition-transform">→</span>

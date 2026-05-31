@@ -939,7 +939,7 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
 
           {/* Submit — only for groups with MCQ questions */}
           <div className="flex gap-2">
-            {currentIdx === currentQs.length - 1 && !allGradedInGroup && currentQs.some(q => q.question_type === "multiple_choice" || q.question_text.includes("\nA) ")) && (
+            {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
               <button onClick={handleSubmitGroup}
                 className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition text-sm">
                 Submit
