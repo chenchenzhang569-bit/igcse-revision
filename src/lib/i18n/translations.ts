@@ -14,7 +14,7 @@ export const translations: Record<string, Record<string, string>> = {
   },
   home: {
     heroTitle: "IGCSE 备考平台",
-    heroSub: "高效学习 · 高分突破",
+    heroSub: "攻克每一科，拿下每场考试",
     heroDesc: "完整的备考生态系统，帮助学生掌握概念、填补知识空白、取得最佳 IGCSE 成绩。",
     heroFeat1: "知识点笔记",
     heroFeat2: "每日练习题目",
@@ -207,7 +207,7 @@ export const en: Record<string, Record<string, string>> = {
   },
   home: {
     heroTitle: "IGCSE Revision Platform",
-    heroSub: "Study Smarter. Score Higher.",
+    heroSub: "Master every subject, ace every exam",
     heroFeat1: "Topic-Based Revision Notes",
     heroFeat2: "Daily Practice Questions",
     heroFeat3: "Weak-Point Question Bank",
