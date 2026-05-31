@@ -22,6 +22,7 @@ export const translations: Record<string, Record<string, string>> = {
     heroFeat4: "专家模考",
     heroFeat5: "历年真题与评分标准",
     ctaStart: "开始免费试用",
+    ctaSignup: "立即注册",
     ctaBrowse: "浏览科目",
     exploreCAIE: "浏览 CAIE 科目 →",
     exploreEdexcel: "浏览 Edexcel 科目 →",

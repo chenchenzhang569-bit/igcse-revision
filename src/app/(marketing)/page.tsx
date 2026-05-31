@@ -1,7 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useT } from "@/lib/i18n/LanguageContext";
 
 const boards = [
@@ -33,8 +35,10 @@ const boards = [
   },
 ];
 
-export default function HomePage() {
+function HomeContent() {
   const t = useT();
+  const searchParams = useSearchParams();
+  const inviteCode = searchParams.get("invite") || "";
 
   return (
     <div>
@@ -58,12 +62,21 @@ export default function HomePage() {
             <p className="text-white/50 text-sm md:text-base mb-6 leading-relaxed">
               {t("home", "heroDesc")}
             </p>
-            <Link
-              href="/pricing"
-              className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
-            >
-              {t("home", "ctaStart")}
-            </Link>
+            {inviteCode ? (
+              <Link
+                href={`/register?code=${inviteCode}`}
+                className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
+              >
+                {t("home", "ctaSignup")}
+              </Link>
+            ) : (
+              <Link
+                href="/pricing"
+                className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-poppins font-bold uppercase tracking-wider text-sm sm:text-base px-6 sm:px-8 py-3 rounded transition-colors"
+              >
+                {t("home", "ctaStart")}
+              </Link>
+            )}
           </div>
 
           <div className="flex-1 w-full max-w-[540px]">
@@ -125,5 +138,13 @@ export default function HomePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400">Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
