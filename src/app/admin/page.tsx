@@ -1,5 +1,7 @@
 "use client";
 
+// force-redeploy-v3
+
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import WidgetCard from "./widgets/WidgetCard";
