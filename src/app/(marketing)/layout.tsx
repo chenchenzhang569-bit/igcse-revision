@@ -40,7 +40,7 @@ function Header() {
             <Link
               key={link.key}
               href={link.href}
-              className="text-[0.95rem] lg:text-[1.15rem] font-extrabold text-primary-900 hover:text-accent-500 transition-colors"
+              className="text-[1.05rem] lg:text-[1.25rem] font-extrabold text-primary-900 hover:text-accent-500 transition-colors"
             >
               {t("nav", link.key)}
             </Link>

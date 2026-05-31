@@ -39,7 +39,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-primary-900 px-4 sm:px-6 py-14 sm:py-20">
+      <section className="bg-primary-900 px-4 sm:px-6 py-10 sm:py-14">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           <div className="flex-1">
             <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
