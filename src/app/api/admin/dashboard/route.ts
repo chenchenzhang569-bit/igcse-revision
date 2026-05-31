@@ -233,49 +233,74 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // --- PER-SUBJECT DISTRIBUTION ---
-  const subjectQCounts: Record<string, number> = {};
+  // --- DISTRIBUTION ---
+  let questionDistribution: { name: string; count: number }[] = [];
+  let subjectsWithQuestions = 0;
 
-  const isQType = filterType === "all" || filterType === "questions" || filterType === "mcq";
-  if (isQType) {
-    let offset = 0;
-    while (true) {
-      let q = admin.from("questions").select("subject_id");
-      if (filterSubjectId) q = q.eq("subject_id", filterSubjectId);
-      if (filterType === "mcq") q = q.eq("question_type", "mcq");
-      if (filterType === "questions") q = q.neq("question_type", "mcq");
-      const { data: page } = await q.range(offset, offset + 999);
-      if (!page?.length) break;
-      for (const r of page) subjectQCounts[r.subject_id] = (subjectQCounts[r.subject_id] || 0) + 1;
-      if (page.length < 1000) break;
-      offset += 1000;
+  if (filterSubjectId) {
+    // Subject selected: show type breakdown (练习/MCQ/模拟考) for this subject
+    const subjName = subjectDisplay[filterSubjectId] || filterSubjectId;
+    subjectsWithQuestions = 1;
+
+    // MCQ count
+    const { count: mcqC } = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", filterSubjectId).eq("question_type", "mcq");
+
+    // Practice (non-MCQ) count
+    const { count: pracC } = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", filterSubjectId).neq("question_type", "mcq");
+
+    // Mock count
+    let mockC = 0;
+    const paperIds = Object.entries(mockPaperSubjectMap)
+      .filter(([, sid]) => sid === filterSubjectId).map(([pid]) => pid);
+    if (paperIds.length) {
+      const { count: mC } = await admin.from("mock_exam_questions").select("*", { count: "exact", head: true }).in("paper_id", paperIds);
+      mockC = mC || 0;
     }
-  }
 
-  if (filterType === "all" || filterType === "mock_exam") {
-    let mOffset = 0;
-    while (true) {
-      let q = admin.from("mock_exam_questions").select("paper_id");
-      if (filterSubjectId) {
-        const pids = Object.entries(mockPaperSubjectMap)
-          .filter(([, sid]) => sid === filterSubjectId).map(([pid]) => pid);
-        if (pids.length) q = q.in("paper_id", pids);
+    questionDistribution = [
+      { name: `${subjName} MCQ`, count: mcqC || 0 },
+      { name: `${subjName} 练习`, count: pracC || 0 },
+      { name: `${subjName} 模拟考`, count: mockC || 0 },
+    ].filter(d => d.count > 0);
+  } else {
+    // No subject filter: show subject distribution (existing logic)
+    const subjectQCounts: Record<string, number> = {};
+
+    const isQType = filterType === "all" || filterType === "questions" || filterType === "mcq";
+    if (isQType) {
+      let offset = 0;
+      while (true) {
+        let q = admin.from("questions").select("subject_id");
+        if (filterType === "mcq") q = q.eq("question_type", "mcq");
+        if (filterType === "questions") q = q.neq("question_type", "mcq");
+        const { data: page } = await q.range(offset, offset + 999);
+        if (!page?.length) break;
+        for (const r of page) subjectQCounts[r.subject_id] = (subjectQCounts[r.subject_id] || 0) + 1;
+        if (page.length < 1000) break;
+        offset += 1000;
       }
-      const { data: page } = await q.range(mOffset, mOffset + 999);
-      if (!page?.length) break;
-      for (const mq of page) {
-        const sid = mockPaperSubjectMap[mq.paper_id];
-        if (sid) subjectQCounts[sid] = (subjectQCounts[sid] || 0) + 1;
-      }
-      if (page.length < 1000) break;
-      mOffset += 1000;
     }
-  }
 
-  // --- RESPONSE ---
-  const questionDistribution = Object.entries(subjectQCounts)
-    .map(([id, count]) => ({ name: subjectDisplay[id] || id, count }))
-    .sort((a, b) => b.count - a.count);
+    if (filterType === "all" || filterType === "mock_exam") {
+      let mOffset = 0;
+      while (true) {
+        let q = admin.from("mock_exam_questions").select("paper_id");
+        const { data: page } = await q.range(mOffset, mOffset + 999);
+        if (!page?.length) break;
+        for (const mq of page) {
+          const sid = mockPaperSubjectMap[mq.paper_id];
+          if (sid) subjectQCounts[sid] = (subjectQCounts[sid] || 0) + 1;
+        }
+        if (page.length < 1000) break;
+        mOffset += 1000;
+      }
+    }
+
+    questionDistribution = Object.entries(subjectQCounts)
+      .map(([id, count]) => ({ name: subjectDisplay[id] || id, count }))
+      .sort((a, b) => b.count - a.count);
+    subjectsWithQuestions = Object.keys(subjectQCounts).filter(k => subjectDisplay[k]).length;
+  }
 
   return NextResponse.json({
     traffic: { dau, mau: mau || 0, today_signups: todaySignups, week_signups: weekSignups },
@@ -289,7 +314,7 @@ export async function GET(request: NextRequest) {
       missing_answers: missingAnswersCount,
       mock_papers: (await admin.from("mock_exam_papers").select("*", { count: "exact", head: true })).count || 0,
       notes: (await admin.from("notes").select("*", { count: "exact", head: true })).count || 0,
-      subjects_with_questions: Object.keys(subjectQCounts).filter(k => subjectDisplay[k]).length,
+      subjects_with_questions: subjectsWithQuestions,
     },
     question_distribution: questionDistribution,
     available_subjects: (subjects || []).map((s: any) => {
