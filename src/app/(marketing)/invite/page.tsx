@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useT } from "@/lib/i18n/LanguageContext";
 
+import { useSearchParams } from "next/navigation";
+
 type Stats = {
   inviteCode: string;
   inviteLink: string;
@@ -28,6 +30,8 @@ export default function InvitePage() {
   const [claimMsg, setClaimMsg] = useState("");
   const [claimError, setClaimError] = useState("");
   const [user, setUser] = useState<any>(null);
+  const searchParams = useSearchParams();
+  const inviteParam = searchParams.get("code") || "";
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,7 +41,8 @@ export default function InvitePage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        window.location.href = "/login";
+        if (!inviteParam) window.location.href = "/login";
+        else setLoading(false); // show invite banner instead of redirect
         return;
       }
       setUser(data.session.user);
@@ -109,6 +114,24 @@ export default function InvitePage() {
   };
 
   if (loading) return <div className="text-center py-20 text-gray-400">{t("common", "loading")}</div>;
+
+  // Show invite banner for non-logged-in users with a code
+  if (inviteParam && !user) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+        <h1 className="text-2xl font-bold text-primary-900 mb-4">You've been invited! 🎉</h1>
+        <p className="text-gray-500 mb-6">Create an account to accept the invitation and start practicing.</p>
+        <a
+          href={`/register?code=${inviteParam}`}
+          className="inline-block bg-accent-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-accent-600 transition"
+        >
+          Sign Up →
+        </a>
+        <p className="text-xs text-gray-400 mt-4">Already have an account? <a href="/login" className="text-primary-600 underline">Sign in</a></p>
+      </div>
+    );
+  }
+
   if (!stats) return <div className="text-center py-20 text-red-500">{t("common", "error")}</div>;
 
   return (
