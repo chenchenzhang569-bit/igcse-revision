@@ -155,6 +155,7 @@ function Footer() {
   const { t } = useLanguage();
   return (
     <footer className="bg-primary-900 text-white py-8 sm:py-10 text-center px-4">
+      <div className="max-w-[1200px] mx-auto">
       <p className="font-poppins text-xl sm:text-2xl font-bold mb-2">IGMaster</p>
       <p className="text-white/60 mb-5 text-sm">{t("home", "heroSub")}</p>
       <p className="text-xs text-white/40 space-x-3">
@@ -163,6 +164,7 @@ function Footer() {
         <span>·</span>
         <a href="/disclaimer" className="hover:text-white/70 transition">{t("footer", "disclaimer")}</a>
       </p>
+      </div>
     </footer>
   );
 }
