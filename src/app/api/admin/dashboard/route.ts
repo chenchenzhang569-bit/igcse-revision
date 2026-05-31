@@ -45,7 +45,6 @@ function get30dRange() {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-// Map subject display_name/code → mock_exam_sets.subject text
 function subjectToMockText(displayName: string, code: string): string {
   const d = displayName.toLowerCase();
   if (d.includes("mathematics")) return "maths";
@@ -58,24 +57,20 @@ function subjectToMockText(displayName: string, code: string): string {
   return d;
 }
 
-// Build mock exam subject mapping from DB: paper_id → subject_id
-async function buildMockSubjectMap(admin: any, subjects: any[], subjectMap: Record<string, string>) {
+async function buildMockSubjectMap(admin: any, subjects: any[]) {
   const map: Record<string, string> = {};
   const { data: sets } = await admin.from("mock_exam_sets").select("id, subject");
   if (!sets?.length) return map;
-  // Map set subject text → subject_id (first match wins: CAIE before Edexcel)
   const textToSubj: Record<string, string> = {};
   for (const sub of subjects) {
     const key = subjectToMockText(sub.display_name, sub.code || "");
     if (!(key in textToSubj)) textToSubj[key] = sub.id;
   }
-  // Map each set to its subject_id
   const setToSubj: Record<string, string> = {};
   for (const s of sets) {
     const sid = textToSubj[s.subject];
     if (sid) setToSubj[s.id] = sid;
   }
-  // Map paper_id → subject_id
   const { data: papers } = await admin.from("mock_exam_papers").select("id, set_id");
   if (papers) {
     for (const p of papers) {
@@ -99,10 +94,9 @@ export async function GET(request: NextRequest) {
   const week = getWeekRange();
   const d30 = get30dRange();
 
-  // --- Shared data: subjects + boards + mock mapping ---
+  // --- Shared data ---
   const { data: subjects } = await admin.from("subjects")
     .select("id, display_name, code, exam_board_id");
-
   const { data: examBoards } = await admin.from("exam_boards").select("id, name");
   const boardName: Record<string, string> = {};
   if (examBoards) for (const b of examBoards) boardName[b.id] = b.name;
@@ -116,7 +110,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const mockPaperSubjectMap = await buildMockSubjectMap(admin, subjects || [], subjectDisplay);
+  const mockPaperSubjectMap = await buildMockSubjectMap(admin, subjects || []);
 
   // --- TRAFFIC ---
   const { data: dauData } = await admin.from("login_events")
@@ -183,55 +177,65 @@ export async function GET(request: NextRequest) {
   // --- QUESTIONS COUNTS ---
   let totalQuestions = 0, totalMockQuestions = 0, missingAnswersCount = 0;
 
-  // Build base query for questions table
-  const buildBase = () => {
-    let q = admin.from("questions");
-    if (filterSubjectId) q = q.eq("subject_id", filterSubjectId);
-    return q;
-  };
+  // Separate completely self-contained queries - no closures, no chaining tricks
+  if (filterSubjectId) {
+    // With subject filter
+    const subj = filterSubjectId;
+    if (filterType === "all") {
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", subj);
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("subject_id", subj).is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    } else if (filterType === "mcq") {
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", subj).eq("question_type", "mcq");
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("subject_id", subj).eq("question_type", "mcq").is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    } else if (filterType === "questions") {
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", subj).neq("question_type", "mcq");
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("subject_id", subj).neq("question_type", "mcq").is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    }
+  } else {
+    // No subject filter
+    if (filterType === "all") {
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true });
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    } else if (filterType === "mcq") {
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("question_type", "mcq");
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("question_type", "mcq").is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    } else if (filterType === "questions") {
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).neq("question_type", "mcq");
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).neq("question_type", "mcq").is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    }
+  }
 
-  // Type = all
-  if (filterType === "all") {
-    const { count: c } = await buildBase().select("*", { count: "exact", head: true });
-    totalQuestions = c || 0;
-    const { count: m } = await buildBase().select("id", { count: "exact", head: true }).is("clean_answer_text", null);
-    missingAnswersCount = m || 0;
-  }
-  // Type = mcq
-  if (filterType === "mcq") {
-    const { count: c } = await buildBase().eq("question_type", "mcq").select("*", { count: "exact", head: true });
-    totalQuestions = c || 0;
-    const { count: m } = await buildBase().eq("question_type", "mcq").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
-    missingAnswersCount = m || 0;
-  }
-  // Type = questions (practice, non-MCQ)
-  if (filterType === "questions") {
-    const { count: c } = await buildBase().neq("question_type", "mcq").select("*", { count: "exact", head: true });
-    totalQuestions = c || 0;
-    const { count: m } = await buildBase().neq("question_type", "mcq").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
-    missingAnswersCount = m || 0;
-  }
-
-  // Mock exam count
+  // Mock exam count - completely self-contained
   if (filterType === "all" || filterType === "mock_exam") {
-    let mockQ = admin.from("mock_exam_questions");
     if (filterSubjectId) {
       const paperIds = Object.entries(mockPaperSubjectMap)
         .filter(([, sid]) => sid === filterSubjectId)
         .map(([pid]) => pid);
-      if (paperIds.length) mockQ = mockQ.in("paper_id", paperIds);
-      else totalMockQuestions = 0;
-    }
-    if (!totalMockQuestions) {
-      const { count: mc } = await mockQ.select("*", { count: "exact", head: true });
-      totalMockQuestions = mc || 0;
+      if (paperIds.length) {
+        const r = await admin.from("mock_exam_questions").select("*", { count: "exact", head: true }).in("paper_id", paperIds);
+        totalMockQuestions = r.count || 0;
+      }
+    } else {
+      const r = await admin.from("mock_exam_questions").select("*", { count: "exact", head: true });
+      totalMockQuestions = r.count || 0;
     }
   }
 
   // --- PER-SUBJECT DISTRIBUTION ---
   const subjectQCounts: Record<string, number> = {};
 
-  // Distribution from questions table
   const isQType = filterType === "all" || filterType === "questions" || filterType === "mcq";
   if (isQType) {
     let offset = 0;
@@ -248,7 +252,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Distribution from mock exam questions
   if (filterType === "all" || filterType === "mock_exam") {
     let mOffset = 0;
     while (true) {
@@ -295,4 +298,3 @@ export async function GET(request: NextRequest) {
     }),
   });
 }
-
