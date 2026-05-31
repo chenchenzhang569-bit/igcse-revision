@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const range = searchParams.get("range") || "all"; // today | 7d | 30d | all
+  const filterSubjectId = searchParams.get("subject_id") || "";  // filter by subject
+  const filterType = searchParams.get("type") || "all";           // all | questions | mock_exam | mcq
 
   const today = getTodayRange();
   const week = getWeekRange();
@@ -161,14 +163,37 @@ export async function GET(request: NextRequest) {
   }
 
   // --- DB QUALITY ---
-  const { count: totalQuestions } = await admin
-    .from("questions")
-    .select("*", { count: "exact", head: true });
+  const buildQFilter = () => {
+    let q = admin.from("questions");
+    if (filterSubjectId) q = q.eq("subject_id", filterSubjectId) as any;
+    if (filterType === "mcq") q = q.eq("question_type", "mcq") as any;
+    return q;
+  };
 
-  const { data: missingAnswers } = await admin
-    .from("questions")
-    .select("id")
-    .is("clean_answer_text", null);
+  const includeQuestions = filterType === "all" || filterType === "questions" || filterType === "mcq";
+  const includeMockExam = filterType === "all" || filterType === "mock_exam";
+
+  let totalQuestions = 0;
+  let totalMockExamQuestions = 0;
+  let missingAnswersCount = 0;
+
+  if (includeQuestions) {
+    const { count: qCount } = await buildQFilter().select("*", { count: "exact", head: true });
+    totalQuestions = qCount || 0;
+
+    const { count: missingCount } = await buildQFilter()
+      .select("id", { count: "exact", head: true })
+      .neq("question_type", "mcq")
+      .is("clean_answer_text", null);
+    missingAnswersCount = missingCount || 0;
+  }
+
+  if (includeMockExam) {
+    let q = admin.from("mock_exam_questions");
+    if (filterSubjectId) q = q.eq("subject_id", filterSubjectId) as any;
+    const { count: mCount } = await q.select("*", { count: "exact", head: true });
+    totalMockExamQuestions = mCount || 0;
+  }
 
   const { count: mockPapers } = await admin
     .from("mock_exam_papers")
@@ -178,15 +203,44 @@ export async function GET(request: NextRequest) {
     .from("notes")
     .select("*", { count: "exact", head: true });
 
-  // Questions per subject
-  const { data: qBySubject } = await admin
-    .from("questions")
-    .select("subject_id");
-
+  // Questions per subject — paginate to get all rows (with filters)
   const subjectQCounts: Record<string, number> = {};
-  if (qBySubject) {
-    for (const q of qBySubject) {
+
+  if (includeQuestions) {
+    const allQBySubject: any[] = [];
+    let offset = 0;
+    while (true) {
+      const { data: page } = await buildQFilter()
+        .select("subject_id")
+        .range(offset, offset + 999);
+      if (!page || page.length === 0) break;
+      allQBySubject.push(...page);
+      if (page.length < 1000) break;
+      offset += 1000;
+    }
+    for (const q of allQBySubject) {
       subjectQCounts[q.subject_id] = (subjectQCounts[q.subject_id] || 0) + 1;
+    }
+  }
+
+  // Mock exam questions per subject — paginate too
+  if (includeMockExam) {
+    const allMockQBySubject: any[] = [];
+    let mOffset = 0;
+    while (true) {
+      let q = admin.from("mock_exam_questions");
+      if (filterSubjectId) q = q.eq("subject_id", filterSubjectId) as any;
+      const { data: page } = await q
+        .select("subject_id")
+        .range(mOffset, mOffset + 999);
+      if (!page || page.length === 0) break;
+      allMockQBySubject.push(...page);
+      if (page.length < 1000) break;
+      mOffset += 1000;
+    }
+    for (const q of allMockQBySubject) {
+      const sid = q.subject_id;
+      subjectQCounts[sid] = (subjectQCounts[sid] || 0) + 1;
     }
   }
 
@@ -230,12 +284,16 @@ export async function GET(request: NextRequest) {
     },
     sources: sourceCounts,
     db_quality: {
-      total_questions: totalQuestions || 0,
-      missing_answers: missingAnswers?.length || 0,
+      total_questions: totalQuestions + totalMockExamQuestions,
+      missing_answers: missingAnswersCount,
       mock_papers: mockPapers || 0,
       notes: notesCount || 0,
-      subjects_with_questions: Object.keys(subjectQCounts).length,
+      subjects_with_questions: Object.keys(subjectQCounts).filter(k => subjectMap[k]).length,
     },
     question_distribution: questionDistribution,
+    available_subjects: (subjects || []).map((s: any) => ({
+      id: s.id,
+      name: `${s.display_name} ${s.code || ""}`.trim(),
+    })),
   });
 }

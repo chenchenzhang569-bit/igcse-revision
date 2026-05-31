@@ -18,6 +18,7 @@ type DashboardData = {
   sources: Record<string, number>;
   db_quality: { total_questions: number; missing_answers: number; mock_papers: number; notes: number; subjects_with_questions: number };
   question_distribution: { name: string; count: number }[];
+  available_subjects: { id: string; name: string }[];
 };
 
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
@@ -35,6 +36,8 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [token, setToken] = useState<string | null>(null);
+  const [filterSubject, setFilterSubject] = useState("");
+  const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
     const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -45,12 +48,16 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (!token) return;
     setLoading(true);
-    fetch("/api/admin/dashboard", { headers: { Authorization: `Bearer ${token}` } })
+    const params = new URLSearchParams();
+    if (filterSubject) params.set("subject_id", filterSubject);
+    if (filterType !== "all") params.set("type", filterType);
+    const qs = params.toString();
+    fetch(`/api/admin/dashboard${qs ? "?" + qs : ""}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setData).catch(() => {}).finally(() => setLoading(false));
 
     fetch("/api/admin/login-events?days=30", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setTsData).catch(() => {});
-  }, [token]);
+  }, [token, filterSubject, filterType]);
 
   const toggleWidget = (id: string) => {
     setHidden(prev => {
@@ -79,6 +86,43 @@ export default function AdminDashboardPage() {
           <button onClick={() => { const n = new Set<string>(); saveHidden(n); setHidden(n); }}
             className="text-xs text-gray-400 hover:text-primary-600">
             Show all widgets ({hiddenList.length} hidden)
+          </button>
+        )}
+      </div>
+
+      {/* Filter bar */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        {data.available_subjects && (
+          <select
+            value={filterSubject}
+            onChange={(e) => setFilterSubject(e.target.value)}
+            className="text-sm border rounded-lg px-3 py-1.5 bg-white text-gray-700"
+          >
+            <option value="">📚 全部科目</option>
+            {data.available_subjects.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        )}
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+          {(["all", "questions", "mock_exam", "mcq"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              className={`text-xs px-3 py-1 rounded-md transition ${
+                filterType === t ? "bg-white text-primary-900 font-semibold shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {{ all: "全部", questions: "练习", mock_exam: "模拟考", mcq: "MCQ" }[t]}
+            </button>
+          ))}
+        </div>
+        {(filterSubject || filterType !== "all") && (
+          <button
+            onClick={() => { setFilterSubject(""); setFilterType("all"); }}
+            className="text-xs text-gray-400 hover:text-primary-600"
+          >
+            重置
           </button>
         )}
       </div>
