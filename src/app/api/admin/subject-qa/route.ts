@@ -54,11 +54,26 @@ export async function GET(request: NextRequest) {
     subjectDisplay[s.id] = b ? `${b} ${s.display_name} ${s.code || ""}`.trim() : `${s.display_name} ${s.code || ""}`.trim();
   }
 
-  // Fetch all subtopics
-  let subjQ = admin.from("subtopics").select("id, display_name, topic_id, subject_id");
-  if (filterSubjectId) subjQ = subjQ.eq("subject_id", filterSubjectId);
-  const { data: subtopics } = await subjQ;
-  const allSubtopics = subtopics || [];
+  // Fetch all subtopics via topics (subtopics has no subject_id column)
+  let topicQ = admin.from("topics").select("id, display_name, subject_id");
+  if (filterSubjectId) topicQ = topicQ.eq("subject_id", filterSubjectId);
+  const { data: allTopics } = await topicQ;
+  const topicNames: Record<string, string> = {};
+  const topicSubjectMap: Record<string, string> = {};
+  for (const t of allTopics || []) {
+    topicNames[t.id] = t.display_name;
+    topicSubjectMap[t.id] = t.subject_id;
+  }
+  const topicIds = (allTopics || []).map(t => t.id);
+
+  // Get subtopics for those topics
+  let subtopicQ = admin.from("subtopics").select("id, display_name, topic_id");
+  if (topicIds.length) subtopicQ = subtopicQ.in("topic_id", topicIds);
+  const { data: rawSubtopics } = await subtopicQ;
+  const allSubtopics = (rawSubtopics || []).map(st => ({
+    ...st,
+    subject_id: topicSubjectMap[st.topic_id] || "",
+  }));
 
   // Fetch all topics for display
   const { data: topics } = await admin.from("topics").select("id, display_name");
