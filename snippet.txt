@@ -1,0 +1,27 @@
+(async () => {
+  // Create Supabase client
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  const supabase = createClient(
+    'https://aondldqwwvttwpervrfq.supabase.co',
+    'sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL'
+  );
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) { console.log('Not logged in'); return; }
+
+  const bioId = '2dcd4850-8512-4913-b922-559a2d3412bc';
+
+  for (const type of ['all', 'questions', 'mcq', 'mock_exam']) {
+    try {
+      const res = await fetch(
+        `/api/admin/dashboard?subject_id=${bioId}&type=${type}&_t=${Date.now()}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      console.log(type + ':', data._debug, 'total=' + data.db_quality?.total_questions);
+    } catch(e) {
+      console.error(type + ':', e.message);
+    }
+  }
+})();
