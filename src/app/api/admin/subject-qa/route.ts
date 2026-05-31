@@ -137,19 +137,16 @@ export async function GET(request: NextRequest) {
 
   // Group past papers by subject
   const ppBySub: Record<string, { qp: number; mcqQp: number; ms: number }> = {};
-  const qpKeysBySub: Record<string, Set<string>> = {};
   const msKeysBySub: Record<string, Set<string>> = {};
   for (const p of allPps) {
     const sid = p.subject_id;
     if (!sid) continue;
     if (!ppBySub[sid]) ppBySub[sid] = { qp: 0, mcqQp: 0, ms: 0 };
-    if (!qpKeysBySub[sid]) qpKeysBySub[sid] = new Set();
     if (!msKeysBySub[sid]) msKeysBySub[sid] = new Set();
     const key = `${p.year}|${p.season}|${p.paper_number}`;
     const pt = p.paper_type || "";
     if (pt === "Question Paper" || pt === "QP" || pt === "Topic QP") {
       ppBySub[sid].qp++;
-      qpKeysBySub[sid].add(key);
     } else if (pt === "MCQ QP") {
       ppBySub[sid].mcqQp++;
     } else if (pt === "Mark Scheme" || pt === "MS") {
@@ -198,15 +195,15 @@ export async function GET(request: NextRequest) {
 
     // Past paper stats
     const ppStats = ppBySub[sid] || { qp: 0, mcqQp: 0, ms: 0 };
-    const qpKeys = qpKeysBySub[sid];
-    const msKeys = msKeysBySub[sid];
+    const msKeys = msKeysBySub[sid] || new Set();
     let missingMs = 0;
-    if (qpKeys && msKeys) {
-      for (const k of qpKeys) {
-        if (!msKeys.has(k)) missingMs++;
-      }
-    } else if (qpKeys) {
-      missingMs = qpKeys.size;
+    // Check each QP row against MS key set
+    for (const p of allPps) {
+      if (p.subject_id !== sid) continue;
+      const pt = p.paper_type || "";
+      if (pt !== "Question Paper" && pt !== "QP" && pt !== "Topic QP") continue;
+      const key = `${p.year}|${p.season}|${p.paper_number}`;
+      if (!msKeys.has(key)) missingMs++;
     }
 
     coverage[sid] = {
