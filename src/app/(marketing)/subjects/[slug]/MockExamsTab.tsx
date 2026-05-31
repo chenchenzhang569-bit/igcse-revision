@@ -188,17 +188,6 @@ export function MockExamsTab({
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {paper.pdf_url && (
-                                <a
-                                  href={paper.pdf_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
-                                >
-                                  📥 PDF
-                                </a>
-                              )}
                               <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
                                 Start →
                               </span>
