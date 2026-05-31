@@ -45,17 +45,7 @@ export default function HomePage() {
             <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
               {t("home", "heroTitle")}
             </h2>
-            <p className="text-white/80 text-lg md:text-xl font-medium mb-6">
-              {t("home", "heroSub")}
-            </p>
-            <ul className="text-white/70 text-sm md:text-base space-y-2 mb-8">
-              <li className="flex items-center gap-2"><span className="text-accent-400">✓</span> {t("home", "heroFeat1")}</li>
-              <li className="flex items-center gap-2"><span className="text-accent-400">✓</span> {t("home", "heroFeat2")}</li>
-              <li className="flex items-center gap-2"><span className="text-accent-400">✓</span> {t("home", "heroFeat3")}</li>
-              <li className="flex items-center gap-2"><span className="text-accent-400">✓</span> {t("home", "heroFeat4")}</li>
-              <li className="flex items-center gap-2"><span className="text-accent-400">✓</span> {t("home", "heroFeat5")}</li>
-            </ul>
-            <p className="text-white/50 text-sm md:text-base mb-8 leading-relaxed">
+            <p className="text-white/50 text-sm md:text-base mb-6 leading-relaxed">
               {t("home", "heroDesc")}
             </p>
             <Link

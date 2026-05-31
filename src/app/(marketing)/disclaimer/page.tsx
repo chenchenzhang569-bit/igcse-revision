@@ -18,22 +18,18 @@ export default function DisclaimerPage() {
         <section>
           <h2 className="text-lg font-semibold text-primary-900">2. Copyright & Intellectual Property</h2>
           <p>
-            Cambridge Assessment International Education (CAIE) and Pearson Edexcel are the respective owners of IGCSE syllabuses, examination formats, and official past paper content. SaveMyExams, Physics & Maths Tutor (PMT), and other educational websites retain copyright over their original materials.
+            Cambridge Assessment International Education (CAIE) and Pearson Edexcel are the respective owners of IGCSE syllabuses and official examination materials. Third-party educational websites retain copyright over their original materials.
           </p>
           <p>
-            IGMaster does not claim ownership of third-party content. Where we reference or adapt materials from external sources, we do so under the principle of <strong>fair use for educational purposes</strong>. We transform and organise such content to provide a structured revision experience.
+            IGMaster does not claim ownership of third-party content. Where we reference or adapt materials from external sources, we do so under the principle of <strong>fair use for educational purposes</strong>.
           </p>
         </section>
 
         <section>
           <h2 className="text-lg font-semibold text-primary-900">3. Content Sources</h2>
-          <p>Our question bank and revision materials may include content adapted from publicly available educational resources, including but not limited to:</p>
-          <ul className="list-disc pl-6">
-            <li>SaveMyExams (savemyexams.com)</li>
-            <li>Physics & Maths Tutor (physicsandmathstutor.com)</li>
-            <li>PapaCambridge (papacambridge.com)</li>
-            <li>CAIE official syllabus documents</li>
-          </ul>
+          <p>
+            Our question bank and revision materials are compiled from various publicly available educational resources. We adapt and organise this content to provide a structured revision experience for students.
+          </p>
         </section>
 
         <section>
@@ -55,7 +51,7 @@ export default function DisclaimerPage() {
         <section>
           <h2 className="text-lg font-semibold text-primary-900">6. No Affiliation</h2>
           <p>
-            IGMaster is <strong>not affiliated with, endorsed by, or sponsored by</strong> Cambridge Assessment International Education, Pearson Edexcel, SaveMyExams, Physics & Maths Tutor, or any other third-party organisation referenced on this site. All trademarks belong to their respective owners.
+            IGMaster is <strong>not affiliated with, endorsed by, or sponsored by</strong> Cambridge Assessment International Education, Pearson Edexcel, or any other third-party organisation referenced on this site. All trademarks belong to their respective owners.
           </p>
         </section>
 
