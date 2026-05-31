@@ -93,7 +93,7 @@ export default function CoverageWidget({ token, onToggle }: Props) {
 
               return (
                 <div key={sid}>
-                  <p className="text-sm font-semibold text-gray-600 mb-1">{subj?.name || sid.slice(0, 8)}</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">{subj?.name || sid.slice(0, 8)} <span className="text-xs text-gray-400 font-normal">📚{c.subtopics}</span></p>
                   <div className="space-y-0.5">
                     {rows.map((r) => (
                       <div key={r.label} className="flex items-center gap-2">
