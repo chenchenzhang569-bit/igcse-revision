@@ -36,7 +36,7 @@ const plans = [
     price: `¥${PRICE_ALL}`,
     original: `¥${ORIGINAL_ALL}`,
     periodKey: "allSubjectsDesc" as const,
-    featureKeys: ["featureAllBoards", "featureAllSubjects", "featureNotes", "featureQuestions", "featurePastPapers", "featureMockExams", "featurePreview"] as const,
+    featureKeys: ["featureAllCoverage", "featureNotes", "featureQuestions", "featurePastPapers", "featureMockExams"] as const,
     ctaKey: "allSubjectsCta" as const,
     type: "all" as const,
     popular: true,
