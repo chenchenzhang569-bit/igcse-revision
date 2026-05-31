@@ -27,6 +27,7 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
 
   useEffect(() => {
     if (!token) return;
+    const abort = new AbortController();
     setFetching(true);
     setFetchUrl("");
     const params = new URLSearchParams();
@@ -35,14 +36,17 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
     const qs = params.toString();
     const url = `/api/admin/dashboard${qs ? "?" + qs : ""}`;
     setFetchUrl(url);
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: abort.signal })
       .then(async (r) => {
         if (!r.ok) { throw new Error(`HTTP ${r.status}`); }
         return r.json();
       })
       .then(setData)
-      .catch((e) => console.error("QDistWidget fetch error:", url, e))
+      .catch((e) => {
+        if (e.name !== "AbortError") console.error("QDistWidget fetch error:", url, e);
+      })
       .finally(() => setFetching(false));
+    return () => abort.abort();
   }, [token, subject, type]);
 
   const fmt = (n: number) => n.toLocaleString();
