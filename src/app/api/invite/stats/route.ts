@@ -18,8 +18,15 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Service-key client for profiles queries (RLS blocks anon key)
+  const admin = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { getAll() { return []; }, setAll() {} } }
+  );
+
   // Get profile with invite data
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from("profiles")
     .select("invite_code, invited_by, invite_count, reward_claimed, reward_subject")
     .eq("id", user.id)
@@ -33,11 +40,11 @@ export async function GET(request: NextRequest) {
   let inviteCode = profile.invite_code;
   if (!inviteCode) {
     inviteCode = "IG" + user.id.substring(0, 6).toUpperCase();
-    await supabase.from("profiles").update({ invite_code: inviteCode }).eq("id", user.id);
+    await admin.from("profiles").update({ invite_code: inviteCode }).eq("id", user.id);
   }
 
   // Count invited users who PAID
-  const { data: paidInvites } = await supabase
+  const { data: paidInvites } = await admin
     .from("profiles")
     .select("id")
     .eq("invited_by", user.id);
@@ -46,7 +53,7 @@ export async function GET(request: NextRequest) {
   let paidCount = 0;
   if (paidInvites && paidInvites.length > 0) {
     const invitedIds = paidInvites.map((p: any) => p.id);
-    const { data: purchases } = await supabase
+    const { data: purchases } = await admin
       .from("purchases")
       .select("user_id")
       .in("user_id", invitedIds)
