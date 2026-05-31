@@ -65,11 +65,18 @@ export async function GET(request: NextRequest) {
   }
 
   const canClaim = paidCount >= 3 && !profile.reward_claimed;
-  const inviteLink = `https://igcse-revision-cdgy.vercel.app/?invite=${inviteCode}`;
+  const baseLink = `https://igcse-revision-cdgy.vercel.app/?invite=${inviteCode}`;
+  const inviteLink = baseLink;
+  const sourceLinks = {
+    xiaohongshu: `${baseLink}&source=xiaohongshu`,
+    wechat: `${baseLink}&source=wechat`,
+    zhihu: `${baseLink}&source=zhihu`,
+  };
 
   return NextResponse.json({
     inviteCode,
     inviteLink,
+    sourceLinks,
     totalInvited: paidInvites?.length || 0,
     paidCount,
     canClaim,

@@ -33,6 +33,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
+    // Log login event for DAU/MAU tracking
+    if (data.user) {
+      const adminClient = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { cookies: { getAll() { return []; }, setAll() {} } }
+      );
+      await adminClient.from("login_events").insert({
+        user_id: data.user.id,
+        logged_at: new Date().toISOString(),
+      });
+    }
+
     return response;
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
