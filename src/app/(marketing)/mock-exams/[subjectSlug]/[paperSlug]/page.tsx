@@ -1,7 +1,8 @@
 "use client";
 
-// force-redeploy-v22-draw
+// force-redeploy-v23-mock-access
 import { useState, useEffect, useMemo } from "react";
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import StructuredQuestion from "@/components/StructuredQuestion";
@@ -10,6 +11,7 @@ import ReportBugModal from "@/components/ReportBugModal";
 import "katex/dist/katex.min.css";
 import { fixMathNotationUnicode, renderMath } from "@/lib/math";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { createBrowserClient } from "@supabase/ssr";
 
 const supabase = getSupabaseClient();
 
@@ -177,6 +179,51 @@ export default function MockExamPaperPage() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
   const [bugModalOpen, setBugModalOpen] = useState(false);
+  const [hasAccess, setHasAccess] = useState(true); // default true, will be set false by check
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  // Paywall: check auth + purchase before loading paper data
+  useEffect(() => {
+    (async () => {
+      try {
+        const browserSupabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { session } } = await browserSupabase.auth.getSession();
+        if (!session) { setHasAccess(false); setAccessChecked(true); return; }
+
+        const parts = subjectSlug.split("-");
+        const code = parts[parts.length - 1]?.toUpperCase();
+
+        // Get subject_id
+        const { data: subjectRow } = await supabase
+          .from("subjects")
+          .select("id")
+          .eq("code", code)
+          .single();
+
+        const subjectId = subjectRow?.id;
+        if (!subjectId) { setHasAccess(false); setAccessChecked(true); return; }
+
+        // Check purchases
+        const res = await fetch("/api/payment/purchases", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!res.ok) { setHasAccess(false); setAccessChecked(true); return; }
+        const purchaseData = await res.json();
+
+        const purchases = purchaseData.purchases || [];
+        const now = new Date();
+        const access = purchases.some((p: any) =>
+          (!p.subject_id && (!p.expires_at || new Date(p.expires_at) > now)) ||
+          (p.subject_id === subjectId && (!p.expires_at || new Date(p.expires_at) > now))
+        );
+        setHasAccess(access);
+      } catch { setHasAccess(false); }
+      setAccessChecked(true);
+    })();
+  }, [subjectSlug]);
 
   useEffect(() => {
     async function load() {
@@ -251,7 +298,30 @@ export default function MockExamPaperPage() {
     setTimeLeft(0);
   }
 
-  if (loading) {
+  // Show paywall if access denied
+  if (accessChecked && !hasAccess) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">← Back to Home</Link>
+        <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-8 sm:p-12 text-center">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-primary-900 mb-2">Subscribe to Access</h2>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Get full access to mock exams and practice papers
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-primary-700 transition"
+          >
+            View Plans →
+          </Link>
+          <p className="text-xs text-gray-400 mt-4">Starting from ¥50 per subject</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!accessChecked || loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <div className="animate-pulse text-gray-400">Loading...</div>

@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getSupabaseClient } from "@/lib/supabase-client";
 
-// force-redeploy-v2-maths
+// force-redeploy-v3-paywall
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -43,6 +44,75 @@ export default async function MockExamsPage({
       </div>
     );
   }
+
+  // --- Paywall check ---
+  let hasAccess = false;
+  let subjectId: string | null = null;
+  let subjectBoard: string | null = null;
+  try {
+    const serverClient = createClient();
+    // Get subject_id and board from DB
+    const parts = subjectSlug.split("-");
+    const code = parts[parts.length - 1]?.toUpperCase();
+    const { data: subjectRow } = await serverClient
+      .from("subjects")
+      .select("id, exam_boards(slug)")
+      .eq("code", code)
+      .single();
+    subjectId = subjectRow?.id || null;
+    subjectBoard = (subjectRow as any)?.exam_boards?.slug || null;
+
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (user && subjectId) {
+      const { data: purchases } = await serverClient
+        .from("purchases")
+        .select("id, subject_id, status, expires_at")
+        .eq("user_id", user.id)
+        .in("status", ["paid", "trial"]);
+      if (purchases && purchases.length > 0) {
+        const now = new Date();
+        if (purchases.some((p: any) => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
+          hasAccess = true;
+        } else {
+          hasAccess = purchases.some((p: any) =>
+            p.subject_id === subjectId &&
+            (!p.expires_at || new Date(p.expires_at) > now)
+          );
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Paywall check failed:", e);
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+        <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">← Back to Home</Link>
+        <div className="flex items-center gap-4 mt-4">
+          <span className="text-4xl sm:text-5xl">{subject.icon}</span>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">CAIE IGCSE {subject.name}</h1>
+          </div>
+        </div>
+        <div className="mt-8 bg-white rounded-2xl border border-gray-200 p-8 sm:p-12 text-center">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-primary-900 mb-2">Subscribe to Access</h2>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Get full access to mock exams for {subject.name}
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-block bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-primary-700 transition"
+          >
+            View Plans →
+          </Link>
+          <p className="text-xs text-gray-400 mt-4">Starting from ¥50 per subject</p>
+        </div>
+      </div>
+    );
+  }
+  // --- End paywall ---
 
   // Fetch mock exam sets
   const { data: sets } = await supabase

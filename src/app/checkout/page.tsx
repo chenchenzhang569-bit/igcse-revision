@@ -1,4 +1,5 @@
 "use client";
+// force-redeploy-v7-fix-clone
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -75,11 +76,15 @@ function CheckoutContent() {
       if (!res.ok) {
         let errText = "Payment failed";
         try {
-          const errData = await res.json();
-          errText = errData.error || "Payment failed";
+          const bodyText = await res.text();
+          try {
+            const errData = JSON.parse(bodyText);
+            errText = errData.error || "Payment failed";
+          } catch {
+            errText = bodyText.slice(0, 200) || `HTTP ${res.status}`;
+          }
         } catch {
-          const text = await res.clone().text().slice(0, 200);
-          errText = text || `HTTP ${res.status}`;
+          errText = `HTTP ${res.status}`;
         }
         setError(errText);
         setStatus("error");
@@ -115,11 +120,15 @@ function CheckoutContent() {
       if (!res.ok) {
         let errText = "Trial failed";
         try {
-          const err = await res.json();
-          errText = err.error || "Trial failed";
+          const bodyText = await res.text();
+          try {
+            const err = JSON.parse(bodyText);
+            errText = err.error || "Trial failed";
+          } catch {
+            errText = bodyText.slice(0, 200) || `HTTP ${res.status}`;
+          }
         } catch {
-          const text = await res.clone().text();
-          errText = text.slice(0, 200) || `HTTP ${res.status}`;
+          errText = `HTTP ${res.status}`;
         }
         setError(errText);
         setStatus("error");
