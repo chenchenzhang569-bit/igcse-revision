@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 function parseJwt(token: string) {
   try {
     const base64 = token.split(".")[1];
