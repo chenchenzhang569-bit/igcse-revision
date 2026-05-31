@@ -92,10 +92,51 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Get profiles for invite data
+  const { data: profiles } = await admin
+    .from("profiles")
+    .select("id, invite_code, invite_count, invited_by")
+    .in("id", userIds);
+
+  const profileMap: Record<string, any> = {};
+  if (profiles) for (const p of profiles) profileMap[p.id] = p;
+
+  // Count paid invites: for each user, count how many invited users have paid
+  const { data: allInvited } = await admin
+    .from("profiles")
+    .select("id, invited_by")
+    .not("invited_by", "is", null);
+  
+  const invitedMap: Record<string, string[]> = {}; // inviterId -> [invitedId, ...]
+  if (allInvited) {
+    for (const p of allInvited) {
+      if (!invitedMap[p.invited_by]) invitedMap[p.invited_by] = [];
+      invitedMap[p.invited_by].push(p.id);
+    }
+  }
+
+  // Get all purchases for invited users to count paid
+  const allInvitedIds = allInvited?.map((p: any) => p.id) || [];
+  let paidInviteCounts: Record<string, number> = {}; // inviterId -> paidCount
+  if (allInvitedIds.length > 0) {
+    const { data: invitedPurchases } = await admin
+      .from("purchases")
+      .select("user_id")
+      .in("user_id", allInvitedIds)
+      .eq("status", "paid");
+    if (invitedPurchases) {
+      const paidUsers = new Set(invitedPurchases.map((p: any) => p.user_id));
+      for (const [inviterId, invitedIds] of Object.entries(invitedMap)) {
+        paidInviteCounts[inviterId] = invitedIds.filter((id: string) => paidUsers.has(id)).length;
+      }
+    }
+  }
+
   const users = authUsers.users.map((u) => {
     const userPurchases = purchasesByUser[u.id] || [];
     const paidSubjects = userPurchases.filter((p) => p.status === "paid");
     const totalPaid = paidSubjects.reduce((sum: number, p: any) => sum + (p.amount_cny || 0), 0);
+    const profile = profileMap[u.id] || {};
 
     return {
       id: u.id,
@@ -110,6 +151,10 @@ export async function GET(request: NextRequest) {
       })),
       total_paid: totalPaid,
       purchase_count: paidSubjects.length,
+      invite_count: profile.invite_count || 0,
+      paid_invites: paidInviteCounts[u.id] || 0,
+      invite_code: profile.invite_code || "",
+      invited_by: profile.invited_by || null,
     };
   });
 

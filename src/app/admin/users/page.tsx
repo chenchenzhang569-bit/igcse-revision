@@ -18,6 +18,10 @@ interface UserRow {
   paid_subjects: PaidSubject[];
   total_paid: number;
   purchase_count: number;
+  invite_count: number;
+  paid_invites: number;
+  invite_code: string;
+  invited_by: string | null;
 }
 
 interface Purchase {
@@ -352,6 +356,15 @@ export default function AdminUsersPage() {
                   </p>
                   <p className="text-xs text-gray-400">
                     {user.purchase_count} 科
+                  </p>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-semibold text-gray-600">
+                    邀请 {user.invite_count || 0}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    付费 {user.paid_invites || 0}
                   </p>
                 </div>
 
