@@ -255,7 +255,14 @@ export async function GET(request: NextRequest) {
   // Get subject names (needed for mock exam mapping below)
   const { data: subjects } = await admin
     .from("subjects")
-    .select("id, display_name, code");
+    .select("id, display_name, code, exam_board_id");
+
+  // Get exam boards for display
+  const { data: examBoards } = await admin.from("exam_boards").select("id, name");
+  const boardMap: Record<string, string> = {};
+  if (examBoards) {
+    for (const b of examBoards) boardMap[b.id] = b.name;
+  }
 
   // Mock exam questions per subject — resolve via paper→set→subject chain
   if (includeMockExam) {
@@ -288,7 +295,7 @@ export async function GET(request: NextRequest) {
         else if (display.includes("chemistry")) key = "chemistry";
         else if (display.includes("physics")) key = "physics";
         else if (display.includes("economics")) key = "economics";
-        subjectTextToId[key] = sub.id;
+        if (!(key in subjectTextToId)) subjectTextToId[key] = sub.id; // first-match wins (CAIE before Edexcel)
       }
     }
 
@@ -331,7 +338,8 @@ export async function GET(request: NextRequest) {
   const subjectMap: Record<string, string> = {};
   if (subjects) {
     for (const s of subjects) {
-      subjectMap[s.id] = `${s.display_name} ${s.code || ""}`.trim();
+      const board = s.exam_board_id ? boardMap[s.exam_board_id] : null;
+      subjectMap[s.id] = board ? `${board} ${s.display_name} ${s.code || ""}`.trim() : `${s.display_name} ${s.code || ""}`.trim();
     }
   }
 
@@ -370,9 +378,9 @@ export async function GET(request: NextRequest) {
       subjects_with_questions: Object.keys(subjectQCounts).filter(k => subjectMap[k]).length,
     },
     question_distribution: questionDistribution,
-    available_subjects: (subjects || []).map((s: any) => ({
-      id: s.id,
-      name: `${s.display_name} ${s.code || ""}`.trim(),
-    })),
+    available_subjects: (subjects || []).map((s: any) => {
+      const board = s.exam_board_id ? boardMap[s.exam_board_id] : null;
+      return { id: s.id, name: board ? `${board} ${s.display_name} ${s.code || ""}`.trim() : `${s.display_name} ${s.code || ""}`.trim() };
+    }),
   });
 }
