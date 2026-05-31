@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
   }
 
   const canClaim = paidCount >= 3 && !profile.reward_claimed;
-  const inviteLink = `https://igcse.revision/?invite=${inviteCode}`;
+  const inviteLink = `https://igcse-revision-cdgy.vercel.app/?invite=${inviteCode}`;
 
   return NextResponse.json({
     inviteCode,
