@@ -12,6 +12,9 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: strin
   "caie-chemistry-0620": { name: "Chemistry", icon: "🧪", dbSubject: "chemistry" },
   "caie-biology-0610": { name: "Biology", icon: "🧬", dbSubject: "biology" },
   "caie-mathematics-0580": { name: "Mathematics", icon: "📐", dbSubject: "maths" },
+  "caie-computer-science-0478": { name: "Computer Science", icon: "💻", dbSubject: "computer-science" },
+  "caie-economics-0455": { name: "Economics", icon: "📊", dbSubject: "economics" },
+  "caie-additional-mathematics-0606": { name: "Additional Math", icon: "➕", dbSubject: "0606" },
 };
 
 const TIER_COLORS: Record<string, string> = {

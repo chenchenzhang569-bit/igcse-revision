@@ -33,7 +33,8 @@ export default function SubjectsPage() {
       .select("slug, display_name, name, code, icon, price_cny")
       .eq("is_published", true)
       .order("sort_order")
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { console.error("Subjects fetch error:", error); return; }
         if (Array.isArray(data)) {
           setSubjects(
             data.map((s: any) => ({
@@ -48,7 +49,8 @@ export default function SubjectsPage() {
             }))
           );
         }
-      });
+      })
+      .catch((err) => { console.error("Subjects fetch exception:", err); });
   }, []);
 
   const filtered = subjects.filter((s) => s.board === activeBoard);
