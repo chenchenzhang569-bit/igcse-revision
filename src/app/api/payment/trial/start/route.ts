@@ -3,10 +3,12 @@ import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
 
+// force-redeploy-v2-fix-trial
+
 export async function POST(request: NextRequest) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPabase_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { cookies: { getAll() { return request.cookies.getAll(); }, setAll() {} } }
   );
 
