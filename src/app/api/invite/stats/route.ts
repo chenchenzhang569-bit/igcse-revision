@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       .from("purchases")
       .select("user_id")
       .in("user_id", invitedIds)
-      .neq("status", "trial");
+      .eq("status", "paid");
     
     if (purchases) {
       paidCount = new Set(purchases.map((p: any) => p.user_id)).size;
