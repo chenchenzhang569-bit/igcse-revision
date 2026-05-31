@@ -252,6 +252,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Get subject names (needed for mock exam mapping below)
+  const { data: subjects } = await admin
+    .from("subjects")
+    .select("id, display_name, code");
+
   // Mock exam questions per subject — resolve via paper→set→subject chain
   if (includeMockExam) {
     // Build mock exam question subject distribution
@@ -322,11 +327,6 @@ export async function GET(request: NextRequest) {
       mOffset += 1000;
     }
   }
-
-  // Get subject names
-  const { data: subjects } = await admin
-    .from("subjects")
-    .select("id, display_name, code");
 
   const subjectMap: Record<string, string> = {};
   if (subjects) {
