@@ -40,8 +40,9 @@ function InviteContent() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
+        // Only redirect if no invite code — invite guests stay on page
         if (!inviteParam) window.location.href = "/login";
-        else setLoading(false);
+        setLoading(false);
         return;
       }
       setUser(data.session.user);
@@ -109,8 +110,7 @@ function InviteContent() {
     setClaiming(false);
   };
 
-  if (loading) return <div className="text-center py-20 text-gray-400">{t("common", "loading")}</div>;
-
+  // 1. inviteParam first — show banner before anything else
   if (inviteParam && !user) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
@@ -127,8 +127,16 @@ function InviteContent() {
     );
   }
 
+  // 2. Still loading auth session
+  if (loading) return <div className="text-center py-20 text-gray-400">{t("common", "loading")}</div>;
+
+  // 3. No user and no invite code → should have redirected, but guard
+  if (!user) return null;
+
+  // 4. User loaded but stats not yet
   if (!stats) return <div className="text-center py-20 text-red-500">{t("common", "error")}</div>;
 
+  // 5. Full invite dashboard
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold text-primary-900 mb-2">{t("invite", "title")}</h1>
@@ -137,7 +145,7 @@ function InviteContent() {
       <div className="bg-white border rounded-xl p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">
           {stats.isTopInviter && (
-            <span className="text-2xl" title={t("invite", "badgeName")}>🏆</span>
+            <img src="/badge-xueba.png" alt={t("invite", "badgeName")} className="h-10 w-auto" />
           )}
           <div>
             <div className="text-3xl font-bold text-primary-900">{stats.paidCount}<span className="text-lg text-gray-400 font-normal">/3</span></div>
@@ -162,7 +170,7 @@ function InviteContent() {
 
         {stats.rewardClaimed && (
           <div className="mt-4 flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
-            <span className="text-2xl">🏆</span>
+            <img src="/badge-xueba-lg.png" alt={t("invite", "badgeName")} className="h-12 w-auto shrink-0" />
             <div>
               <div className="font-medium text-yellow-800">{t("invite", "badgeName")}</div>
               <div className="text-xs text-yellow-600">{t("invite", "badgeDesc")}</div>
