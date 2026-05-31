@@ -22,19 +22,27 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
   const [subject, setSubject] = useState("");
   const [type, setType] = useState("all");
   const [showFilter, setShowFilter] = useState(true);
+  const [fetching, setFetching] = useState(false);
+  const [fetchUrl, setFetchUrl] = useState("");
 
   useEffect(() => {
     if (!token) return;
+    setFetching(true);
+    setFetchUrl("");
     const params = new URLSearchParams();
     if (subject) params.set("subject_id", subject);
     if (type !== "all") params.set("type", type);
     const qs = params.toString();
-    fetch(`/api/admin/dashboard${qs ? "?" + qs : ""}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
+    const url = `/api/admin/dashboard${qs ? "?" + qs : ""}`;
+    setFetchUrl(url);
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (r) => {
+        if (!r.ok) { throw new Error(`HTTP ${r.status}`); }
+        return r.json();
+      })
       .then(setData)
-      .catch((e) => console.error("QuestionDistWidget fetch error:", e));
+      .catch((e) => console.error("QDistWidget fetch error:", url, e))
+      .finally(() => setFetching(false));
   }, [token, subject, type]);
 
   const fmt = (n: number) => n.toLocaleString();
@@ -87,8 +95,10 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
           )}
 
           {/* Data display */}
-          {!data ? (
+          {fetching ? (
             <div className="text-center text-gray-400 text-sm py-4">加载中...</div>
+          ) : !data ? (
+            <div className="text-center text-gray-400 text-sm py-4">无数据{fetchUrl && ` (${fetchUrl})`}</div>
           ) : view === "pie" ? (
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
