@@ -261,6 +261,7 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.count - a.count);
 
   return NextResponse.json({
+    _debug: { filterType, filterSubjectId, totalQuestions, totalMockQuestions, includeQ, includeMock },
     traffic: { dau, mau: mau || 0, today_signups: todaySignups, week_signups: weekSignups },
     users: { total: totalUsers, paid: paidUsers.size, trial_active: activeTrials,
       week_new_paid: Object.values(paidCounts).filter(c => c >= 1).length },
