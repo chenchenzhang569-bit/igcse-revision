@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
 
-// force-redeploy-v2-fix-trial
+// force-redeploy-v3-fix-trial
 
 export async function POST(request: NextRequest) {
   const supabase = createServerClient(
