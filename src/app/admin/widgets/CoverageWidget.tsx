@@ -25,17 +25,6 @@ interface Props {
   onToggle?: () => void;
 }
 
-const COV_KEYS: { key: keyof CoverageData; label: string; icon: string }[] = [
-  { key: "notes", label: "笔记", icon: "📓" },
-  { key: "practice", label: "练习", icon: "✏️" },
-  { key: "practiceAnswers", label: "练习答案", icon: "✅" },
-  { key: "mcq", label: "MCQ", icon: "❓" },
-  { key: "mcqAnswers", label: "MCQ答案", icon: "🔑" },
-  { key: "examQp", label: "真题QP", icon: "📄" },
-  { key: "examMs", label: "真题MS", icon: "📋" },
-  { key: "missingMs", label: "缺MS", icon: "❌" },
-];
-
 export default function CoverageWidget({ token, onToggle }: Props) {
   const [data, setData] = useState<CoverageResponse | null>(null);
   const [subject, setSubject] = useState("");
@@ -75,7 +64,6 @@ export default function CoverageWidget({ token, onToggle }: Props) {
       widgetId="coverage" onToggle={onToggle}>
       {(view) => (
         <div>
-          {/* Subject filter */}
           <div className="mb-3">
             <select
               value={subject}
@@ -92,14 +80,17 @@ export default function CoverageWidget({ token, onToggle }: Props) {
           {view === "table" ? (
             <table className="w-full text-xs">
               <thead>
-                <tr className="text-left text-gray-400">
+                <tr className="text-left text-gray-400 border-b">
                   <th className="py-1 pr-2">科目</th>
-                  <th className="py-1 px-1 text-center" title="总Subtopics">📚</th>
-                  {COV_KEYS.map((k) => (
-                    <th key={k.key} className="py-1 px-1 text-center" title={k.label}>
-                      {k.icon}
-                    </th>
-                  ))}
+                  <th className="py-1 px-1 text-center">📚</th>
+                  <th className="py-1 px-1 text-center">📓笔记</th>
+                  <th className="py-1 px-1 text-center">✏️练习</th>
+                  <th className="py-1 px-1 text-center">✅答案</th>
+                  <th className="py-1 px-1 text-center">❓MCQ</th>
+                  <th className="py-1 px-1 text-center">🔑MCQ答</th>
+                  <th className="py-1 px-1 text-center">📄QP</th>
+                  <th className="py-1 px-1 text-center">📋MS</th>
+                  <th className="py-1 px-1 text-center">❌缺MS</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,75 +98,58 @@ export default function CoverageWidget({ token, onToggle }: Props) {
                   const c = data.coverage[sid];
                   const subj = data.subjects.find((s) => s.id === sid);
                   if (!c) return null;
-                  const subtopics = c.subtopics || 1;
                   return (
-                    <tr key={sid} className="border-t">
-                      <td className="py-1.5 pr-2 truncate max-w-[150px]">
-                        {subj?.name || sid.slice(0, 8)}
-                      </td>
+                    <tr key={sid} className="border-t hover:bg-gray-50">
+                      <td className="py-1.5 pr-2 truncate max-w-[130px] text-gray-600">{subj?.name?.split(" ").slice(0,2).join(" ") || sid.slice(0,8)}</td>
                       <td className="text-center font-semibold">{c.subtopics}</td>
-                      {COV_KEYS.map((k) => {
-                        const val = c[k.key];
-                        const pct = Math.round((val / subtopics) * 100);
-                        const isMissing = k.key === "missingMs";
-                        const color = isMissing
-                          ? val > 0 ? "text-red-500" : "text-green-500"
-                          : val > 0 ? "text-primary-900" : "text-gray-300";
-                        return (
-                          <td key={k.key} className={`text-center font-semibold ${color}`}>
-                            {isMissing ? val : `${val}`}
-                          </td>
-                        );
-                      })}
+                      <td className={`text-center font-semibold ${c.notes>0?"text-primary-900":"text-gray-300"}`}>{c.notes}</td>
+                      <td className={`text-center font-semibold ${c.practice>0?"text-primary-900":"text-gray-300"}`}>{c.practice}</td>
+                      <td className={`text-center font-semibold ${c.practiceAnswers>0?"text-primary-900":"text-gray-300"}`}>{c.practiceAnswers}</td>
+                      <td className={`text-center font-semibold ${c.mcq>0?"text-primary-900":"text-gray-300"}`}>{c.mcq}</td>
+                      <td className={`text-center font-semibold ${c.mcqAnswers>0?"text-primary-900":"text-gray-300"}`}>{c.mcqAnswers}</td>
+                      <td className="text-center font-semibold">{fmt(c.examQp)}</td>
+                      <td className="text-center font-semibold">{fmt(c.examMs)}</td>
+                      <td className={`text-center font-semibold ${c.missingMs>0?"text-red-500":"text-gray-300"}`}>{c.missingMs}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {subjectIds.map((sid) => {
                 const c = data.coverage[sid];
                 const subj = data.subjects.find((s) => s.id === sid);
                 if (!c) return null;
-                const subtopics = c.subtopics || 1;
+                const s = c.subtopics || 1;
                 return (
                   <div key={sid}>
-                    {!subject && (
-                      <p className="text-sm font-semibold text-gray-700 mb-2">
-                        {subj?.name || sid.slice(0, 8)}
-                      </p>
-                    )}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {COV_KEYS.map((k) => {
-                        const val = c[k.key];
-                        const isMissing = k.key === "missingMs";
-                        if (isMissing) {
-                          return (
-                            <div key={k.key} className={`text-center p-2 rounded-lg border ${val > 0 ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}>
-                              <div className={`text-lg font-bold ${val > 0 ? "text-red-500" : "text-green-500"}`}>
-                                {val > 0 ? `-${val}` : "0"}
-                              </div>
-                              <div className="text-xs text-gray-400">{k.icon} {k.label}</div>
-                            </div>
-                          );
-                        }
-                        const pct = Math.round((val / subtopics) * 100);
-                        const hasSub = k.key === "examQp" || k.key === "examMs";
-                        return (
-                          <div key={k.key} className={`text-center p-2 rounded-lg border ${val > 0 ? (hasSub ? "bg-orange-50 border-orange-200" : "bg-blue-50 border-blue-200") : "bg-gray-50 border-gray-100"}`}>
-                            <div className={`text-lg font-bold ${val > 0 ? "text-primary-900" : "text-gray-300"}`}>
-                              {hasSub ? val : `${val}/${subtopics}`}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {k.icon} {k.label}
-                              {!hasSub && subtopics > 0 && (
-                                <span className="ml-1 text-gray-300">({pct}%)</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <p className="text-xs font-semibold text-gray-500 mb-1.5">{subj?.name || sid.slice(0,8)}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.notes>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
+                        📓{c.notes}/{s}({Math.round(c.notes/s*100)}%)
+                      </span>
+                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.practice>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
+                        ✏️{c.practice}/{s}({Math.round(c.practice/s*100)}%)
+                      </span>
+                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.practiceAnswers>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
+                        ✅{c.practiceAnswers}/{s}({Math.round(c.practiceAnswers/s*100)}%)
+                      </span>
+                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.mcq>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
+                        ❓{c.mcq}/{s}({Math.round(c.mcq/s*100)}%)
+                      </span>
+                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.mcqAnswers>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
+                        🔑{c.mcqAnswers}/{s}({Math.round(c.mcqAnswers/s*100)}%)
+                      </span>
+                      <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                        📄{fmt(c.examQp)}
+                      </span>
+                      <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                        📋{fmt(c.examMs)}
+                      </span>
+                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.missingMs>0?"bg-red-100 text-red-600":"bg-gray-100 text-gray-300"}`}>
+                        ❌{c.missingMs>0?`-${c.missingMs}`:0}
+                      </span>
                     </div>
                   </div>
                 );
