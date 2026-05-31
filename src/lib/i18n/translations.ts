@@ -215,6 +215,7 @@ export const en: Record<string, Record<string, string>> = {
     heroFeat4: "Expert Mock Exams",
     heroFeat5: "Past Papers & Mark Schemes",
     heroDesc: "A complete revision ecosystem designed to help students master concepts, close knowledge gaps, and achieve their best IGCSE results.",
+    ctaSignup: "Sign Up Now",
     ctaStart: "Start Free Trial",
     ctaBrowse: "Browse Subjects",
     exploreCAIE: "Explore CAIE Subjects →",
