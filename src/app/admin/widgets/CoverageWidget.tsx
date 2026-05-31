@@ -43,8 +43,6 @@ export default function CoverageWidget({ token, onToggle }: Props) {
       .finally(() => setLoading(false));
   }, [token, subject]);
 
-  const fmt = (n: number) => n.toLocaleString();
-
   if (loading || !data) {
     return (
       <WidgetCard title="🧩 题库覆盖" defaultView="card" widgetId="coverage" onToggle={onToggle}>
@@ -60,9 +58,8 @@ export default function CoverageWidget({ token, onToggle }: Props) {
       );
 
   return (
-    <WidgetCard title="🧩 题库覆盖" defaultView="card" views={["card", "table"]}
-      widgetId="coverage" onToggle={onToggle}>
-      {(view) => (
+    <WidgetCard title="🧩 题库覆盖" defaultView="card" widgetId="coverage" onToggle={onToggle}>
+      {() => (
         <div>
           <div className="mb-3">
             <select
@@ -77,85 +74,39 @@ export default function CoverageWidget({ token, onToggle }: Props) {
             </select>
           </div>
 
-          {view === "table" ? (
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="text-left text-gray-400 border-b">
-                  <th className="py-1 pr-2">科目</th>
-                  <th className="py-1 px-1 text-center">📚</th>
-                  <th className="py-1 px-1 text-center">📓笔记</th>
-                  <th className="py-1 px-1 text-center">✏️练习</th>
-                  <th className="py-1 px-1 text-center">✅答案</th>
-                  <th className="py-1 px-1 text-center">❓MCQ</th>
-                  <th className="py-1 px-1 text-center">🔑MCQ答</th>
-                  <th className="py-1 px-1 text-center">📄QP</th>
-                  <th className="py-1 px-1 text-center">📋MS</th>
-                  <th className="py-1 px-1 text-center">❌缺MS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subjectIds.map((sid) => {
-                  const c = data.coverage[sid];
-                  const subj = data.subjects.find((s) => s.id === sid);
-                  if (!c) return null;
-                  return (
-                    <tr key={sid} className="border-t hover:bg-gray-50">
-                      <td className="py-1.5 pr-2 truncate max-w-[130px] text-gray-600">{subj?.name?.split(" ").slice(0,2).join(" ") || sid.slice(0,8)}</td>
-                      <td className="text-center font-semibold">{c.subtopics}</td>
-                      <td className={`text-center font-semibold ${c.notes>0?"text-primary-900":"text-gray-300"}`}>{c.notes}</td>
-                      <td className={`text-center font-semibold ${c.practice>0?"text-primary-900":"text-gray-300"}`}>{c.practice}</td>
-                      <td className={`text-center font-semibold ${c.practiceAnswers>0?"text-primary-900":"text-gray-300"}`}>{c.practiceAnswers}</td>
-                      <td className={`text-center font-semibold ${c.mcq>0?"text-primary-900":"text-gray-300"}`}>{c.mcq}</td>
-                      <td className={`text-center font-semibold ${c.mcqAnswers>0?"text-primary-900":"text-gray-300"}`}>{c.mcqAnswers}</td>
-                      <td className="text-center font-semibold">{fmt(c.examQp)}</td>
-                      <td className="text-center font-semibold">{fmt(c.examMs)}</td>
-                      <td className={`text-center font-semibold ${c.missingMs>0?"text-red-500":"text-gray-300"}`}>{c.missingMs}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : (
-            <div className="space-y-3">
-              {subjectIds.map((sid) => {
-                const c = data.coverage[sid];
-                const subj = data.subjects.find((s) => s.id === sid);
-                if (!c) return null;
-                const s = c.subtopics || 1;
-                return (
-                  <div key={sid}>
-                    <p className="text-xs font-semibold text-gray-500 mb-1.5">{subj?.name || sid.slice(0,8)}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.notes>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
-                        📓{c.notes}/{s}({Math.round(c.notes/s*100)}%)
-                      </span>
-                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.practice>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
-                        ✏️{c.practice}/{s}({Math.round(c.practice/s*100)}%)
-                      </span>
-                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.practiceAnswers>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
-                        ✅{c.practiceAnswers}/{s}({Math.round(c.practiceAnswers/s*100)}%)
-                      </span>
-                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.mcq>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
-                        ❓{c.mcq}/{s}({Math.round(c.mcq/s*100)}%)
-                      </span>
-                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.mcqAnswers>0?"bg-blue-100 text-primary-900":"bg-gray-100 text-gray-300"}`}>
-                        🔑{c.mcqAnswers}/{s}({Math.round(c.mcqAnswers/s*100)}%)
-                      </span>
-                      <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                        📄{fmt(c.examQp)}
-                      </span>
-                      <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                        📋{fmt(c.examMs)}
-                      </span>
-                      <span className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${c.missingMs>0?"bg-red-100 text-red-600":"bg-gray-100 text-gray-300"}`}>
-                        ❌{c.missingMs>0?`-${c.missingMs}`:0}
-                      </span>
-                    </div>
+          <div className="space-y-3">
+            {subjectIds.map((sid) => {
+              const c = data.coverage[sid];
+              const subj = data.subjects.find((s) => s.id === sid);
+              if (!c) return null;
+              const s = c.subtopics || 1;
+
+              const rows: { icon: string; label: string; display: string; color: string }[] = [
+                { icon: "📓", label: "笔记", display: `${c.notes}/${s} (${Math.round(c.notes/s*100)}%)`, color: c.notes > 0 ? "text-primary-900" : "text-gray-300" },
+                { icon: "✏️", label: "练习", display: `${c.practice}/${s} (${Math.round(c.practice/s*100)}%)`, color: c.practice > 0 ? "text-primary-900" : "text-gray-300" },
+                { icon: "✅", label: "练习答案", display: `${c.practiceAnswers}/${s} (${Math.round(c.practiceAnswers/s*100)}%)`, color: c.practiceAnswers > 0 ? "text-primary-900" : "text-gray-300" },
+                { icon: "❓", label: "MCQ", display: `${c.mcq}/${s} (${Math.round(c.mcq/s*100)}%)`, color: c.mcq > 0 ? "text-primary-900" : "text-gray-300" },
+                { icon: "🔑", label: "MCQ答案", display: `${c.mcqAnswers}/${s} (${Math.round(c.mcqAnswers/s*100)}%)`, color: c.mcqAnswers > 0 ? "text-primary-900" : "text-gray-300" },
+                { icon: "📄", label: "真题 QP", display: `${c.examQp}`, color: "text-orange-600" },
+                { icon: "📋", label: "真题 MS", display: `${c.examMs}`, color: "text-orange-600" },
+                { icon: "❌", label: "缺MS", display: `${c.missingMs > 0 ? `-${c.missingMs}` : "0"}`, color: c.missingMs > 0 ? "text-red-500" : "text-gray-300" },
+              ];
+
+              return (
+                <div key={sid}>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">{subj?.name || sid.slice(0, 8)}</p>
+                  <div className="space-y-0.5">
+                    {rows.map((r) => (
+                      <div key={r.label} className="flex items-center gap-2">
+                        <span className="w-16 text-xs text-gray-400 shrink-0">{r.icon} {r.label}</span>
+                        <span className={`text-xs font-medium ${r.color}`}>{r.display}</span>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </WidgetCard>
