@@ -11,6 +11,9 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; slug: string }> 
   chemistry: { name: "Chemistry (0620)", icon: "🧪", slug: "caie-chemistry-0620" },
   biology: { name: "Biology (0610)", icon: "🧬", slug: "caie-biology-0610" },
   maths: { name: "Mathematics (0580)", icon: "📐", slug: "caie-mathematics-0580" },
+  "computer-science": { name: "Computer Science (0478)", icon: "💻", slug: "caie-computer-science-0478" },
+  economics: { name: "Economics (0455)", icon: "📊", slug: "caie-economics-0455" },
+  "0606": { name: "Additional Mathematics (0606)", icon: "➕", slug: "caie-additional-mathematics-0606" },
 };
 
 export default async function MockExamsIndexPage() {
