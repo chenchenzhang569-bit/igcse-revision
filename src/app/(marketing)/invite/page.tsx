@@ -144,9 +144,6 @@ function InviteContent() {
 
       <div className="bg-white border rounded-xl p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">
-          {stats.isTopInviter && (
-            <img src="/badge-xueba.png" alt={t("invite", "badgeName")} className="h-10 w-auto" />
-          )}
           <div>
             <div className="text-3xl font-bold text-primary-900">{stats.paidCount}<span className="text-lg text-gray-400 font-normal">/3</span></div>
             <div className="text-sm text-gray-500">{t("invite", "paidCount")}</div>
