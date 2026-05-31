@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
+export const dynamic = "force-dynamic";
 import { createBrowserClient } from "@supabase/ssr";
 import { useT } from "@/lib/i18n/LanguageContext";
 
