@@ -22,7 +22,7 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-5 h-[60px] flex items-center justify-between">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-5 h-[72px] flex items-center justify-between">
         <Link href="/" className="flex items-center shrink-0">
           <Image
             src="/logo.png"
@@ -157,8 +157,11 @@ function Footer() {
     <footer className="bg-primary-900 text-white py-8 sm:py-10 text-center px-4">
       <p className="font-poppins text-xl sm:text-2xl font-bold mb-2">IGMaster</p>
       <p className="text-white/60 mb-5 text-sm">{t("home", "heroSub")}</p>
-      <p className="text-xs text-white/40">
-        &copy; 2026 IGMaster. {t("footer", "copyright")}.
+      <p className="text-xs text-white/40 space-x-3">
+        <span>&copy; 2026 IGMaster. {t("footer", "copyright")}.</span>
+        <a href="mailto:beryl_zhong@hotmail.com" className="hover:text-white/70 transition">{t("footer", "contact")}</a>
+        <span>·</span>
+        <a href="/disclaimer" className="hover:text-white/70 transition">{t("footer", "disclaimer")}</a>
       </p>
     </footer>
   );
