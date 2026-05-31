@@ -9,7 +9,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import WidgetCard from "./widgets/WidgetCard";
 import QuestionDistWidget from "./widgets/QuestionDistWidget";
-import CoverageWidget from "./widgets/CoverageWidget";
+import SubjectQAWidget from "./widgets/SubjectQAWidget";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -23,7 +23,6 @@ type DashboardData = {
   revenue: { total: number; week: number };
   invites: { total: number; paid: number; conversion: number };
   sources: Record<string, number>;
-  db_quality: { total_questions: number; missing_answers: number; mock_papers: number; notes: number; subjects_with_questions: number };
   question_distribution: { name: string; count: number }[];
   available_subjects: { id: string; name: string }[];
 };
@@ -31,7 +30,7 @@ type DashboardData = {
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
 const ORDER_STORAGE_KEY = "admin_widget_order";
 
-const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "funnel", "dau", "signups", "sources", "questions", "coverage"];
+const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "funnel", "dau", "signups", "sources", "questions", "qa"];
 
 function loadOrder(): string[] {
   try { const v = localStorage.getItem(ORDER_STORAGE_KEY); return v ? JSON.parse(v) : DEFAULT_ORDER; } catch { return DEFAULT_ORDER; }
@@ -231,7 +230,7 @@ export default function AdminDashboardPage() {
         </WidgetCard>
       );
       case "questions": return <QuestionDistWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("questions")} />;
-      case "coverage": return <CoverageWidget token={token} onToggle={() => toggleWidget("coverage")} />;
+      case "qa": return <SubjectQAWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("qa")} />;
       default: return null;
     }
   };

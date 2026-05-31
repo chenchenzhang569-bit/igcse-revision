@@ -47,8 +47,8 @@ const DIMS = [
 ] as const;
 
 const PP_DIMS = [
-  { key: "past_paper_qp", label: "真题(QP)", icon: "📄" },
-  { key: "past_paper_ms", label: "真题(MS)", icon: "📋" },
+  { key: "past_paper_qp", label: "真题 QP", icon: "📄" },
+  { key: "past_paper_ms", label: "真题 MS", icon: "📋" },
 ] as const;
 
 export default function SubjectQAWidget({ token, availableSubjects, onToggle }: Props) {
@@ -101,8 +101,8 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
     // Subject selected: show dimension breakdown
     distribution = [
       ...DIMS.map(d => ({ name: d.label, count: coverage![d.key as keyof SubjectCoverage] as DimInfo ? (coverage![d.key as keyof SubjectCoverage] as DimInfo).has : 0 })),
-      { name: "真题QP", count: coverage.past_paper_qp },
-      { name: "真题MS", count: coverage.past_paper_ms },
+      { name: "真题 QP", count: coverage.past_paper_qp },
+      { name: "真题 MS", count: coverage.past_paper_ms },
     ].filter(d => d.count > 0);
   } else if (dimKey !== "all" && !subject) {
     // Dimension selected, no subject: show by subject
@@ -155,7 +155,7 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <select value={subject} onChange={(e) => { setSubject(e.target.value); setExpandedDim(null); }}
                 className="text-xs border rounded px-2 py-1 bg-white text-gray-600">
-                <option value="">📚 全部科目</option>
+                <option value="">📚 全部科目（共 {availableSubjects.length} 科）</option>
                 {availableSubjects.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -259,18 +259,14 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
                     })}
                   </div>
                   {/* Past paper stats */}
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                     <div className="text-center p-2 bg-blue-50 rounded-lg">
                       <div className="font-bold">{fmt(coverage.past_paper_qp)}</div>
-                      <div className="text-gray-400">真题(QP)</div>
+                      <div className="text-gray-400">真题 QP</div>
                     </div>
                     <div className="text-center p-2 bg-blue-50 rounded-lg">
                       <div className="font-bold">{fmt(coverage.past_paper_ms)}</div>
-                      <div className="text-gray-400">真题(MS)</div>
-                    </div>
-                    <div className="text-center p-2 bg-red-50 rounded-lg">
-                      <div className="font-bold text-red-500">{fmt(coverage.past_paper_missing_ms)}</div>
-                      <div className="text-gray-400">缺MS</div>
+                      <div className="text-gray-400">真题 MS</div>
                     </div>
                   </div>
                 </div>
