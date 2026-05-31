@@ -182,21 +182,21 @@ export async function GET(request: NextRequest) {
   const includeQ = filterType === "all" || filterType === "questions" || filterType === "mcq";
   const includeMock = filterType === "all" || filterType === "mock_exam";
 
-  const buildQFilter = () => {
+  const buildQFilter = (excludeMcq: boolean = false) => {
     let q = admin.from("questions");
     if (filterSubjectId) q = q.eq("subject_id", filterSubjectId);
     if (filterType === "mcq") q = q.eq("question_type", "mcq");
+    if (excludeMcq) q = q.neq("question_type", "mcq");
     return q;
   };
 
   let totalQuestions = 0, totalMockQuestions = 0, missingAnswersCount = 0;
 
   if (includeQ) {
-    const { count: qCount } = await buildQFilter().select("*", { count: "exact", head: true });
+    const { count: qCount } = await buildQFilter(filterType === "questions").select("*", { count: "exact", head: true });
     totalQuestions = qCount || 0;
-    const { count: mCount } = await buildQFilter()
+    const { count: mCount } = await buildQFilter(filterType === "questions")
       .select("id", { count: "exact", head: true })
-      .neq("question_type", "mcq")
       .is("clean_answer_text", null);
     missingAnswersCount = mCount || 0;
   }
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
   if (includeQ) {
     let offset = 0;
     while (true) {
-      const { data: page } = await buildQFilter()
+      const { data: page } = await buildQFilter(filterType === "questions")
         .select("subject_id").range(offset, offset + 999);
       if (!page?.length) break;
       for (const q of page) subjectQCounts[q.subject_id] = (subjectQCounts[q.subject_id] || 0) + 1;
