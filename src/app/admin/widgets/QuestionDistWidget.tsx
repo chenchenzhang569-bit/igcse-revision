@@ -22,7 +22,6 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
   const [subject, setSubject] = useState("");
   const [type, setType] = useState("all");
   const [showFilter, setShowFilter] = useState(true);
-  const [view, setView] = useState<"card" | "pie" | "table">("card");
 
   useEffect(() => {
     if (!token) return;
@@ -41,8 +40,9 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
   const fmt = (n: number) => n.toLocaleString();
 
   return (
-    <WidgetCard title="🗂️ 题目分布" defaultView="card" views={["card", "pie", "table"]} widgetId="questions" onToggle={onToggle ? () => onToggle() : undefined}>
-      {() => (
+    <WidgetCard title="🗂️ 题目分布" defaultView="card" views={["card", "pie", "table"]}
+      widgetId="questions" onToggle={onToggle ? () => onToggle() : undefined}>
+      {(view) => (
         <div>
           {/* Filter toggle */}
           <div className="flex justify-end mb-2">

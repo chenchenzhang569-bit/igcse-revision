@@ -189,10 +189,39 @@ export async function GET(request: NextRequest) {
   }
 
   if (includeMockExam) {
-    let q = admin.from("mock_exam_questions");
-    if (filterSubjectId) q = q.eq("subject_id", filterSubjectId) as any;
-    const { count: mCount } = await q.select("*", { count: "exact", head: true });
-    totalMockExamQuestions = mCount || 0;
+    let mockQ = admin.from("mock_exam_questions");
+    if (filterSubjectId) {
+      // mock_exam_questions has no subject_id — resolve via sets table
+      const { data: matchedSubject } = await admin.from("subjects").select("display_name, code").eq("id", filterSubjectId).maybeSingle();
+      if (matchedSubject) {
+        // Map subject to mock_exam_sets.subject text
+        const code = matchedSubject.code || "";
+        const display = matchedSubject.display_name?.toLowerCase() || "";
+        let setSubject = display;
+        if (display.includes("mathematics")) setSubject = "maths";
+        else if (display.includes("computer")) setSubject = "computer-science";
+        else if (display.includes("additional")) setSubject = code; // "0606"
+        // Get set_ids
+        const { data: matchedSets } = await admin.from("mock_exam_sets").select("id").eq("subject", setSubject);
+        if (matchedSets?.length) {
+          const setIds = matchedSets.map((s: any) => s.id);
+          // Get paper_ids
+          const { data: matchedPapers } = await admin.from("mock_exam_papers").select("id").in("set_id", setIds);
+          if (matchedPapers?.length) {
+            const paperIds = matchedPapers.map((p: any) => p.id);
+            mockQ = mockQ.in("paper_id", paperIds);
+          } else {
+            totalMockExamQuestions = 0;
+          }
+        } else {
+          totalMockExamQuestions = 0;
+        }
+      }
+    }
+    if (totalMockExamQuestions === 0) {
+      const { count: mCount } = await mockQ.select("*", { count: "exact", head: true });
+      totalMockExamQuestions = mCount || 0;
+    }
   }
 
   const { count: mockPapers } = await admin
@@ -223,24 +252,74 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Mock exam questions per subject — paginate too
+  // Mock exam questions per subject — resolve via paper→set→subject chain
   if (includeMockExam) {
-    const allMockQBySubject: any[] = [];
+    // Build mock exam question subject distribution
+    // First, get all paper→set mappings
+    const { data: allPapers } = await admin.from("mock_exam_papers").select("id, set_id");
+    const paperToSet: Record<string, string> = {};
+    const setIds = new Set<string>();
+    if (allPapers) {
+      for (const p of allPapers) { paperToSet[p.id] = p.set_id; setIds.add(p.set_id); }
+    }
+
+    // Get set→subject mappings (subject is a text field like "biology", "chemistry")
+    const { data: allSets } = await admin.from("mock_exam_sets").select("id, subject");
+    const setToSubjectText: Record<string, string> = {};
+    if (allSets) {
+      for (const s of allSets) { setToSubjectText[s.id] = s.subject; }
+    }
+
+    // Map set subject text to subject_id
+    const subjectTextToId: Record<string, string> = {};
+    if (subjects) {
+      for (const sub of subjects) {
+        const display = sub.display_name?.toLowerCase() || "";
+        let key = display;
+        if (display.includes("mathematics")) key = "maths";
+        else if (display.includes("computer")) key = "computer-science";
+        else if (display.includes("additional")) key = sub.code || "";
+        else if (display.includes("biology")) key = "biology";
+        else if (display.includes("chemistry")) key = "chemistry";
+        else if (display.includes("physics")) key = "physics";
+        else if (display.includes("economics")) key = "economics";
+        subjectTextToId[key] = sub.id;
+      }
+    }
+
+    // Now paginate mock_exam_questions
     let mOffset = 0;
     while (true) {
-      let q = admin.from("mock_exam_questions");
-      if (filterSubjectId) q = q.eq("subject_id", filterSubjectId) as any;
-      const { data: page } = await q
-        .select("subject_id")
-        .range(mOffset, mOffset + 999);
+      let q = admin.from("mock_exam_questions").select("paper_id");
+      if (filterSubjectId) {
+        // Already filtered by paper_id in the count query above — reuse same filter
+        // Build paper IDs from matched sets
+        const { data: matchedSubject } = await admin.from("subjects").select("display_name, code").eq("id", filterSubjectId).maybeSingle();
+        if (matchedSubject) {
+          const code = matchedSubject.code || "";
+          const display = matchedSubject.display_name?.toLowerCase() || "";
+          let setSubject = display;
+          if (display.includes("mathematics")) setSubject = "maths";
+          else if (display.includes("computer")) setSubject = "computer-science";
+          else if (display.includes("additional")) setSubject = code;
+          const { data: msets } = await admin.from("mock_exam_sets").select("id").eq("subject", setSubject);
+          if (msets?.length) {
+            const sids = msets.map((s: any) => s.id);
+            const { data: mpapers } = await admin.from("mock_exam_papers").select("id").in("set_id", sids);
+            if (mpapers?.length) q = q.in("paper_id", mpapers.map((p: any) => p.id));
+          }
+        }
+      }
+      const { data: page } = await q.range(mOffset, mOffset + 999);
       if (!page || page.length === 0) break;
-      allMockQBySubject.push(...page);
+      for (const mq of page) {
+        const sid = paperToSet[mq.paper_id];
+        const subjText = sid ? setToSubjectText[sid] : null;
+        const subjId = subjText ? subjectTextToId[subjText] : null;
+        if (subjId) subjectQCounts[subjId] = (subjectQCounts[subjId] || 0) + 1;
+      }
       if (page.length < 1000) break;
       mOffset += 1000;
-    }
-    for (const q of allMockQBySubject) {
-      const sid = q.subject_id;
-      subjectQCounts[sid] = (subjectQCounts[sid] || 0) + 1;
     }
   }
 
