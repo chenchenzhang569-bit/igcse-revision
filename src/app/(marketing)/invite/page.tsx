@@ -16,7 +16,7 @@ type Stats = {
   isTopInviter: boolean;
 };
 
-type Subject = { id: string; display_name: string; slug: string };
+type Subject = { id: string; display_name: string; slug: string; code: string; board_name: string };
 
 function InviteContent() {
   const t = useT();
@@ -209,7 +209,7 @@ function InviteContent() {
           >
             <option value="">{t("invite", "selectSubject")}</option>
             {subjects.map((s) => (
-              <option key={s.id} value={s.id}>{s.display_name}</option>
+              <option key={s.id} value={s.id}>{s.board_name} {s.display_name} ({s.code})</option>
             ))}
           </select>
 
