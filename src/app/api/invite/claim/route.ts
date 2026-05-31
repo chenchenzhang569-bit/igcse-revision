@@ -18,8 +18,15 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Service-key client for profile/purchase queries
+  const admin = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { getAll() { return []; }, setAll() {} } }
+  );
+
   // Get profile
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from("profiles")
     .select("invite_count, reward_claimed, reward_subject")
     .eq("id", user.id)
@@ -28,7 +35,7 @@ export async function POST(request: NextRequest) {
   if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
   // Re-count paid invites
-  const { data: invited } = await supabase
+  const { data: invited } = await admin
     .from("profiles")
     .select("id")
     .eq("invited_by", user.id);
@@ -36,11 +43,11 @@ export async function POST(request: NextRequest) {
   let paidCount = 0;
   if (invited && invited.length > 0) {
     const invitedIds = invited.map((p: any) => p.id);
-    const { data: purchases } = await supabase
+    const { data: purchases } = await admin
       .from("purchases")
       .select("user_id")
       .in("user_id", invitedIds)
-      .neq("status", "trial");
+      .eq("status", "paid");
     if (purchases) paidCount = new Set(purchases.map((p: any) => p.user_id)).size;
   }
 
@@ -60,7 +67,7 @@ export async function POST(request: NextRequest) {
   const expiresAt = new Date();
   expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-  const { error: purchaseErr } = await supabase.from("purchases").insert({
+  const { error: purchaseErr } = await admin.from("purchases").insert({
     user_id: user.id,
     subject_id: subjectId,
     amount_cny: 0,
@@ -73,7 +80,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Mark reward as claimed
-  await supabase.from("profiles").update({
+  await admin.from("profiles").update({
     reward_claimed: true,
     reward_subject: subjectId,
   }).eq("id", user.id);
