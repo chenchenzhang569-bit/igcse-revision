@@ -35,7 +35,7 @@ function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-5">
+        <nav className="hidden lg:flex items-center gap-8">
           {navKeys.map((link) => (
             <Link
               key={link.key}

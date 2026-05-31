@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const inviteCode = searchParams.get("code") || "";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +34,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, inviteCode }),
         signal: AbortSignal.timeout(15000),
       });
 
