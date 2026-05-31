@@ -159,6 +159,7 @@ export function MockExamsTab({
                 {Object.entries(csGroups).sort(([a], [b]) => Number(a) - Number(b)).map(([gKey, gSets]) => {
                   const label = csLabels[Number(gKey)] || `Group ${gKey}`;
                   const allPapers = gSets.flatMap(s => s.papers);
+                  const totalQs = allPapers.reduce((sum, p) => sum + p.questionCount, 0);
                   return (
                     <div key={gKey} className="bg-white border rounded-xl overflow-hidden">
                       <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
@@ -166,34 +167,43 @@ export function MockExamsTab({
                           <span className="text-lg font-bold text-gray-800">{label}</span>
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 border-blue-200 text-blue-700">Core</span>
                         </div>
+                        <span className="text-sm text-gray-400">{totalQs} questions</span>
                       </div>
                       <div className="divide-y">
                         {allPapers.map((paper) => (
-                          <div key={paper.id} className="flex items-center justify-between px-5 py-4">
+                          <Link
+                            key={paper.id}
+                            href={`/mock-exams/${subjectSlug}/${paper.slug}`}
+                            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
+                          >
                             <div className="flex items-center gap-3">
                               <span className="text-xl">{PAPER_ICONS[paper.paper_type] || "📄"}</span>
                               <div>
-                                <span className="font-medium text-gray-800">
+                                <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
                                   {CS_SET_LABELS[gSets.find(s => s.id === paper.set_id)?.set_number || 0] || paper.paper_number}
                                 </span>
                                 <div className="text-xs text-gray-400 mt-0.5">
-                                  {paper.minutes} min · {paper.total_marks} marks
+                                  {paper.minutes} min · {paper.total_marks} marks · {paper.questionCount} questions
                                 </div>
                               </div>
                             </div>
-                            {paper.pdf_url ? (
-                              <a
-                                href={paper.pdf_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
-                              >
-                                📥 Paper
-                              </a>
-                            ) : (
-                              <span className="text-gray-400 text-sm">Coming soon</span>
-                            )}
-                          </div>
+                            <div className="flex items-center gap-2">
+                              {paper.pdf_url && (
+                                <a
+                                  href={paper.pdf_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                                >
+                                  📥 PDF
+                                </a>
+                              )}
+                              <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
+                                Start →
+                              </span>
+                            </div>
+                          </Link>
                         ))}
                       </div>
                     </div>
