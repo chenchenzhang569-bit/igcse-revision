@@ -34,7 +34,7 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
     })
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {});
+      .catch((e) => console.error("QuestionDistWidget fetch error:", e));
   }, [token, subject, type]);
 
   const fmt = (n: number) => n.toLocaleString();
