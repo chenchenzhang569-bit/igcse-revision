@@ -181,33 +181,41 @@ export async function GET(request: NextRequest) {
   }
 
   // --- QUESTIONS COUNTS ---
-  const includeQ = filterType === "all" || filterType === "questions" || filterType === "mcq";
-  const includeMock = filterType === "all" || filterType === "mock_exam";
+  let totalQuestions = 0, totalMockQuestions = 0, missingAnswersCount = 0;
 
-  const buildQFilter = (excludeMcq: boolean = false) => {
+  // Build base query for questions table
+  const buildBase = () => {
     let q = admin.from("questions");
     if (filterSubjectId) q = q.eq("subject_id", filterSubjectId);
-    if (filterType === "mcq") q = q.eq("question_type", "mcq");
-    if (excludeMcq) q = q.neq("question_type", "mcq");
     return q;
   };
 
-  let totalQuestions = 0, totalMockQuestions = 0, missingAnswersCount = 0;
-
-  if (includeQ) {
-    const { count: qCount } = await buildQFilter(filterType === "questions").select("*", { count: "exact", head: true });
-    totalQuestions = qCount || 0;
-    const { count: mCount } = await buildQFilter(filterType === "questions")
-      .select("id", { count: "exact", head: true })
-      .is("clean_answer_text", null);
-    missingAnswersCount = mCount || 0;
+  // Type = all
+  if (filterType === "all") {
+    const { count: c } = await buildBase().select("*", { count: "exact", head: true });
+    totalQuestions = c || 0;
+    const { count: m } = await buildBase().select("id", { count: "exact", head: true }).is("clean_answer_text", null);
+    missingAnswersCount = m || 0;
+  }
+  // Type = mcq
+  if (filterType === "mcq") {
+    const { count: c } = await buildBase().eq("question_type", "mcq").select("*", { count: "exact", head: true });
+    totalQuestions = c || 0;
+    const { count: m } = await buildBase().eq("question_type", "mcq").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
+    missingAnswersCount = m || 0;
+  }
+  // Type = questions (practice, non-MCQ)
+  if (filterType === "questions") {
+    const { count: c } = await buildBase().neq("question_type", "mcq").select("*", { count: "exact", head: true });
+    totalQuestions = c || 0;
+    const { count: m } = await buildBase().neq("question_type", "mcq").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
+    missingAnswersCount = m || 0;
   }
 
-  // Mock exam count: filter by paper_id if subject selected
-  if (includeMock) {
+  // Mock exam count
+  if (filterType === "all" || filterType === "mock_exam") {
     let mockQ = admin.from("mock_exam_questions");
     if (filterSubjectId) {
-      // Find paper_ids for this subject
       const paperIds = Object.entries(mockPaperSubjectMap)
         .filter(([, sid]) => sid === filterSubjectId)
         .map(([pid]) => pid);
@@ -223,19 +231,25 @@ export async function GET(request: NextRequest) {
   // --- PER-SUBJECT DISTRIBUTION ---
   const subjectQCounts: Record<string, number> = {};
 
-  if (includeQ) {
+  // Distribution from questions table
+  const isQType = filterType === "all" || filterType === "questions" || filterType === "mcq";
+  if (isQType) {
     let offset = 0;
     while (true) {
-      const { data: page } = await buildQFilter(filterType === "questions")
-        .select("subject_id").range(offset, offset + 999);
+      let q = admin.from("questions").select("subject_id");
+      if (filterSubjectId) q = q.eq("subject_id", filterSubjectId);
+      if (filterType === "mcq") q = q.eq("question_type", "mcq");
+      if (filterType === "questions") q = q.neq("question_type", "mcq");
+      const { data: page } = await q.range(offset, offset + 999);
       if (!page?.length) break;
-      for (const q of page) subjectQCounts[q.subject_id] = (subjectQCounts[q.subject_id] || 0) + 1;
+      for (const r of page) subjectQCounts[r.subject_id] = (subjectQCounts[r.subject_id] || 0) + 1;
       if (page.length < 1000) break;
       offset += 1000;
     }
   }
 
-  if (includeMock) {
+  // Distribution from mock exam questions
+  if (filterType === "all" || filterType === "mock_exam") {
     let mOffset = 0;
     while (true) {
       let q = admin.from("mock_exam_questions").select("paper_id");
