@@ -89,7 +89,6 @@ export default function CoverageWidget({ token, onToggle }: Props) {
                 { icon: "🔑", label: "MCQ答案", display: `${c.mcqAnswers}/${s} (${Math.round(c.mcqAnswers/s*100)}%)`, color: c.mcqAnswers > 0 ? "text-primary-900" : "text-gray-300" },
                 { icon: "📄", label: "真题 QP", display: `${c.examQp}`, color: "text-orange-600" },
                 { icon: "📋", label: "真题 MS", display: `${c.examMs}`, color: "text-orange-600" },
-                { icon: "❌", label: "缺MS", display: `${c.missingMs > 0 ? `-${c.missingMs}` : "0"}`, color: c.missingMs > 0 ? "text-red-500" : "text-gray-300" },
               ];
 
               return (
