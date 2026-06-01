@@ -841,7 +841,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </div>
         ) : null}
 
-        {/* V2: For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
+        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
         {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && q.explanation && (
             <div className="mt-3">
               <button
@@ -871,7 +871,23 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                   ❌ Incorrect. The answer is:
                   <div className="mt-1 space-y-1 font-normal">
                     {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
-                      return <div key={i} className="text-gray-800">{p}</div>;
+                      const m = p.trim().match(/^(\\([^)]+\\))\\s*(.*)/);
+                      const renderPart = (content: string) => {
+                        const t = content.trim();
+                        const hasMath = /[=^]|\\[a-zA-Z]+|\\$/.test(t) || /\\over|\\frac/.test(t);
+                        return hasMath
+                          ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
+                          : <span>{t}</span>;
+                      };
+                      if (m) {
+                        return (
+                          <div key={i}>
+                            <span className="font-medium">{m[1]}</span>{" "}
+                            {renderPart(m[2])}
+                          </div>
+                        );
+                      }
+                      return <div key={i}>{renderPart(p)}</div>;
                     })}
                   </div>
                 </span>
