@@ -881,42 +881,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 </p>
               </div>
             )}
-            {/* "Show Mark Scheme" button for correct answers on math — shows clean_answer_text */}
-            {isGraded && isCorrect && (q.clean_answer_text || q.answer_text) && (
-              <div className="mt-3">
-                <button
-                  onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
-                >
-                  📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
-                </button>
-                {markSchemeVisible[q.id] && (
-                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                    <div className="space-y-1">
-                      {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
-                        const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
-                        const renderPart = (content: string) => {
-                          const t = content.trim();
-                            const hasMath = /[=^]|\[a-zA-Z]+|\$/.test(t) || /\over|\frac/.test(t);
-                          return hasMath
-                            ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
-                            : <span>{t}</span>;
-                        };
-                        if (m) {
-                          return (
-                            <div key={i}>
-                              <span className="font-medium">{m[1]}</span>{" "}
-                              {renderPart(m[2])}
-                            </div>
-                          );
-                        }
-                        return <div key={i}>{renderPart(p)}</div>;
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Math correct: just green badge, no button */}
           </>
         ) : !isMcq && q.explanation ? (
           /* Non-math subjects: original Show Mark Scheme button with explanation */
