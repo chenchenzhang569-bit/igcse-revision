@@ -180,35 +180,16 @@ export async function GET(request: NextRequest) {
   let subjectsWithQuestions = 0;
 
   if (filterSubjectId) {
-    // With subject filter — counts by question_type (fast, single-subject)
-    const subj = filterSubjectId;
-    if (filterType === "all") {
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", subj);
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("subject_id", subj).is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
-    } else if (filterType === "mcq") {
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", subj).eq("question_type", "mcq");
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("subject_id", subj).eq("question_type", "mcq").is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
-    } else if (filterType === "questions") {
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", subj).neq("question_type", "mcq");
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("subject_id", subj).neq("question_type", "mcq").is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
-    }
-
-    // Distribution: type breakdown for this subject — answer+text pattern matching (matches frontend)
+    // With subject filter — single scan for count + distribution (answer format + question_text pattern)
     const subjName = subjectDisplay[filterSubjectId] || filterSubjectId;
-    subjectsWithQuestions = 1;
-    let mcqC = 0, pracC = 0;
+    const subj = filterSubjectId;
+    let mcqC = 0, pracC = 0, missingC = 0;
     let offset = 0;
     while (true) {
       const { data: page } = await admin
         .from("questions")
         .select("answer_text, clean_answer_text, question_text")
-        .eq("subject_id", filterSubjectId)
+        .eq("subject_id", subj)
         .range(offset, offset + 999);
       if (!page?.length) break;
       for (const q of page) {
@@ -217,10 +198,17 @@ export async function GET(request: NextRequest) {
         const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
         if (hasAbcd || /^[A-D]$/i.test(ans)) mcqC++;
         else pracC++;
+        if (!q.clean_answer_text) missingC++;
       }
       if (page.length < 1000) break;
       offset += 1000;
     }
+    if (filterType === "all" || filterType === "mcq") totalQuestions = mcqC;
+    if (filterType === "questions") totalQuestions = pracC;
+    if (filterType === "all") missingAnswersCount = missingC;
+
+    // Distribution + mock count
+    subjectsWithQuestions = 1;
     let mockC = 0;
     const paperIds = Object.entries(mockPaperSubjectMap)
       .filter(([, sid]) => sid === filterSubjectId).map(([pid]) => pid);
@@ -228,10 +216,12 @@ export async function GET(request: NextRequest) {
       const { count: mC } = await admin.from("mock_exam_questions").select("*", { count: "exact", head: true }).in("paper_id", paperIds);
       mockC = mC || 0;
     }
+    const wantMcq = filterType === "all" || filterType === "mcq";
+    const wantPrac = filterType === "all" || filterType === "questions";
     questionDistribution = [
-      { name: `${subjName} MCQ`, count: mcqC || 0 },
-      { name: `${subjName} 练习`, count: pracC || 0 },
-      { name: `${subjName} 模拟考`, count: mockC || 0 },
+      ...(wantMcq ? [{ name: `${subjName} MCQ`, count: mcqC || 0 }] : []),
+      ...(wantPrac ? [{ name: `${subjName} 练习`, count: pracC || 0 }] : []),
+      ...((filterType === "all" || filterType === "mock_exam") ? [{ name: `${subjName} 模拟考`, count: mockC || 0 }] : []),
     ].filter(d => d.count > 0);
   } else {
     // No subject filter — single pass for all types
