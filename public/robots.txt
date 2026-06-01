@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://igcse-revision-cdgy.vercel.app/sitemap.xml
