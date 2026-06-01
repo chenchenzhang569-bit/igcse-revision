@@ -227,9 +227,9 @@ export async function GET(request: NextRequest) {
     // No subject filter — single pass for all types
     let skipDist = false;
 
-    const overviewSciSlugs = new Set(["caie-physics-0625","edexcel-physics-4ph1","caie-chemistry-0620","edexcel-chemistry-4ch1","caie-biology-0610","edexcel-biology-4bi1"]);
-    const overviewSciIds = (subjects||[]).filter(s => overviewSciSlugs.has(s.slug)).map(s => s.id);
-    const overviewNonSciIds = (subjects||[]).filter(s => !overviewSciSlugs.has(s.slug) && s.id).map(s => s.id);
+    const overviewSciCodes = new Set(["0625","0620","0610","4PH1","4CH1","4BI1"]);
+    const overviewSciIds = (subjects||[]).filter(s => overviewSciCodes.has(s.code)).map(s => s.id);
+    const overviewNonSciIds = (subjects||[]).filter(s => !overviewSciCodes.has(s.code) && s.id).map(s => s.id);
 
     const scanOverviewClassify = async (ids: string[], useText: boolean, mcqC: {v:number}, pracC: {v:number}, missingC: {v:number}, subjCounts: Record<string, number>) => {
       if (!ids.length) return;
