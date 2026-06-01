@@ -95,36 +95,37 @@ export default function DashboardPage() {
   const [hasAllSubject, setHasAllSubject] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
       const token = session?.access_token;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      return fetch("/api/user-answers/stats", { credentials: "include", headers });
-    }).then(r => r.json())
-      .then(data => {
-        if (data.error) setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
-        else setStats(data);
-      })
-      .catch(() => setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] }))
-      .finally(() => setLoading(false));
+      const authHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) authHeaders["Authorization"] = `Bearer ${token}`;
 
-    // Fetch subscriptions (with auth token)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const token = session?.access_token;
-      const headers: Record<string, string> = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      return fetch("/api/payment/purchases", { credentials: "include", headers });
-    }).then(r => r.json())
-      .then(d => {
-        setPurchases(d.purchases || []);
-        setUpgradePrice(d.hasAllSubject ? null : d.upgradePrice);
-        setHasAllSubject(d.hasAllSubject || false);
-      })
-      .catch(() => {});
+      // Fire both API calls in parallel
+      Promise.all([
+        fetch("/api/user-answers/stats", { credentials: "include", headers: authHeaders }).then(r => r.json()),
+        fetch("/api/payment/purchases", { credentials: "include", headers: authHeaders }).then(r => r.json()),
+      ]).then(([statsData, purchasesData]) => {
+        if (cancelled) return;
+        if (statsData.error) setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
+        else setStats(statsData);
+        setPurchases(purchasesData.purchases || []);
+        setUpgradePrice(purchasesData.hasAllSubject ? null : purchasesData.upgradePrice);
+        setHasAllSubject(purchasesData.hasAllSubject || false);
+      }).catch(() => {
+        if (!cancelled) {
+          setStats({ total: 0, correct: 0, rate: 0, subjects: [], recent: [] });
+        }
+      }).finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    });
+    return () => { cancelled = true; };
   }, []);
 
   if (loading) return <DashboardSkeleton />;

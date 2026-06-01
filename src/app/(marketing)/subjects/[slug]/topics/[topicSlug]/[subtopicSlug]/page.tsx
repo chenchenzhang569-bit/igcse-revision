@@ -226,26 +226,28 @@ export default async function SubtopicPage({
       : subjectKey === "economics"
       ? `*0455-${encodeURIComponent(topicSlug)}`
       : `*0478-${encodeURIComponent(topicSlug)}`;
-    const tRes = await fetch(`${API}/topics?select=id,sort_order&slug=ilike.${topicSearchPat}&limit=1`, { headers: H, cache: "no-store" });
-    const tData = await tRes.json();
-    topicRow = Array.isArray(tData) && tData.length > 0 ? tData[0] : null;
 
-    // Fallback: dbSlug exact match (for topics like general-physics that don't contain board code)
-    if (!topicRow && dbSlug !== topicSlug) {
-      const tRes2 = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(dbSlug)}&limit=1`, { headers: H, cache: "no-store" });
-      const tData2 = await tRes2.json();
-      topicRow = Array.isArray(tData2) && tData2.length > 0 ? tData2[0] : null;
-    }
-    // Final fallback: exact topicSlug match (for practical-skills-physics etc.)
-    if (!topicRow) {
-      const tRes3 = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
-      const tData3 = await tRes3.json();
-      topicRow = Array.isArray(tData3) && tData3.length > 0 ? tData3[0] : null;
-    }
+    // Try all topic search patterns in parallel, pick first match
+    const topicPatterns = [
+      topicSearchPat,
+      dbSlug !== topicSlug && dbSlug ? dbSlug : null,
+      topicSlug,
+    ].filter(Boolean);
+
+    const tResults = await Promise.all(
+      topicPatterns.map(pattern =>
+        fetch(`${API}/topics?select=id,sort_order&slug=ilike.${encodeURIComponent(pattern)}&limit=1`,
+          { headers: H, cache: "force-cache" })
+          .then(r => r.json())
+          .then(d => Array.isArray(d) && d.length > 0 ? d[0] : null)
+          .catch(() => null)
+      )
+    );
+    topicRow = tResults.find(r => r !== null) || null;
 
     if (topicRow && pmtCode) {
       try {
-        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "no-store" });
+        const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "force-cache" });
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
       } catch {}
@@ -253,12 +255,11 @@ export default async function SubtopicPage({
     // Fallback for additional-maths/economics: lookup by subtopic slug
     if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science")) {
       try {
-        const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+        const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "force-cache" });
         const subData = await subRes.json();
         if (Array.isArray(subData) && subData.length > 0) {
           subtopicId = subData[0].id;
           subtopic.pmtCode = `${topicRow.sort_order || 1}.${subData[0].sort_order || 1}`;
-          // Strip section number from displayName (already shown as pmtCode)
           const fullName = subData[0].display_name || subtopic.displayName;
           const match = fullName.match(/^\d+\.\d+\s+(.*)/);
           if (match) subtopic.displayName = match[1];
@@ -270,12 +271,16 @@ export default async function SubtopicPage({
     const filterVal = subtopicId || topicRow?.id;
 
     if (filterVal) {
-      const nRes = await fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "no-store" });
-      notes = await nRes.json();
-      notes = Array.isArray(notes) ? notes : [];
-
-      const qRes = await fetch(`${API}/questions?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" });
-      const allQs = await qRes.json();
+      // Fetch notes, questions, and past_papers in parallel
+      const [notesArr, allQs, papers] = await Promise.all([
+        fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "force-cache" })
+          .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
+        fetch(`${API}/questions?select=id,question_text,answer_text,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
+          .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
+        fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "force-cache" })
+          .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
+      ]);
+      notes = notesArr;
       if (Array.isArray(allQs)) {
         for (const q of allQs) {
           const txt = q.question_text || "";
@@ -288,9 +293,6 @@ export default async function SubtopicPage({
           }
         }
       }
-
-      const pRes = await fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "no-store" });
-      const papers = await pRes.json();
       if (Array.isArray(papers) && papers.length > 0) {
         const mcqQps = papers.filter((p: any) => p.paper_type === "MCQ QP");
         const mcqMss = papers.filter((p: any) => p.paper_type === "MCQ MS");
