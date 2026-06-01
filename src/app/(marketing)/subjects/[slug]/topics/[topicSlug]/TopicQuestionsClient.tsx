@@ -841,7 +841,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </div>
         ) : null}
 
-        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
+        {/* V2: For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
         {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && q.explanation && (
             <div className="mt-3">
               <button
