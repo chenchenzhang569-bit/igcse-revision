@@ -30,7 +30,7 @@ type DashboardData = {
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
 const ORDER_STORAGE_KEY = "admin_widget_order";
 
-const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "funnel", "dau", "signups", "sources", "questions", "qa"];
+const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "dau", "signups", "sources", "questions", "qa"];
 
 function loadOrder(): string[] {
   try { const v = localStorage.getItem(ORDER_STORAGE_KEY); return v ? JSON.parse(v) : DEFAULT_ORDER; } catch { return DEFAULT_ORDER; }
@@ -170,19 +170,6 @@ export default function AdminDashboardPage() {
               <div className="text-center p-3 bg-green-50 rounded-lg"><div className="text-2xl font-bold text-green-700">{fmt(data.invites.paid)}</div><div className="text-xs text-gray-500">付费邀请</div></div>
               <div className="text-center p-3 bg-purple-50 rounded-lg"><div className="text-2xl font-bold text-purple-600">{data.invites.conversion}%</div><div className="text-xs text-gray-500">转化率</div></div>
             </div>
-          )}
-        </WidgetCard>
-      );
-      case "funnel": return (
-        <WidgetCard title="🔄 邀请漏斗" defaultView="card" views={["card", "table"]} widgetId={id} onToggle={() => toggleWidget(id)} hidden={false}>
-          {(view) => view === "table" ? (
-            <table className="w-full text-sm"><tbody>
-              <tr className="border-b"><td className="py-2 text-gray-500">总邀请</td><td className="text-right font-semibold">{fmt(data.invites.total)}</td></tr>
-              <tr className="border-b"><td className="py-2 text-gray-500">转化付费</td><td className="text-right font-semibold">{fmt(data.invites.paid)}</td></tr>
-              <tr><td className="py-2 text-gray-500">转化率</td><td className="text-right font-semibold">{data.invites.conversion}%</td></tr>
-            </tbody></table>
-          ) : (
-            <div className="text-center p-3 bg-green-50 rounded-lg"><div className="text-2xl font-bold text-green-700">{data.invites.conversion}%</div><div className="text-xs text-gray-500">邀请 → 付费转化率</div></div>
           )}
         </WidgetCard>
       );
