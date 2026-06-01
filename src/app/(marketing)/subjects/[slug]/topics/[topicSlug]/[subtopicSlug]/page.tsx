@@ -70,6 +70,16 @@ const TOPIC_SLUG_TO_DB: Record<string, string> = {
   "organisms-environment": "caie-biology-0610-19-organisms-and-their-environment",
   "biotechnology": "caie-biology-0610-21-biotechnology-and-genetic-engineering",
   "human-influences-ecosystems": "caie-biology-0610-20-human-influences-on-ecosystems",
+  // 0580 Mathematics section topics
+  "number": "section-number",
+  "algebra-graphs": "section-algebra-and-sequences",
+  "coordinate-geometry": "section-coordinate-geometry-and-graphs",
+  "geometry": "section-geometry",
+  "mensuration": "section-lengths-areas-and-volumes",
+  "trigonometry": "section-pythagoras-and-trigonometry",
+  "vectors-transformations": "section-transformations",
+  "probability": "section-probability",
+  "statistics": "section-statistics",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {
