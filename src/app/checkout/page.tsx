@@ -185,9 +185,9 @@ function CheckoutContent() {
             </>
           ) : upgradePrice === null ? (
             <>
-              <div className="text-2xl font-bold text-green-600 mb-2">✅ 您已拥有全科套餐</div>
-              <p className="text-sm text-gray-500 mb-8">无需重复购买，所有科目已解锁</p>
-            </>
+              <div className="text-2xl font-bold text-green-600 mb-2">✅ You already have full access</div>
+              <p className="text-sm text-gray-500 mb-8">All subjects unlocked — no need to purchase again</p>
+            />
           ) : (
             <>
               <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>

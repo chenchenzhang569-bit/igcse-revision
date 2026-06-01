@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     userId = user?.id || null;
   }
 
-  if (!userId) return NextResponse.json({ error: "请先登录" }, { status: 401 });
+  if (!userId) return NextResponse.json({ error: "Please log in first" }, { status: 401 });
 
   // Check Alipay env vars
   if (!process.env.ALIPAY_APP_ID) return NextResponse.json({ error: "ALIPAY_APP_ID 未配置" }, { status: 500 });
@@ -58,10 +58,7 @@ export async function POST(request: NextRequest) {
       .eq("status", "paid")
       .maybeSingle();
     if (existingAll) {
-      const expiresMsg = existingAll.expires_at
-        ? `（有效期至 ${new Date(existingAll.expires_at).toLocaleDateString("zh-CN")}）`
-        : "";
-      return NextResponse.json({ error: `您已拥有全科套餐${expiresMsg}，无需重复购买` }, { status: 409 });
+      return NextResponse.json({ error: `You already have full access — valid until ${new Date(existingAll.expires_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}` }, { status: 409 });
     }
 
     // 计算升级差价：已付单科总额
@@ -92,7 +89,7 @@ export async function POST(request: NextRequest) {
     });
     if (error) {
       console.error("All plan insert error:", error);
-      return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
     }
     let url: string;
     const amountYuan = (upgradeAmount / 100).toFixed(2);
