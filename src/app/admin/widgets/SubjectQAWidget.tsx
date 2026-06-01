@@ -274,11 +274,11 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
                         label: "真题 QP",
                         icon: "📄",
                         count: coverage.past_paper_qp,
-                        total: coverage.past_paper_qp,
-                        // QP行展开显示缺MS的QP
-                        missingDetails: coverage.past_paper_missing_ms_details || [],
-                        missingLabel: "缺 MS",
-                        hint: "（有QP但缺对应MS）",
+                        total: coverage.past_paper_ms,
+                        // 缺QP = 有MS但无对应QP
+                        missingDetails: coverage.past_paper_missing_qp_details || [],
+                        missingLabel: "缺 QP",
+                        hint: "（有MS但缺对应QP）",
                       },
                       {
                         key: "past_paper_ms" as const,
@@ -286,10 +286,10 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
                         icon: "📋",
                         count: coverage.past_paper_ms,
                         total: coverage.past_paper_qp,
-                        // MS行展开显示缺QP的MS
-                        missingDetails: coverage.past_paper_missing_qp_details || [],
-                        missingLabel: "缺 QP",
-                        hint: "（有MS但缺对应QP）",
+                        // 缺MS = 有QP但无对应MS
+                        missingDetails: coverage.past_paper_missing_ms_details || [],
+                        missingLabel: "缺 MS",
+                        hint: "（有QP但缺对应MS）",
                       },
                     ].map((d) => {
                       const actualMissing = d.total - d.count;
