@@ -860,7 +860,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                           const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                           const renderPart = (content: string) => {
                             const t = content.trim();
-                            const hasMath = /[=\^\\\/()<>\+-]/.test(t);
+                            const hasMath = /[=^]|\[a-zA-Z]+|\$/.test(t) || /\over|\frac/.test(t);
                             return hasMath
                               ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
                               : <span>{t}</span>;
@@ -897,7 +897,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                         const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                         const renderPart = (content: string) => {
                           const t = content.trim();
-                          const hasMath = /[=\^\\\/()<>\+-]/.test(t);
+                            const hasMath = /[=^]|\[a-zA-Z]+|\$/.test(t) || /\over|\frac/.test(t);
                           return hasMath
                             ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
                             : <span>{t}</span>;
@@ -953,7 +953,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                             const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                             const renderPart = (content: string) => {
                               const t = content.trim();
-const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
+                            const hasMath = /[=^]|\[a-zA-Z]+|\$/.test(t) || /\over|\frac/.test(t);
                               return hasMath
                                 ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
                                 : <span>{t}</span>;
@@ -981,7 +981,7 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
                         const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                         const renderPart = (content: string) => {
                           const t = content.trim();
-const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
+                            const hasMath = /[=^]|\[a-zA-Z]+|\$/.test(t) || /\over|\frac/.test(t);
                           return hasMath
                             ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
                             : <span>{t}</span>;
