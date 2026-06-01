@@ -37,7 +37,9 @@ function CheckoutContent() {
       
       // Fetch upgrade price for all-subjects plan
       if (plan === "all") {
-        fetch("/api/payment/purchases")
+        const token = data.session?.access_token;
+        const authHeaders: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+        fetch("/api/payment/purchases", { headers: authHeaders })
           .then((r) => r.json())
           .then((d) => {
             setUpgradePrice(d.upgradePrice ?? null);
