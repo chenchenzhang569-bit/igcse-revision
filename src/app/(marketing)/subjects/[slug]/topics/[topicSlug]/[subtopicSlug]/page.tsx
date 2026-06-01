@@ -214,21 +214,33 @@ export default async function SubtopicPage({
     let topicRow: any = null;
     const pmtCode = subtopic?.pmtCode || "";
     
-    const topicSearchPat = subjectKey === "additional-maths"
+    // Extract board-specific code from URL slug to scope topic search
+    const subjectCode = slug.startsWith("edexcel")
+      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1"
+      : slug.includes("physics") ? "0625" : slug.includes("chemistry") ? "0620" : slug.includes("biology") ? "0610" : "0580";
+    const useBoardScope = subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science";
+    const topicSearchPat = useBoardScope
+      ? `*${subjectCode}*${encodeURIComponent(topicSlug)}`
+      : subjectKey === "additional-maths"
       ? `*0606-${encodeURIComponent(topicSlug)}`
       : subjectKey === "economics"
       ? `*0455-${encodeURIComponent(topicSlug)}`
-      : subjectKey === "computer-science"
-      ? `*0478-${encodeURIComponent(topicSlug)}`
-      : `*${encodeURIComponent(topicSlug)}`;
+      : `*0478-${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(`${API}/topics?select=id,sort_order&slug=ilike.${topicSearchPat}&limit=1`, { headers: H, cache: "no-store" });
     const tData = await tRes.json();
     topicRow = Array.isArray(tData) && tData.length > 0 ? tData[0] : null;
-    
+
+    // Fallback: dbSlug exact match (for topics like general-physics that don't contain board code)
     if (!topicRow && dbSlug !== topicSlug) {
       const tRes2 = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(dbSlug)}&limit=1`, { headers: H, cache: "no-store" });
       const tData2 = await tRes2.json();
       topicRow = Array.isArray(tData2) && tData2.length > 0 ? tData2[0] : null;
+    }
+    // Final fallback: exact topicSlug match (for practical-skills-physics etc.)
+    if (!topicRow) {
+      const tRes3 = await fetch(`${API}/topics?select=id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+      const tData3 = await tRes3.json();
+      topicRow = Array.isArray(tData3) && tData3.length > 0 ? tData3[0] : null;
     }
 
     if (topicRow && pmtCode) {
