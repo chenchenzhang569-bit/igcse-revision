@@ -419,7 +419,7 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
           bugContext={{
             board: slug.startsWith("edexcel") ? "Edexcel" : "CAIE",
             subject: (() => { const parts = slug.split("-"); const idx = parts.findIndex((p: string) => p === "physics" || p === "chemistry" || p === "biology" || p === "mathematics"); return idx >= 0 ? parts[idx].charAt(0).toUpperCase() + parts[idx].slice(1) : "Unknown"; })(),
-            code: (() => { const p = slug.split("-"); const last = p[p.length-1]; return /^\\d/.test(last) ? last : ""; })(),
+            code: (() => { const p = slug.split("-"); const last = p[p.length-1]; return /^\d/.test(last) ? last : ""; })(),
             topicName: displayName,
           }}
         />
