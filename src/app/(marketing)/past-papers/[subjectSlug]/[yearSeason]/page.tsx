@@ -123,13 +123,13 @@ export default async function PastPapersSeasonPage({
               </div>
               <div className="flex gap-2 shrink-0">
                 {qp && (
-                  <a href={qp.file_url} target="_blank" rel="noopener noreferrer"
+                  <a href={`/api/past-papers/download?id=${qp.id}`} target="_blank" rel="noopener noreferrer"
                     className="bg-primary-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-primary-700 transition whitespace-nowrap">
                     📄 QP
                   </a>
                 )}
                 {ms && (
-                  <a href={ms.file_url} target="_blank" rel="noopener noreferrer"
+                  <a href={`/api/past-papers/download?id=${ms.id}`} target="_blank" rel="noopener noreferrer"
                     className="bg-accent-500 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-accent-600 transition whitespace-nowrap">
                     📝 MS
                   </a>
