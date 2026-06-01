@@ -201,7 +201,7 @@ export default async function TopicPage({
       : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(
       `${API}/topics?slug=ilike.${topicSearchPattern}&select=id,name,sort_order&limit=1`,
-      { headers: baseHeaders, cache: "no-store" }
+      { headers: baseHeaders, cache: "force-cache" }
     );
     const topics = await tRes.json();
     if (topics?.[0]?.id) {
@@ -214,7 +214,7 @@ export default async function TopicPage({
       if (isSimpleSubject) {
         const stRes = await fetch(
           `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
-          { headers: baseHeaders, cache: "no-store" }
+          { headers: baseHeaders, cache: "force-cache" }
         );
         const stData = await stRes.json();
         if (Array.isArray(stData)) {
@@ -236,7 +236,7 @@ export default async function TopicPage({
       if (sub) {
         const stRes = await fetch(
           `${API}/subtopics?id=eq.${sub}&select=display_name&limit=1`,
-          { headers: baseHeaders, cache: "no-store" }
+          { headers: baseHeaders, cache: "force-cache" }
         );
         const stData = await stRes.json();
         if (stData?.[0]?.display_name) {
@@ -247,14 +247,14 @@ export default async function TopicPage({
       // Fetch notes
       const nRes = await fetch(
         `${API}/notes?select=*&topic_id=eq.${topicId}&order=sort_order&limit=50`,
-        { headers: baseHeaders, cache: "no-store" }
+        { headers: baseHeaders, cache: "force-cache" }
       );
       notes = await nRes.json();
       // Fetch subtopic-specific notes (ZNotes summaries etc.)
       if (sub) {
         const snRes = await fetch(
           `${API}/notes?select=*&subtopic_id=eq.${sub}&order=sort_order&limit=20`,
-          { headers: baseHeaders, cache: "no-store" }
+          { headers: baseHeaders, cache: "force-cache" }
         );
         subtopicNotes = await snRes.json();
       }
