@@ -348,7 +348,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
         const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
         const res = await fetch(
-          `${API}/questions?select=*&topic_id=eq.${topicId}&order=sort_order`,
+          `${API}/questions?select=*&subtopic_id=eq.${topicId}&order=sort_order`,
           { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
