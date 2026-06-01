@@ -223,7 +223,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div>
+    <div className="pb-20">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold text-primary-900">📊 Dashboard</h1>
         {hiddenList.length > 0 && (

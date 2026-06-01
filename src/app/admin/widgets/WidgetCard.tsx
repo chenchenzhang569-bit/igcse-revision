@@ -58,7 +58,7 @@ export default function WidgetCard({
   if (hidden) return null;
 
   return (
-    <div className="bg-white border rounded-xl overflow-hidden">
+    <div className="bg-white border rounded-xl">  {/* no overflow-hidden to allow gear popup */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50/50 border-b">
         <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
         <div className="flex items-center gap-1">
@@ -78,7 +78,7 @@ export default function WidgetCard({
                 className={`text-xs px-1 py-0.5 rounded ${saved ? "text-primary-500" : "text-gray-400 hover:text-gray-600"}`}
                 title="自定义视图">⚙</button>
               {showSettings && (
-                <div className="absolute right-0 top-7 z-20 bg-white border rounded-lg shadow-lg p-3 w-48">
+                <div className="absolute right-0 bottom-full mb-2 z-20 bg-white border rounded-lg shadow-lg p-3 w-48">
                   <p className="text-xs font-semibold text-gray-600 mb-2">默认视图</p>
                   <div className="flex gap-1 mb-3">
                     {ALL_VIEW_MODES.map((m) => (

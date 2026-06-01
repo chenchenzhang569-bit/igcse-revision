@@ -52,7 +52,7 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
   const fmt = (n: number) => n.toLocaleString();
 
   return (
-    <WidgetCard title="🗂️ 题目分布" defaultView="card" views={["card", "pie", "table"]}
+    <WidgetCard title="🗂️ 题目分布" defaultView="pie" views={["pie", "card", "table"]}
       widgetId="questions" onToggle={onToggle ? () => onToggle() : undefined}>
       {(view) => (
         <div>
@@ -104,23 +104,32 @@ export default function QuestionDistWidget({ token, availableSubjects, onToggle 
           ) : !data ? (
             <div className="text-center text-gray-400 text-sm py-4">无数据{fetchUrl && ` (${fetchUrl})`}</div>
           ) : view === "pie" ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={data.question_distribution}
-                  dataKey="count"
-                  nameKey="name"
-                  cx="50%" cy="50%"
-                  outerRadius={90}
-                  label={({ name, count }: any) => `${name.slice(0, 8)} ${count}`}
-                >
-                  {data.question_distribution.map((_: any, i: number) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="relative">
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={data.question_distribution}
+                    dataKey="count"
+                    nameKey="name"
+                    cx="50%" cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    label={({ name, count }: any) => `${name.slice(0, 8)} ${count}`}
+                  >
+                    {data.question_distribution.map((_: any, i: number) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary-900">{fmt(data.db_quality.total_questions)}</div>
+                  <div className="text-xs text-gray-400">总数</div>
+                </div>
+              </div>
+            </div>
           ) : view === "table" ? (
             <table className="w-full text-sm">
               <thead><tr className="text-left text-gray-400"><th>科目</th><th className="text-right">题目数</th></tr></thead>
