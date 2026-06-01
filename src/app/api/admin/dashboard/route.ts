@@ -198,22 +198,35 @@ export async function GET(request: NextRequest) {
       missingAnswersCount = r2.count || 0;
     }
   } else {
-    // No subject filter
+    // No subject filter — classify by answer format (not question_type DB field)
     if (filterType === "all") {
       const r1 = await admin.from("questions").select("*", { count: "exact", head: true });
       totalQuestions = r1.count || 0;
       const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
       missingAnswersCount = r2.count || 0;
-    } else if (filterType === "mcq") {
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).eq("question_type", "mcq");
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).eq("question_type", "mcq").is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
-    } else if (filterType === "questions") {
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true }).neq("question_type", "mcq");
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).neq("question_type", "mcq").is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
+    } else if (filterType === "mcq" || filterType === "questions") {
+      let mcqC = 0, pracC = 0, missingC = 0;
+      let offset = 0;
+      while (true) {
+        const { data: page } = await admin
+          .from("questions")
+          .select("answer_text, clean_answer_text, question_text")
+          .range(offset, offset + 999);
+        if (!page?.length) break;
+        for (const q of page) {
+          const ans = (q.clean_answer_text || q.answer_text || "").trim();
+          const txt = q.question_text || "";
+          const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          const isMcq = hasAbcd || /^[A-D]$/i.test(ans);
+          if (isMcq) mcqC++;
+          else pracC++;
+          if (!q.clean_answer_text) missingC++;
+        }
+        if (page.length < 1000) break;
+        offset += 1000;
+      }
+      totalQuestions = filterType === "mcq" ? mcqC : pracC;
+      missingAnswersCount = missingC;
     }
   }
 
@@ -283,12 +296,23 @@ export async function GET(request: NextRequest) {
     if (isQType) {
       let offset = 0;
       while (true) {
-        let q = admin.from("questions").select("subject_id");
-        if (filterType === "mcq") q = q.eq("question_type", "mcq");
-        if (filterType === "questions") q = q.neq("question_type", "mcq");
-        const { data: page } = await q.range(offset, offset + 999);
+        const { data: page } = await admin
+          .from("questions")
+          .select("subject_id, answer_text, clean_answer_text, question_text")
+          .range(offset, offset + 999);
         if (!page?.length) break;
-        for (const r of page) subjectQCounts[r.subject_id] = (subjectQCounts[r.subject_id] || 0) + 1;
+        for (const q of page) {
+          const ans = (q.clean_answer_text || q.answer_text || "").trim();
+          const txt = q.question_text || "";
+          const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          const isMcq = hasAbcd || /^[A-D]$/i.test(ans);
+          const wantAll = filterType === "all";
+          const wantMcq = filterType === "mcq";
+          const wantPrac = filterType === "questions";
+          if (wantAll || (wantMcq && isMcq) || (wantPrac && !isMcq)) {
+            subjectQCounts[q.subject_id] = (subjectQCounts[q.subject_id] || 0) + 1;
+          }
+        }
         if (page.length < 1000) break;
         offset += 1000;
       }
