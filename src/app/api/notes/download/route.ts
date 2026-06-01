@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -9,10 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "缺少笔记 ID" }, { status: 400 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   // 查笔记
   const { data: note, error } = await supabase
@@ -31,29 +28,42 @@ export async function GET(req: NextRequest) {
 
   // 检查权限：免费预览 OR 已购买
   if (!note.is_free_preview) {
-    // 检查用户是否已购买
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
+    // 使用 cookie session 检查登录
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json({ error: "请先登录" }, { status: 401 });
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    const subjectId = (note as any).topics.subject_id;
 
-    if (userError || !userData.user) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    }
-
+    // Check specific subject purchase
     const { data: purchase } = await supabase
       .from("purchases")
-      .select("id")
-      .eq("user_id", userData.user.id)
-      .eq("subject_id", (note as any).topics.subject_id)
-      .eq("status", "completed")
+      .select("id, expires_at")
+      .eq("user_id", user.id)
+      .eq("subject_id", subjectId)
+      .in("status", ["paid", "trial"])
       .maybeSingle();
 
     if (!purchase) {
-      return NextResponse.json({ error: "请先购买该科目" }, { status: 402 });
+      // Also check all-subjects plan
+      const { data: allSubjects } = await supabase
+        .from("purchases")
+        .select("id, expires_at")
+        .eq("user_id", user.id)
+        .is("subject_id", null)
+        .in("status", ["paid", "trial"])
+        .maybeSingle();
+
+      if (!allSubjects) {
+        return NextResponse.json({ error: "请先购买该科目" }, { status: 402 });
+      }
+
+      if (allSubjects.expires_at && new Date(allSubjects.expires_at) < new Date()) {
+        return NextResponse.json({ error: "购买已过期，请重新购买" }, { status: 402 });
+      }
+    } else if (purchase.expires_at && new Date(purchase.expires_at) < new Date()) {
+      return NextResponse.json({ error: "购买已过期，请重新购买" }, { status: 402 });
     }
   }
 
