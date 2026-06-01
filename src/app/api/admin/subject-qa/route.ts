@@ -145,8 +145,10 @@ export async function GET(request: NextRequest) {
     if (!msKeysBySub[sid]) msKeysBySub[sid] = new Set();
     const key = `${p.year}|${p.season}|${p.paper_number}`;
     const pt = p.paper_type || "";
-    if (pt === "Question Paper" || pt === "QP" || pt === "Topic QP") {
+    if (pt === "Question Paper" || pt === "QP") {
       ppBySub[sid].qp++;
+    } else if (pt === "Topic QP") {
+      // Topic QP is topic-level practice, not past paper
     } else if (pt === "MCQ QP") {
       ppBySub[sid].mcqQp++;
     } else if (pt === "Mark Scheme" || pt === "MS") {
