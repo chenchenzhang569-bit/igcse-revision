@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
         const { data: page } = await admin
           .from("questions")
           .select("subject_id, answer_text, clean_answer_text, question_text")
-          .range(offset, offset + 999);
+          .range(offset, offset + 4999);
         if (!page?.length) break;
         for (const q of page) {
           const ans = (q.clean_answer_text || q.answer_text || "").trim();
@@ -266,8 +266,8 @@ export async function GET(request: NextRequest) {
             subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
           }
         }
-        if (page.length < 1000) break;
-        offset += 1000;
+        if (page.length < 5000) break;
+        offset += 5000;
       }
       totalQuestions = filterType === "mcq" ? mcqC : pracC;
       missingAnswersCount = missingC;
