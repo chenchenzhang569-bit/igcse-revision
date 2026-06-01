@@ -245,8 +245,9 @@ export default async function TopicPage({
         }
       }
       // Fetch notes
-      const nRes = await fetch(
-        `${API}/notes?select=*&topic_id=eq.${topicId}&order=sort_order&limit=50`,
+      const nUrl = sub
+        ? `${API}/notes?select=*&subtopic_id=eq.${sub}&order=sort_order&limit=20`
+        : `${API}/notes?select=*&topic_id=eq.${topicId}&order=sort_order&limit=50`;
         { headers: baseHeaders, cache: "force-cache" }
       );
       notes = await nRes.json();
