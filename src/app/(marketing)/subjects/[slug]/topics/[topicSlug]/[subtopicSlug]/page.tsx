@@ -182,7 +182,7 @@ export default async function SubtopicPage({
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
-      const subRes = await fetch(`${API}/subtopics?select=display_name,slug&slug=eq.${subtopicSlug}&limit=1`, { headers: H, cache: "no-store" });
+      const subRes = await fetch(`${API}/subtopics?select=display_name,slug&slug=eq.${subtopicSlug}&limit=1`, { headers: H, cache: "force-cache" });
       const subData = await subRes.json();
       if (Array.isArray(subData) && subData[0]?.display_name) {
         subtopic.displayName = subData[0].display_name;
@@ -275,7 +275,7 @@ export default async function SubtopicPage({
       const [notesArr, allQs, papers] = await Promise.all([
         fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "force-cache" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
-        fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
+        fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "force-cache" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
         fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "force-cache" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
