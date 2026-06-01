@@ -231,7 +231,6 @@ export default async function SubtopicPage({
     const topicPatterns = [
       topicSearchPat,
       dbSlug !== topicSlug && dbSlug ? dbSlug : null,
-      `section-${topicSlug}`,
       topicSlug,
     ].filter(Boolean);
 
