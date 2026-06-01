@@ -187,7 +187,7 @@ function CheckoutContent() {
             <>
               <div className="text-2xl font-bold text-green-600 mb-2">✅ You already have full access</div>
               <p className="text-sm text-gray-500 mb-8">All subjects unlocked — no need to purchase again</p>
-            />
+            </>
           ) : (
             <>
               <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>
