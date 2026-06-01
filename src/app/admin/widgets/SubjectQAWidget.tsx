@@ -258,16 +258,29 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
                       );
                     })}
                   </div>
-                  {/* Past paper stats */}
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                    <div className="text-center p-2 bg-blue-50 rounded-lg">
-                      <div className="font-bold">{fmt(coverage.past_paper_qp)}</div>
-                      <div className="text-gray-400">真题 QP</div>
-                    </div>
-                    <div className="text-center p-2 bg-blue-50 rounded-lg">
-                      <div className="font-bold">{fmt(coverage.past_paper_ms)}</div>
-                      <div className="text-gray-400">真题 MS</div>
-                    </div>
+                  {/* Past paper stats - same format as DIMS */}
+                  <div className="grid grid-cols-1 gap-2 mt-3">
+                    {[
+                      { key: "past_paper_qp" as const, label: "真题 QP", icon: "📄", count: coverage.past_paper_qp, total: coverage.past_paper_qp },
+                      { key: "past_paper_ms" as const, label: "真题 MS", icon: "📋", count: coverage.past_paper_ms, total: coverage.past_paper_qp },
+                    ].map((d) => {
+                      const missing = d.total - d.count;
+                      const color = d.count === 0 ? "bg-red-50 border-red-200" : missing > 0 ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200";
+                      return (
+                        <div key={d.key} className={`rounded-lg border p-3 ${color}`}>
+                          <a href={`/admin/upload?subject_id=${subject}`}
+                            className="w-full flex items-center justify-between text-left">
+                            <span className="text-sm font-medium">
+                              {d.icon} {d.label}
+                            </span>
+                            <span className="text-sm font-bold">
+                              {fmt(d.count)}
+                              {missing > 0 && <span className="text-xs text-red-500 ml-1">(缺 {missing})</span>}
+                            </span>
+                          </a>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
