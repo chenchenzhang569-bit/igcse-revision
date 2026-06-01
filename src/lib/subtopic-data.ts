@@ -427,26 +427,26 @@ const ADDITIONAL_MATHS_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "simultaneous-equations", name: "Simultaneous Equations", displayName: "Simultaneous Equations", pmtCode: "1.5" },
     { slug: "logarithmic-and-exponential-functions", name: "Logarithmic & Exponential Functions", displayName: "Logarithmic & Exponential Functions", pmtCode: "1.6" },
   ],
-  "calculus": [
-    { slug: "differentiation", name: "Differentiation", displayName: "Differentiation", pmtCode: "6.1" },
-    { slug: "integration", name: "Integration", displayName: "Integration", pmtCode: "6.2" },
-    { slug: "calculus-for-kinematics", name: "Calculus for Kinematics", displayName: "Calculus for Kinematics", pmtCode: "6.3" },
-  ],
   "coordinate-geometry": [
     { slug: "straight-line-graphs", name: "Straight Line Graphs", displayName: "Straight Line Graphs", pmtCode: "2.1" },
     { slug: "coordinate-geometry-of-the-circle", name: "Coordinate Geometry of the Circle", displayName: "Coordinate Geometry of the Circle", pmtCode: "2.2" },
+  ],
+  "trigonometry": [
+    { slug: "circular-measure", name: "Circular Measure", displayName: "Circular Measure", pmtCode: "3.1" },
+    { slug: "trigonometry", name: "Trigonometry", displayName: "Trigonometry", pmtCode: "3.2" },
   ],
   "sequences-series": [
     { slug: "permutations-and-combinations", name: "Permutations & Combinations", displayName: "Permutations & Combinations", pmtCode: "4.1" },
     { slug: "binomial-theorem", name: "Binomial Theorem", displayName: "Binomial Theorem", pmtCode: "4.2" },
     { slug: "arithmetic-and-geometric-progressions", name: "Arithmetic & Geometric Progressions", displayName: "Arithmetic & Geometric Progressions", pmtCode: "4.3" },
   ],
-  "trigonometry": [
-    { slug: "circular-measure", name: "Circular Measure", displayName: "Circular Measure", pmtCode: "3.1" },
-    { slug: "trigonometry", name: "Trigonometry", displayName: "Trigonometry", pmtCode: "3.2" },
-  ],
   "vectors": [
     { slug: "vectors-in-two-dimensions", name: "Vectors in Two Dimensions", displayName: "Vectors in Two Dimensions", pmtCode: "5.1" },
+  ],
+  "calculus": [
+    { slug: "differentiation", name: "Differentiation", displayName: "Differentiation", pmtCode: "6.1" },
+    { slug: "integration", name: "Integration", displayName: "Integration", pmtCode: "6.2" },
+    { slug: "calculus-for-kinematics", name: "Calculus for Kinematics", displayName: "Calculus for Kinematics", pmtCode: "6.3" },
   ],
 };
 
