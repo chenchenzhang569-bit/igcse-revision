@@ -47,7 +47,7 @@ function SortableWidget({ id, children }: { id: string; children: React.ReactNod
   return (
     <div ref={setNodeRef} style={style}>
       <div className="flex items-center">
-        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-1 text-gray-300 hover:text-gray-500 select-none" title="拖拽排序">⋮⋮</button>
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-2 text-gray-400 hover:text-gray-600 select-none px-2 py-1 rounded hover:bg-gray-100 text-lg" title="拖拽排序">⠿</button>
         <div className="flex-1">{children}</div>
       </div>
     </div>
@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [order, setOrder] = useState<string[]>([]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 2 } }));
 
   useEffect(() => {
     const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
