@@ -1,12 +1,42 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const supabase = getSupabaseClient();
+
+function PaywallBanner({ board, code, name, icon }: { board: string; code: string; name: string; icon: string }) {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">← Back to Home</Link>
+      <div className="flex items-center gap-4 mt-4">
+        <span className="text-4xl sm:text-5xl">{icon}</span>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">{board} {name} — Past Papers</h1>
+          <p className="text-gray-500 mt-1">Code: {code}</p>
+        </div>
+      </div>
+      <div className="mt-8 bg-white rounded-2xl border border-gray-200 p-8 sm:p-12 text-center">
+        <div className="text-5xl mb-4">🔒</div>
+        <h2 className="text-xl font-bold text-primary-900 mb-2">Subscribe to Access</h2>
+        <p className="text-gray-500 mb-6 max-w-md mx-auto">
+          Get full access to past papers, topic questions, and mock exams for {board} {name} {code}
+        </p>
+        <Link
+          href="/pricing"
+          className="inline-block bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-primary-700 transition"
+        >
+          View Plans →
+        </Link>
+        <p className="text-xs text-gray-400 mt-4">Starting from ¥50 per subject</p>
+      </div>
+    </div>
+  );
+}
 
 const DATA: Record<string, { board: string; code: string; name: string; icon: string }> = {
   "caie-physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️" },
@@ -61,6 +91,36 @@ export default async function PastPapersSeasonPage({
     if (!subjectId && subjInfo.code) {
       const { data } = await supabase.from("subjects").select("id").eq("code", subjInfo.code);
       if (data && data.length > 0) subjectId = data[0].id;
+    }
+
+    // 购买校验
+    let hasAccess = false;
+    try {
+      const authSupabase = createClient();
+      const { data: { user } } = await authSupabase.auth.getUser();
+      if (user && subjectId) {
+        const now = new Date();
+        const { data: purchases } = await authSupabase
+          .from("purchases")
+          .select("subject_id, expires_at")
+          .eq("user_id", user.id)
+          .eq("status", "completed");
+        if (purchases && purchases.length > 0) {
+          if (purchases.some(p => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
+            hasAccess = true;
+          } else {
+            hasAccess = purchases.some(p =>
+              p.subject_id === subjectId &&
+              (!p.expires_at || new Date(p.expires_at) > now)
+            );
+          }
+        }
+      }
+    } catch { /* not authenticated */ }
+
+    if (!hasAccess) {
+      const { board, code, name, icon } = subjInfo;
+      return <PaywallBanner board={board} code={code} name={name} icon={icon} />;
     }
 
     if (subjectId) {
