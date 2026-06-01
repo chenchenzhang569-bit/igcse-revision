@@ -71,12 +71,14 @@ export default function PricingPage() {
       const u = data.session?.user;
       setUser(u);
       if (u) {
-        fetch("/api/payment/trial/check")
+        const token = data.session?.access_token;
+        const authHeaders: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+        fetch("/api/payment/trial/check", { headers: authHeaders })
           .then((r) => r.json())
           .then((d) => setHasTrial(d.hasTrial))
           .finally(() => setLoading(false));
         // Fetch purchases for upgrade pricing
-        fetch("/api/payment/purchases")
+        fetch("/api/payment/purchases", { headers: authHeaders })
           .then((r) => r.json())
           .then((d) => {
             setUpgradePrice(d.hasAllSubject ? null : d.upgradePrice);
