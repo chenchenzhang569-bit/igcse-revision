@@ -375,7 +375,6 @@ const ECONOMICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
   ],
   "2-the-allocation-of-resources": [
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-1-the-role-of-markets-in-allocating-resources", name: "The Role of Markets in Allocating Resources", displayName: "The Role of Markets in Allocating Resources", pmtCode: "2.1" },
-    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-10-mixed-economic-system", name: "Mixed Economic System", displayName: "Mixed Economic System", pmtCode: "2.10" },
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-2-demand", name: "Demand", displayName: "Demand", pmtCode: "2.2" },
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-3-supply", name: "Supply", displayName: "Supply", pmtCode: "2.3" },
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-4-price-determination", name: "Price Determination", displayName: "Price Determination", pmtCode: "2.4" },
@@ -384,6 +383,7 @@ const ECONOMICS_SUBTOPICS: Record<string, SubtopicDef[]> = {
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-7-price-elasticity-of-supply-pes", name: "Price Elasticity of Supply (PES)", displayName: "Price Elasticity of Supply (PES)", pmtCode: "2.7" },
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-8-market-economic-system", name: "Market Economic System", displayName: "Market Economic System", pmtCode: "2.8" },
     { slug: "caie-economics-0455-2-the-allocation-of-resources-2-9-market-failure", name: "Market Failure", displayName: "Market Failure", pmtCode: "2.9" },
+    { slug: "caie-economics-0455-2-the-allocation-of-resources-2-10-mixed-economic-system", name: "Mixed Economic System", displayName: "Mixed Economic System", pmtCode: "2.10" },
   ],
   "3-microeconomic-decision-makers": [
     { slug: "caie-economics-0455-3-microeconomic-decision-makers-3-1-money-and-banking", name: "Money & Banking", displayName: "Money & Banking", pmtCode: "3.1" },
