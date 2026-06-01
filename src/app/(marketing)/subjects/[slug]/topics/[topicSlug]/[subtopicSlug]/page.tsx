@@ -1,5 +1,6 @@
 // fix: anon-key subtopic filtering + all subjects — force-redeploy 2026-05-27
 export const dynamic = "force-dynamic";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
@@ -119,12 +120,61 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "6-international-trade-and-globalisation": "6. International Trade & Globalisation",
 };
 
+function PaywallBanner({ subjectSlug }: { subjectSlug: string }) {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+      <div className="text-6xl mb-4">🔒</div>
+      <h2 className="text-2xl font-bold text-primary-900 mb-2">需要购买才能访问</h2>
+      <p className="text-gray-500 mb-6">请先购买该科目以查看笔记和题目</p>
+      <Link
+        href={`/subjects/${subjectSlug}`}
+        className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
+      >
+        查看科目详情
+      </Link>
+    </div>
+  );
+}
+
 export default async function SubtopicPage({
   params,
 }: {
   params: Promise<{ slug: string; topicSlug: string; subtopicSlug: string }>;
 }) {
   const { slug, topicSlug, subtopicSlug } = await params;
+
+  // Check purchase access
+  let hasAccess = false;
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: subjectRow } = await supabase
+        .from("subjects").select("id").eq("slug", slug).maybeSingle();
+      if (subjectRow) {
+        const now = new Date();
+        const { data: purchases } = await supabase
+          .from("purchases")
+          .select("subject_id, expires_at")
+          .eq("user_id", user.id)
+          .eq("status", "completed");
+        if (purchases && purchases.length > 0) {
+          if (purchases.some(p => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
+            hasAccess = true;
+          } else {
+            hasAccess = purchases.some(p =>
+              p.subject_id === subjectRow.id &&
+              (!p.expires_at || new Date(p.expires_at) > now)
+            );
+          }
+        }
+      }
+    }
+  } catch { /* not authenticated */ }
+
+  if (!hasAccess) {
+    return <PaywallBanner subjectSlug={slug} />;
+  }
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
