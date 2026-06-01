@@ -396,6 +396,15 @@ export default async function SubjectPage({
           topics,
           subtopicCount: sectionSubCounts.get(section) || 0,
         }));
+        // Sort sections by SME_SECTION_ORDER for maths
+        if (key === "maths") {
+          const orderIndex = new Map(SME_SECTION_ORDER.map((s, i) => [s, i]));
+          topicSections.sort((a, b) => {
+            const ai = orderIndex.get(a.section) ?? 999;
+            const bi = orderIndex.get(b.section) ?? 999;
+            return ai - bi;
+          });
+        }
         // Also provide flat topics for non-section rendering; attach subtopicCount for non-math subjects
         topics = topicSections.flatMap(s => s.topics.map(t => ({...t, subtopicCount: s.subtopicCount})));
       }
