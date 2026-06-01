@@ -47,9 +47,9 @@ function get30dRange() {
 
 function subjectToMockText(displayName: string, code: string): string {
   const d = displayName.toLowerCase();
+  if (d.includes("additional")) return code || "0606";
   if (d.includes("mathematics")) return "maths";
   if (d.includes("computer")) return "computer-science";
-  if (d.includes("additional")) return code || "0606";
   if (d.includes("biology")) return "biology";
   if (d.includes("chemistry")) return "chemistry";
   if (d.includes("physics")) return "physics";
