@@ -841,22 +841,99 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </div>
         ) : null}
 
-        {/* For structured questions: mark scheme toggle button */}
-        {!isMcq && q.explanation && (
-            <div className="mt-3">
-              <button
-                onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
-              >
-                📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
-              </button>
-              {markSchemeVisible[q.id] && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')}</ReactMarkdown>
-                </div>
-              )}
-            </div>
-        )}
+        {/* For structured questions: mark scheme / grade result */}
+        {!isMcq && (bugContext?.code === "0580" || bugContext?.code === "0606") ? (
+          /* Math (0580 / 0606): wrong → auto-show clean answer, correct → green badge + Show Mark Scheme button */
+          <>
+            {isGraded && (
+              <div className={`mt-4 p-4 rounded-lg border text-sm ${
+                isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
+              }`}>
+                <p className="font-semibold">
+                  {isCorrect ? (
+                    <span>✅ Correct! (+{q.marks} mark{q.marks > 1 ? "s" : ""})</span>
+                  ) : (
+                    <span>
+                      ❌ Incorrect. The answer is:
+                      <div className="mt-1 space-y-1 font-normal">
+                        {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
+                          const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
+                          const renderPart = (content: string) => {
+                            const t = content.trim();
+                            const hasMath = /[=\^\\\/()<>\+-]/.test(t);
+                            return hasMath
+                              ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
+                              : <span>{t}</span>;
+                          };
+                          if (m) {
+                            return (
+                              <div key={i}>
+                                <span className="font-medium">{m[1]}</span>{" "}
+                                {renderPart(m[2])}
+                              </div>
+                            );
+                          }
+                          return <div key={i}>{renderPart(p)}</div>;
+                        })}
+                      </div>
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+            {/* "Show Mark Scheme" button for correct answers on math — shows clean_answer_text */}
+            {isGraded && isCorrect && (q.clean_answer_text || q.answer_text) && (
+              <div className="mt-3">
+                <button
+                  onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
+                >
+                  📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
+                </button>
+                {markSchemeVisible[q.id] && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                    <div className="space-y-1">
+                      {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
+                        const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
+                        const renderPart = (content: string) => {
+                          const t = content.trim();
+                          const hasMath = /[=\^\\\/()<>\+-]/.test(t);
+                          return hasMath
+                            ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
+                            : <span>{t}</span>;
+                        };
+                        if (m) {
+                          return (
+                            <div key={i}>
+                              <span className="font-medium">{m[1]}</span>{" "}
+                              {renderPart(m[2])}
+                            </div>
+                          );
+                        }
+                        return <div key={i}>{renderPart(p)}</div>;
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : !isMcq && q.explanation ? (
+          /* Non-math subjects: original Show Mark Scheme button with explanation */
+          <div className="mt-3">
+            <button
+              onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
+            >
+              📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
+            </button>
+            {markSchemeVisible[q.id] && (
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')}</ReactMarkdown>
+              </div>
+            )}
+          </div>
+        ) : null}
 
         {/* Grade result for MCQ questions */}
         {isMcq && isGraded && (
