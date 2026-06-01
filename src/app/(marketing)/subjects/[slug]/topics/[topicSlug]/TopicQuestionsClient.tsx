@@ -841,8 +841,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </div>
         ) : null}
 
-        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
-        {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && q.explanation && (
+        {/* For structured questions: mark scheme toggle button */}
+        {!isMcq && q.explanation && (
             <div className="mt-3">
               <button
                 onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -852,48 +852,10 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               </button>
               {markSchemeVisible[q.id] && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{(q.clean_answer_text || q.answer_text || q.explanation || '')}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')}</ReactMarkdown>
                 </div>
               )}
             </div>
-        )}
-
-        {/* Auto-grade result for math (0580/0606) structured questions */}
-        {!isMcq && (bugContext?.code === "0580" || bugContext?.code === "0606") && isGraded && (
-          <div className={`mt-4 p-4 rounded-lg border text-sm ${
-            isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
-          }`}>
-            <p className="font-semibold">
-              {isCorrect ? (
-                <span>✅ Correct! (+{q.marks} mark{q.marks > 1 ? "s" : ""})</span>
-              ) : (
-                <span>
-                  ❌ Incorrect. The answer is:
-                  <div className="mt-1 space-y-1 font-normal">
-                    {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
-                      const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
-                      const renderPart = (content: string) => {
-                        const t = content.trim();
-                        const hasMath = /[=\^\\\/()<>\+-]/.test(t);
-                        return hasMath
-                          ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
-                          : <span>{t}</span>;
-                      };
-                      if (m) {
-                        return (
-                          <div key={i}>
-                            <span className="font-medium">{m[1]}</span>{" "}
-                            {renderPart(m[2])}
-                          </div>
-                        );
-                      }
-                      return <div key={i}>{renderPart(p)}</div>;
-                    })}
-                  </div>
-                </span>
-              )}
-            </p>
-          </div>
         )}
 
         {/* Grade result for MCQ questions */}
