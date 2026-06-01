@@ -157,7 +157,7 @@ export default async function SubtopicPage({
           .from("purchases")
           .select("subject_id, expires_at")
           .eq("user_id", user.id)
-          .eq("status", "completed");
+          .in("status", ["paid", "trial"]);
         if (purchases && purchases.length > 0) {
           if (purchases.some(p => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
             hasAccess = true;
