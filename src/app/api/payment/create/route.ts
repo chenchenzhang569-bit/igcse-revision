@@ -49,6 +49,21 @@ export async function POST(request: NextRequest) {
   const admin = createAdminClient();
 
   if (plan === "all") {
+    // 检查是否已购全科（防止重复下单）
+    const { data: existingAll } = await admin
+      .from("purchases")
+      .select("id, expires_at")
+      .eq("user_id", userId)
+      .is("subject_id", null)
+      .eq("status", "paid")
+      .maybeSingle();
+    if (existingAll) {
+      const expiresMsg = existingAll.expires_at
+        ? `（有效期至 ${new Date(existingAll.expires_at).toLocaleDateString("zh-CN")}）`
+        : "";
+      return NextResponse.json({ error: `您已拥有全科套餐${expiresMsg}，无需重复购买` }, { status: 409 });
+    }
+
     // 计算升级差价：已付单科总额
     let upgradeAmount = PRICE_ALL * 100; // ¥250 in fen
     const { data: previousPaid } = await admin

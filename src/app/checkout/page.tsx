@@ -42,7 +42,7 @@ function CheckoutContent() {
         fetch("/api/payment/purchases", { headers: authHeaders })
           .then((r) => r.json())
           .then((d) => {
-            setUpgradePrice(d.upgradePrice ?? null);
+            setUpgradePrice(d.hasAllSubject ? null : (d.upgradePrice ?? null));
             setLoadingPrice(false);
           })
           .catch(() => setLoadingPrice(false));
@@ -183,6 +183,11 @@ function CheckoutContent() {
               <p className="text-sm text-emerald-600 font-semibold mb-1">升级仅需 — 已扣除已购金额</p>
               <p className="text-sm text-gray-400 line-through mb-8">原价 ¥{PRICE_ALL}</p>
             </>
+          ) : upgradePrice === null ? (
+            <>
+              <div className="text-2xl font-bold text-green-600 mb-2">✅ 您已拥有全科套餐</div>
+              <p className="text-sm text-gray-500 mb-8">无需重复购买，所有科目已解锁</p>
+            </>
           ) : (
             <>
               <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>
@@ -192,13 +197,22 @@ function CheckoutContent() {
 
           {status === "error" && <p className="text-red-500 text-sm mb-4" dangerouslySetInnerHTML={{ __html: error }} />}
 
-          <button
-            onClick={handlePay}
-            disabled={status === "submitting"}
-            className="w-full py-3 rounded-xl bg-accent-500 text-white font-semibold hover:bg-accent-600 disabled:opacity-50 transition"
-          >
-            {status === "submitting" ? "Creating order..." : "Pay with Alipay"}
-          </button>
+          {upgradePrice === null ? (
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full py-3 rounded-xl bg-primary-900 text-white font-semibold hover:bg-primary-800 transition"
+            >
+              Back to Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={handlePay}
+              disabled={status === "submitting"}
+              className="w-full py-3 rounded-xl bg-accent-500 text-white font-semibold hover:bg-accent-600 disabled:opacity-50 transition"
+            >
+              {status === "submitting" ? "Creating order..." : "Pay with Alipay"}
+            </button>
+          )}
           <button
             onClick={() => router.back()}
             className="mt-3 w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition"
