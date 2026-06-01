@@ -12,6 +12,12 @@ type DimInfo = {
   missing: { id: string; name: string; topic: string }[];
 };
 
+type PaperDetail = {
+  year: number;
+  season: string;
+  paper_number: string;
+};
+
 type SubjectCoverage = {
   subject_name: string;
   total_subtopics: number;
@@ -25,6 +31,8 @@ type SubjectCoverage = {
   past_paper_mcq_qp: number;
   past_paper_ms: number;
   past_paper_missing_ms: number;
+  past_paper_missing_ms_details: PaperDetail[];
+  past_paper_missing_qp_details: PaperDetail[];
 };
 
 type ApiData = {
@@ -258,26 +266,69 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
                       );
                     })}
                   </div>
-                  {/* Past paper stats - same format as DIMS */}
+                  {/* Past paper stats - expandable with missing paper details */}
                   <div className="grid grid-cols-1 gap-2 mt-3">
                     {[
-                      { key: "past_paper_qp" as const, label: "真题 QP", icon: "📄", count: coverage.past_paper_qp, total: coverage.past_paper_qp },
-                      { key: "past_paper_ms" as const, label: "真题 MS", icon: "📋", count: coverage.past_paper_ms, total: coverage.past_paper_qp },
+                      {
+                        key: "past_paper_qp" as const,
+                        label: "真题 QP",
+                        icon: "📄",
+                        count: coverage.past_paper_qp,
+                        total: coverage.past_paper_qp,
+                        // QP行展开显示缺MS的QP
+                        missingDetails: coverage.past_paper_missing_ms_details || [],
+                        missingLabel: "缺 MS",
+                        hint: "（有QP但缺对应MS）",
+                      },
+                      {
+                        key: "past_paper_ms" as const,
+                        label: "真题 MS",
+                        icon: "📋",
+                        count: coverage.past_paper_ms,
+                        total: coverage.past_paper_qp,
+                        // MS行展开显示缺QP的MS
+                        missingDetails: coverage.past_paper_missing_qp_details || [],
+                        missingLabel: "缺 QP",
+                        hint: "（有MS但缺对应QP）",
+                      },
                     ].map((d) => {
-                      const missing = d.total - d.count;
-                      const color = d.count === 0 ? "bg-red-50 border-red-200" : missing > 0 ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200";
+                      const actualMissing = d.total - d.count;
+                      const hasMissing = actualMissing > 0;
+                      const details = d.missingDetails;
+                      const color = d.count === 0 ? "bg-red-50 border-red-200" : hasMissing ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200";
+                      const isOpen = expandedDim === d.key;
                       return (
                         <div key={d.key} className={`rounded-lg border p-3 ${color}`}>
-                          <a href={`/admin/upload?subject_id=${subject}`}
+                          <button onClick={() => setExpandedDim(isOpen ? null : d.key)}
                             className="w-full flex items-center justify-between text-left">
                             <span className="text-sm font-medium">
                               {d.icon} {d.label}
                             </span>
                             <span className="text-sm font-bold">
                               {fmt(d.count)}
-                              {missing > 0 && <span className="text-xs text-red-500 ml-1">(缺 {missing})</span>}
+                              {hasMissing && <span className="text-xs text-red-500 ml-1">(缺 {details.length})</span>}
                             </span>
-                          </a>
+                          </button>
+                          {isOpen && details.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                              <p className="text-xs text-gray-500 mb-1">{d.missingLabel} {d.hint}:</p>
+                              {details.map((p: PaperDetail, i: number) => (
+                                <div key={i}
+                                  className="flex items-center justify-between py-1 px-2 rounded hover:bg-white/50 text-xs text-gray-600"
+                                >
+                                  <span>{p.year} {p.season} Paper {p.paper_number}</span>
+                                  <a href={`/admin/upload?subject_id=${subject}`}
+                                    className="text-primary-600 hover:underline ml-2"
+                                  >上传</a>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {isOpen && details.length === 0 && !hasMissing && (
+                            <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-green-600">
+                              ✅ 全部配合齐全
+                            </div>
+                          )}
                         </div>
                       );
                     })}
