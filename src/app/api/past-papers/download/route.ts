@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "缺少试卷 ID" }, { status: 400 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   // 查试卷
   const { data: paper, error } = await supabase
@@ -31,19 +28,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "该试卷没有 PDF 附件" }, { status: 404 });
   }
 
-  // 检查购买权限
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "请先登录", loginUrl: "/login" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.replace("Bearer ", "");
-  const { data: userData, error: userError } = await supabase.auth.getUser(token);
-
-  if (userError || !userData.user) {
+  // 使用 cookie session 检查登录
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
     return NextResponse.json(
       { error: "请先登录", loginUrl: "/login" },
       { status: 401 }
@@ -54,27 +41,46 @@ export async function GET(req: NextRequest) {
   const { data: purchase } = await supabase
     .from("purchases")
     .select("id, expires_at")
-    .eq("user_id", userData.user.id)
+    .eq("user_id", user.id)
     .eq("subject_id", paper.subject_id)
-    .eq("status", "completed")
+    .in("status", ["paid", "trial"])
     .maybeSingle();
 
   if (!purchase) {
-    return NextResponse.json(
+    // Also check all-subjects plan
+    const { data: allSubjects } = await supabase
+      .from("purchases")
+      .select("id, expires_at")
+      .eq("user_id", user.id)
+      .is("subject_id", null)
+      .in("status", ["paid", "trial"])
+      .maybeSingle();
+
+    if (!allSubjects) {
+      return NextResponse.json(
       {
         error: "请先购买该科目",
         subjectId: paper.subject_id,
       },
       { status: 402 }
     );
-  }
+    }
 
-  // 检查是否过期
-  if (purchase.expires_at && new Date(purchase.expires_at) < new Date()) {
-    return NextResponse.json(
-      { error: "购买已过期，请重新购买" },
-      { status: 402 }
-    );
+    // Check if all-subjects plan is expired
+    if (allSubjects.expires_at && new Date(allSubjects.expires_at) < new Date()) {
+      return NextResponse.json(
+        { error: "购买已过期，请重新购买" },
+        { status: 402 }
+      );
+    }
+  } else {
+    // 检查是否过期
+    if (purchase.expires_at && new Date(purchase.expires_at) < new Date()) {
+      return NextResponse.json(
+        { error: "购买已过期，请重新购买" },
+        { status: 402 }
+      );
+    }
   }
 
   // 重定向到文件
