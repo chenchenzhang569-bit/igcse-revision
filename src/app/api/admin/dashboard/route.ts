@@ -231,29 +231,52 @@ export async function GET(request: NextRequest) {
     const overviewSciIds = (subjects||[]).filter(s => overviewSciCodes.has(s.code)).map(s => s.id);
     const overviewNonSciIds = (subjects||[]).filter(s => !overviewSciCodes.has(s.code) && s.id).map(s => s.id);
 
-    const scanOverviewClassify = async (ids: string[], useText: boolean, mcqC: {v:number}, pracC: {v:number}, missingC: {v:number}, subjCounts: Record<string, number>) => {
+    const scanOverviewClassify = async (ids: string[], checkText: boolean, mcqC: {v:number}, pracC: {v:number}, missingC: {v:number}, subjCounts: Record<string, number>) => {
       if (!ids.length) return;
+      // Step 1: fast pass — classify by answer_text only, no question_text
+      const unsure: {sid: string, qid: string}[] = [];
       let offset = 0;
-      const cols = useText ? "subject_id, answer_text, clean_answer_text, question_text" : "subject_id, answer_text, clean_answer_text";
       while (true) {
-        let q = admin.from("questions").select(cols).in("subject_id", ids);
-        const { data: page } = await q.range(offset, offset + 999);
+        const { data: page } = await admin
+          .from("questions")
+          .select("id, subject_id, answer_text, clean_answer_text")
+          .in("subject_id", ids)
+          .range(offset, offset + 999);
         if (!page?.length) break;
         for (const q of page) {
           const ans = (q.clean_answer_text || q.answer_text || "").trim();
-          let isMcq = /^[A-D]$/i.test(ans);
-          if (!isMcq && useText) {
-            const txt = q.question_text || "";
-            isMcq = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          if (/^[A-D]$/i.test(ans)) {
+            mcqC.v++;
+            if (filterType === "mcq") subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
+          } else {
+            pracC.v++;
+            if (checkText) unsure.push({sid: q.subject_id, qid: q.id});
+            if (filterType === "questions") subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
           }
-          if (isMcq) mcqC.v++; else pracC.v++;
           if (!q.clean_answer_text) missingC.v++;
-          if (filterType === "mcq" ? isMcq : !isMcq) {
-            subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
-          }
         }
         if (page.length < 1000) break;
         offset += 1000;
+      }
+      // Step 2: only for science subjects — check question_text of uncertain questions
+      if (!unsure.length) return;
+      const BATCH = 100;
+      for (let i = 0; i < unsure.length; i += BATCH) {
+        const batch = unsure.slice(i, i + BATCH);
+        const { data: pages } = await admin
+          .from("questions")
+          .select("id, subject_id, question_text")
+          .in("id", batch.map(x => x.qid));
+        if (!pages) continue;
+        for (const q of pages) {
+          const txt = q.question_text || "";
+          const isMcq = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          if (isMcq) {
+            mcqC.v++; pracC.v--;
+            if (filterType === "mcq") subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
+            if (filterType === "questions") subjCounts[q.subject_id] = Math.max(0, (subjCounts[q.subject_id] || 0) - 1);
+          }
+        }
       }
     };
 
