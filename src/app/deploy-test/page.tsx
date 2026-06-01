@@ -1,11 +1,8 @@
-export const dynamic = "force-dynamic";
-
-export default function DeployTestPage() {
+export default function DeployTest() {
   return (
-    <div style={{ padding: 40, fontFamily: "monospace" }}>
+    <div style={{ padding: 40, textAlign: "center" }}>
       <h1>DEPLOY TEST</h1>
-      <p>If you see this, Vercel IS deploying new code.</p>
-      <p>Commit: 219e468</p>
+      <p>Commit: 202892c</p>
       <p>Time: {new Date().toISOString()}</p>
     </div>
   );
