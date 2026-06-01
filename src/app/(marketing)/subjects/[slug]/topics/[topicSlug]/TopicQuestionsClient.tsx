@@ -874,9 +874,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                       const m = p.trim().match(/^(\\([^)]+\\))\\s*(.*)/);
                       const renderPart = (content: string) => {
                         const t = content.trim();
-                        const hasMath = /[=^]|\\[a-zA-Z]+|\\$/.test(t) || /\\over|\\frac/.test(t);
-                        return hasMath
-                          ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
+                        const hasDollar = t.includes("$");
+                        return hasDollar
+                          ? <span dangerouslySetInnerHTML={{ __html: renderMath(t) }} />
                           : <span>{t}</span>;
                       };
                       if (m) {
