@@ -242,11 +242,24 @@ export async function GET(request: NextRequest) {
     const subjName = subjectDisplay[filterSubjectId] || filterSubjectId;
     subjectsWithQuestions = 1;
 
-    // MCQ count
-    const { count: mcqC } = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", filterSubjectId).eq("question_type", "mcq");
-
-    // Practice (non-MCQ) count
-    const { count: pracC } = await admin.from("questions").select("*", { count: "exact", head: true }).eq("subject_id", filterSubjectId).neq("question_type", "mcq");
+    // MCQ count — match frontend classification: answer is single letter A-D
+    let mcqC = 0, pracC = 0;
+    let offset = 0;
+    while (true) {
+      const { data: page } = await admin
+        .from("questions")
+        .select("answer_text, clean_answer_text")
+        .eq("subject_id", filterSubjectId)
+        .range(offset, offset + 999);
+      if (!page?.length) break;
+      for (const q of page) {
+        const ans = (q.clean_answer_text || q.answer_text || "").trim();
+        if (/^[A-D]$/i.test(ans)) mcqC++;
+        else pracC++;
+      }
+      if (page.length < 1000) break;
+      offset += 1000;
+    }
 
     // Mock count
     let mockC = 0;
