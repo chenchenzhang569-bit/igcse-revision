@@ -227,31 +227,27 @@ export async function GET(request: NextRequest) {
     // No subject filter — single pass for all types
     let skipDist = false;
 
-    if (filterType === "all") {
-      // Fast: head:true count for total, mock exam count
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true });
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
-    } else if (filterType === "mcq" || filterType === "questions") {
-      // Single scan: classify by answer format + question_text pattern (matches frontend subtopic page logic)
-      let mcqC = 0, pracC = 0, missingC = 0;
-      const subjCounts: Record<string, number> = {};
+    const overviewSciSlugs = new Set(["caie-physics-0625","edexcel-physics-4ph1","caie-chemistry-0620","edexcel-chemistry-4ch1","caie-biology-0610","edexcel-biology-4bi1"]);
+    const overviewSciIds = (subjects||[]).filter(s => overviewSciSlugs.has(s.slug)).map(s => s.id);
+    const overviewNonSciIds = (subjects||[]).filter(s => !overviewSciSlugs.has(s.slug) && s.id).map(s => s.id);
+
+    const scanOverviewClassify = async (ids: string[], useText: boolean, mcqC: {v:number}, pracC: {v:number}, missingC: {v:number}, subjCounts: Record<string, number>) => {
+      if (!ids.length) return;
       let offset = 0;
+      const cols = useText ? "subject_id, answer_text, clean_answer_text, question_text" : "subject_id, answer_text, clean_answer_text";
       while (true) {
-        const { data: page } = await admin
-          .from("questions")
-          .select("subject_id, answer_text, clean_answer_text, question_text")
-          .range(offset, offset + 999);
+        let q = admin.from("questions").select(cols).in("subject_id", ids);
+        const { data: page } = await q.range(offset, offset + 999);
         if (!page?.length) break;
         for (const q of page) {
           const ans = (q.clean_answer_text || q.answer_text || "").trim();
-          const txt = q.question_text || "";
-          const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
-          const isMcq = hasAbcd || /^[A-D]$/i.test(ans);
-          if (isMcq) mcqC++;
-          else pracC++;
-          if (!q.clean_answer_text) missingC++;
+          let isMcq = /^[A-D]$/i.test(ans);
+          if (!isMcq && useText) {
+            const txt = q.question_text || "";
+            isMcq = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
+          }
+          if (isMcq) mcqC.v++; else pracC.v++;
+          if (!q.clean_answer_text) missingC.v++;
           if (filterType === "mcq" ? isMcq : !isMcq) {
             subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
           }
@@ -259,13 +255,27 @@ export async function GET(request: NextRequest) {
         if (page.length < 1000) break;
         offset += 1000;
       }
-      totalQuestions = filterType === "mcq" ? mcqC : pracC;
-      missingAnswersCount = missingC;
+    };
+
+    if (filterType === "all") {
+      // Fast: head:true count for total, mock exam count
+      const r1 = await admin.from("questions").select("*", { count: "exact", head: true });
+      totalQuestions = r1.count || 0;
+      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
+      missingAnswersCount = r2.count || 0;
+    } else if (filterType === "mcq" || filterType === "questions") {
+      // Two-pass: science subjects with question_text, others by answer format only
+      let mcqC = {v:0}, pracC = {v:0}, missingC = {v:0};
+      const subjCounts: Record<string, number> = {};
+      await scanOverviewClassify(overviewNonSciIds, false, mcqC, pracC, missingC, subjCounts);
+      await scanOverviewClassify(overviewSciIds, true, mcqC, pracC, missingC, subjCounts);
+      totalQuestions = filterType === "mcq" ? mcqC.v : pracC.v;
+      missingAnswersCount = missingC.v;
       for (const [sid, cnt] of Object.entries(subjCounts)) {
         questionDistribution.push({ name: subjectDisplay[sid] || sid, count: cnt });
         subjectsWithQuestions++;
       }
-      skipDist = true; // distribution already set, skip the dist section below
+      skipDist = true;
     }
 
     // Distribution for "all" and/or mock exam questions
