@@ -203,7 +203,7 @@ export default function AdminUsersPage() {
   // Open add modal
   const openAdd = () => {
     setEditModal({ purchase: null, mode: "add" });
-    setEditForm({ subject_id: "", amount_cny: 50, expires_at: "", status: "paid" });
+    setEditForm({ subject_id: "", amount_cny: 250, expires_at: "", status: "paid" });
   };
 
   // Save purchase (add or edit)
@@ -443,7 +443,7 @@ export default function AdminUsersPage() {
                           >
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-medium text-gray-700">
-                                {p.subject_name}
+                                {p.subject_name || "📚 全科"}
                               </p>
                               <p className="text-xs text-gray-400 flex items-center gap-2">
                                 <span>{formatAmount(p.amount_cny)}</span>
@@ -531,7 +531,8 @@ export default function AdminUsersPage() {
               }
               className="w-full px-3 py-2 border rounded-xl text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary-900/20"
             >
-              <option value="">选择科目</option>
+              <option value="">— 全科（¥250）—</option>
+              <option value="" disabled>── 单科 ──</option>
               {subjects.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.board_name} {s.display_name}{s.code ? ` · ${s.code}` : ""}
