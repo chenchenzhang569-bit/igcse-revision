@@ -246,6 +246,7 @@ export default function AdminUploadPage() {
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear());
   const [uploadSeason, setUploadSeason] = useState("May/Jun");
   const [uploadPaperNum, setUploadPaperNum] = useState(1);
+  const [uploadPaperType, setUploadPaperType] = useState("Question Paper");
 
   // Edit modal
   const [showEdit, setShowEdit] = useState(false);
@@ -362,6 +363,7 @@ export default function AdminUploadPage() {
         formData.append("year", String(uploadYear));
         formData.append("season", uploadSeason);
         formData.append("paper_number", String(uploadPaperNum));
+        formData.append("paper_type", uploadPaperType);
       }
       if (uploadTitle) formData.append("title", uploadTitle);
 
@@ -667,6 +669,14 @@ export default function AdminUploadPage() {
             />
 
             {uploadType === "past_paper" && (
+              <>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">真题类型</label>
+              <div className="flex gap-2 mb-3">
+                <button onClick={() => setUploadPaperType("Question Paper")}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition ${uploadPaperType === "Question Paper" ? "bg-primary-900 text-white" : "bg-gray-100 text-gray-500"}`}>试卷 (QP)</button>
+                <button onClick={() => setUploadPaperType("Mark Scheme")}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition ${uploadPaperType === "Mark Scheme" ? "bg-primary-900 text-white" : "bg-gray-100 text-gray-500"}`}>答案 (MS)</button>
+              </div>
               <div className="flex gap-2 mb-3">
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-gray-500 mb-1">年份</label>
@@ -688,6 +698,7 @@ export default function AdminUploadPage() {
                     className="w-full px-2 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-900/20" />
                 </div>
               </div>
+              </>
             )}
 
             <label className="block text-xs font-semibold text-gray-500 mb-1">PDF 文件</label>

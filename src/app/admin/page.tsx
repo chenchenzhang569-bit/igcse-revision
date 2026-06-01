@@ -23,7 +23,6 @@ type DashboardData = {
   revenue: { total: number; week: number };
   invites: { total: number; paid: number; conversion: number };
   sources: Record<string, number>;
-  db_quality: { total_questions: number; missing_answers: number; mock_papers: number; notes: number; subjects_with_questions: number };
   question_distribution: { name: string; count: number }[];
   available_subjects: { id: string; name: string }[];
 };
@@ -31,7 +30,7 @@ type DashboardData = {
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
 const ORDER_STORAGE_KEY = "admin_widget_order";
 
-const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "funnel", "dau", "signups", "sources", "questions", "qa"];
+const DEFAULT_ORDER = ["overview", "payment", "revenue", "invites", "dau", "signups", "sources", "questions", "qa"];
 
 function loadOrder(): string[] {
   try { const v = localStorage.getItem(ORDER_STORAGE_KEY); return v ? JSON.parse(v) : DEFAULT_ORDER; } catch { return DEFAULT_ORDER; }
@@ -48,7 +47,7 @@ function SortableWidget({ id, children }: { id: string; children: React.ReactNod
   return (
     <div ref={setNodeRef} style={style}>
       <div className="flex items-center">
-        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-1 text-gray-300 hover:text-gray-500 select-none" title="拖拽排序">⋮⋮</button>
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-2 text-gray-400 hover:text-gray-600 select-none px-2 py-1 rounded hover:bg-gray-100 text-lg" title="拖拽排序">⠿</button>
         <div className="flex-1">{children}</div>
       </div>
     </div>
@@ -63,7 +62,7 @@ export default function AdminDashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [order, setOrder] = useState<string[]>([]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 2 } }));
 
   useEffect(() => {
     const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -171,19 +170,6 @@ export default function AdminDashboardPage() {
               <div className="text-center p-3 bg-green-50 rounded-lg"><div className="text-2xl font-bold text-green-700">{fmt(data.invites.paid)}</div><div className="text-xs text-gray-500">付费邀请</div></div>
               <div className="text-center p-3 bg-purple-50 rounded-lg"><div className="text-2xl font-bold text-purple-600">{data.invites.conversion}%</div><div className="text-xs text-gray-500">转化率</div></div>
             </div>
-          )}
-        </WidgetCard>
-      );
-      case "funnel": return (
-        <WidgetCard title="🔄 邀请漏斗" defaultView="card" views={["card", "table"]} widgetId={id} onToggle={() => toggleWidget(id)} hidden={false}>
-          {(view) => view === "table" ? (
-            <table className="w-full text-sm"><tbody>
-              <tr className="border-b"><td className="py-2 text-gray-500">总邀请</td><td className="text-right font-semibold">{fmt(data.invites.total)}</td></tr>
-              <tr className="border-b"><td className="py-2 text-gray-500">转化付费</td><td className="text-right font-semibold">{fmt(data.invites.paid)}</td></tr>
-              <tr><td className="py-2 text-gray-500">转化率</td><td className="text-right font-semibold">{data.invites.conversion}%</td></tr>
-            </tbody></table>
-          ) : (
-            <div className="text-center p-3 bg-green-50 rounded-lg"><div className="text-2xl font-bold text-green-700">{data.invites.conversion}%</div><div className="text-xs text-gray-500">邀请 → 付费转化率</div></div>
           )}
         </WidgetCard>
       );

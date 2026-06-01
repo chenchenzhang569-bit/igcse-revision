@@ -47,8 +47,8 @@ const DIMS = [
 ] as const;
 
 const PP_DIMS = [
-  { key: "past_paper_qp", label: "真题(QP)", icon: "📄" },
-  { key: "past_paper_ms", label: "真题(MS)", icon: "📋" },
+  { key: "past_paper_qp", label: "真题 QP", icon: "📄" },
+  { key: "past_paper_ms", label: "真题 MS", icon: "📋" },
 ] as const;
 
 export default function SubjectQAWidget({ token, availableSubjects, onToggle }: Props) {
@@ -101,8 +101,8 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
     // Subject selected: show dimension breakdown
     distribution = [
       ...DIMS.map(d => ({ name: d.label, count: coverage![d.key as keyof SubjectCoverage] as DimInfo ? (coverage![d.key as keyof SubjectCoverage] as DimInfo).has : 0 })),
-      { name: "真题QP", count: coverage.past_paper_qp },
-      { name: "真题MS", count: coverage.past_paper_ms },
+      { name: "真题 QP", count: coverage.past_paper_qp },
+      { name: "真题 MS", count: coverage.past_paper_ms },
     ].filter(d => d.count > 0);
   } else if (dimKey !== "all" && !subject) {
     // Dimension selected, no subject: show by subject
@@ -155,7 +155,7 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <select value={subject} onChange={(e) => { setSubject(e.target.value); setExpandedDim(null); }}
                 className="text-xs border rounded px-2 py-1 bg-white text-gray-600">
-                <option value="">📚 全部科目</option>
+                <option value="">📚 全部科目（共 {availableSubjects.length} 科）</option>
                 {availableSubjects.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -258,20 +258,29 @@ export default function SubjectQAWidget({ token, availableSubjects, onToggle }: 
                       );
                     })}
                   </div>
-                  {/* Past paper stats */}
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                    <div className="text-center p-2 bg-blue-50 rounded-lg">
-                      <div className="font-bold">{fmt(coverage.past_paper_qp)}</div>
-                      <div className="text-gray-400">真题(QP)</div>
-                    </div>
-                    <div className="text-center p-2 bg-blue-50 rounded-lg">
-                      <div className="font-bold">{fmt(coverage.past_paper_ms)}</div>
-                      <div className="text-gray-400">真题(MS)</div>
-                    </div>
-                    <div className="text-center p-2 bg-red-50 rounded-lg">
-                      <div className="font-bold text-red-500">{fmt(coverage.past_paper_missing_ms)}</div>
-                      <div className="text-gray-400">缺MS</div>
-                    </div>
+                  {/* Past paper stats - same format as DIMS */}
+                  <div className="grid grid-cols-1 gap-2 mt-3">
+                    {[
+                      { key: "past_paper_qp" as const, label: "真题 QP", icon: "📄", count: coverage.past_paper_qp, total: coverage.past_paper_qp },
+                      { key: "past_paper_ms" as const, label: "真题 MS", icon: "📋", count: coverage.past_paper_ms, total: coverage.past_paper_qp },
+                    ].map((d) => {
+                      const missing = d.total - d.count;
+                      const color = d.count === 0 ? "bg-red-50 border-red-200" : missing > 0 ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200";
+                      return (
+                        <div key={d.key} className={`rounded-lg border p-3 ${color}`}>
+                          <a href={`/admin/upload?subject_id=${subject}`}
+                            className="w-full flex items-center justify-between text-left">
+                            <span className="text-sm font-medium">
+                              {d.icon} {d.label}
+                            </span>
+                            <span className="text-sm font-bold">
+                              {fmt(d.count)}
+                              {missing > 0 && <span className="text-xs text-red-500 ml-1">(缺 {missing})</span>}
+                            </span>
+                          </a>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (

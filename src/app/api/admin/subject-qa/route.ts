@@ -23,18 +23,6 @@ async function checkAdmin(request: NextRequest) {
   return data?.role === "admin" ? admin : null;
 }
 
-function subjectToMockText(displayName: string, code: string): string {
-  const d = displayName.toLowerCase();
-  if (d.includes("mathematics")) return "maths";
-  if (d.includes("computer")) return "computer-science";
-  if (d.includes("additional")) return code || "0606";
-  if (d.includes("biology")) return "biology";
-  if (d.includes("chemistry")) return "chemistry";
-  if (d.includes("physics")) return "physics";
-  if (d.includes("economics")) return "economics";
-  return d;
-}
-
 export async function GET(request: NextRequest) {
   const admin = await checkAdmin(request);
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,16 +42,12 @@ export async function GET(request: NextRequest) {
     subjectDisplay[s.id] = b ? `${b} ${s.display_name} ${s.code || ""}`.trim() : `${s.display_name} ${s.code || ""}`.trim();
   }
 
-  // Fetch all subtopics via topics (subtopics has no subject_id column)
+  // Fetch all topics (subtopics have no subject_id column)
   let topicQ = admin.from("topics").select("id, display_name, subject_id");
   if (filterSubjectId) topicQ = topicQ.eq("subject_id", filterSubjectId);
   const { data: allTopics } = await topicQ;
-  const topicNames: Record<string, string> = {};
   const topicSubjectMap: Record<string, string> = {};
-  for (const t of allTopics || []) {
-    topicNames[t.id] = t.display_name;
-    topicSubjectMap[t.id] = t.subject_id;
-  }
+  for (const t of allTopics || []) topicSubjectMap[t.id] = t.subject_id;
   const topicIds = (allTopics || []).map(t => t.id);
 
   // Get subtopics for those topics
@@ -87,31 +71,6 @@ export async function GET(request: NextRequest) {
     subjSubtopics[st.subject_id].push(st);
   }
 
-  // Fetch questions for all relevant subtopics
-  const subtopicIds = allSubtopics.map(s => s.id);
-  let questions: any[] = [];
-  if (subtopicIds.length > 0) {
-    const { data: q } = await admin.from("questions")
-      .select("id, subtopic_id, question_type, clean_answer_text, options")
-      .in("subtopic_id", subtopicIds);
-    questions = q || [];
-  }
-
-  // Group questions by subtopic
-  const qBySub: Record<string, { mcq: number; mcqWithAns: number; practice: number; practiceWithAns: number }> = {};
-  for (const qq of questions) {
-    const sid = qq.subtopic_id;
-    if (!sid) continue;
-    if (!qBySub[sid]) qBySub[sid] = { mcq: 0, mcqWithAns: 0, practice: 0, practiceWithAns: 0 };
-    if (qq.question_type === "mcq") {
-      qBySub[sid].mcq++;
-      if (qq.options) qBySub[sid].mcqWithAns++;
-    } else {
-      qBySub[sid].practice++;
-      if (qq.clean_answer_text) qBySub[sid].practiceWithAns++;
-    }
-  }
-
   // Fetch notes with file_url
   let notesQ = admin.from("notes").select("id, subtopic_id, file_url").not("file_url", "is", null);
   if (filterSubjectId) notesQ = notesQ.eq("subject_id", filterSubjectId);
@@ -121,39 +80,58 @@ export async function GET(request: NextRequest) {
     if (n.subtopic_id) notesBySub[n.subtopic_id] = (notesBySub[n.subtopic_id] || 0) + 1;
   }
 
-  // Build mock subject map for past papers
-  const { data: sets } = await admin.from("mock_exam_sets").select("id, subject");
-  const textToSubj: Record<string, string> = {};
-  for (const sub of subjects || []) {
-    const key = subjectToMockText(sub.display_name, sub.code || "");
-    if (!(key in textToSubj)) textToSubj[key] = sub.id;
-  }
-
-  // Past papers
-  let ppQ = admin.from("past_papers").select("id, subject_id, paper_type, year, season, paper_number");
+  // Past papers — fetch all for this subject
+  let ppQ = admin.from("past_papers").select("id, subject_id, subtopic_id, paper_type, year, season, paper_number");
   if (filterSubjectId) ppQ = ppQ.eq("subject_id", filterSubjectId);
   const { data: pastPapers } = await ppQ;
   const allPps = pastPapers || [];
 
-  // Group past papers by subject
-  const ppBySub: Record<string, { qp: number; mcqQp: number; ms: number }> = {};
+  // Group past papers by subject for exam paper counts
+  const examQpBySub: Record<string, number> = {};
+  const examMsBySub: Record<string, number> = {};
   const msKeysBySub: Record<string, Set<string>> = {};
+  const qpKeysBySub: Record<string, Set<string>> = {};
+  const qpPapersBySub: Record<string, { year: number; season: string; paper_number: string }[]> = {};
+  const msPapersBySub: Record<string, { year: number; season: string; paper_number: string }[]> = {};
+  // Group by subtopic for topic/MCQ PDFs
+  const topicQpBySub: Record<string, Set<string>> = {};
+  const topicMsBySub: Record<string, Set<string>> = {};
+  const mcqQpBySub: Record<string, Set<string>> = {};
+  const mcqMsBySub: Record<string, Set<string>> = {};
+
   for (const p of allPps) {
     const sid = p.subject_id;
     if (!sid) continue;
-    if (!ppBySub[sid]) ppBySub[sid] = { qp: 0, mcqQp: 0, ms: 0 };
-    if (!msKeysBySub[sid]) msKeysBySub[sid] = new Set();
-    const key = `${p.year}|${p.season}|${p.paper_number}`;
     const pt = p.paper_type || "";
+
+    // Exam papers (total count)
     if (pt === "Question Paper" || pt === "QP") {
-      ppBySub[sid].qp++;
-    } else if (pt === "Topic QP") {
-      // Topic QP is topic-level practice, not past paper
-    } else if (pt === "MCQ QP") {
-      ppBySub[sid].mcqQp++;
+      examQpBySub[sid] = (examQpBySub[sid] || 0) + 1;
+      const key = `${p.year}|${p.season}|${p.paper_number}`;
+      if (!qpKeysBySub[sid]) qpKeysBySub[sid] = new Set();
+      qpKeysBySub[sid].add(key);
+      if (!qpPapersBySub[sid]) qpPapersBySub[sid] = [];
+      qpPapersBySub[sid].push({ year: p.year, season: p.season, paper_number: p.paper_number });
     } else if (pt === "Mark Scheme" || pt === "MS") {
-      ppBySub[sid].ms++;
+      examMsBySub[sid] = (examMsBySub[sid] || 0) + 1;
+      const key = `${p.year}|${p.season}|${p.paper_number}`;
+      if (!msKeysBySub[sid]) msKeysBySub[sid] = new Set();
       msKeysBySub[sid].add(key);
+      if (!msPapersBySub[sid]) msPapersBySub[sid] = [];
+      msPapersBySub[sid].push({ year: p.year, season: p.season, paper_number: p.paper_number });
+    }
+
+    // Topic & MCQ PDFs (per subtopic)
+    if (!topicQpBySub[sid]) topicQpBySub[sid] = new Set();
+    if (!topicMsBySub[sid]) topicMsBySub[sid] = new Set();
+    if (!mcqQpBySub[sid]) mcqQpBySub[sid] = new Set();
+    if (!mcqMsBySub[sid]) mcqMsBySub[sid] = new Set();
+
+    if (p.subtopic_id) {
+      if (pt === "Topic QP") topicQpBySub[sid].add(p.subtopic_id);
+      else if (pt === "Topic MS") topicMsBySub[sid].add(p.subtopic_id);
+      else if (pt === "MCQ QP") mcqQpBySub[sid].add(p.subtopic_id);
+      else if (pt === "MCQ MS") mcqMsBySub[sid].add(p.subtopic_id);
     }
   }
 
@@ -164,7 +142,12 @@ export async function GET(request: NextRequest) {
     const sid = s.id;
     const sts = subjSubtopics[sid] || [];
     const total = sts.length;
-    if (total === 0 && !filterSubjectId) continue; // Skip subjects with no subtopics when no filter
+    if (total === 0 && !filterSubjectId) continue;
+
+    const topicQpSet = topicQpBySub[sid] || new Set();
+    const topicMsSet = topicMsBySub[sid] || new Set();
+    const mcqQpSet = mcqQpBySub[sid] || new Set();
+    const mcqMsSet = mcqMsBySub[sid] || new Set();
 
     let hasNotes = 0, hasPractice = 0, hasPracticeAns = 0, hasMcq = 0, hasMcqAns = 0;
     const missingNotes: any[] = [];
@@ -173,39 +156,49 @@ export async function GET(request: NextRequest) {
     const missingMcq: any[] = [];
     const missingMcqAns: any[] = [];
 
+    // Check each subtopic for PDF coverage
     for (const st of sts) {
       const stid = st.id;
       const subInfo = { id: stid, name: st.display_name, topic: topicName[st.topic_id] || "" };
-      const qData = qBySub[stid] || { mcq: 0, mcqWithAns: 0, practice: 0, practiceWithAns: 0 };
-      const hasNote = (notesBySub[stid] || 0) > 0;
 
+      // Notes (from notes table)
+      const hasNote = (notesBySub[stid] || 0) > 0;
       if (hasNote) hasNotes++;
       else missingNotes.push(subInfo);
 
-      if (qData.practice > 0) hasPractice++;
+      // Practice = has Topic QP PDF
+      if (topicQpSet.has(stid)) hasPractice++;
       else missingPractice.push(subInfo);
 
-      if (qData.practiceWithAns > 0) hasPracticeAns++;
-      else if (qData.practice > 0) missingPracticeAns.push(subInfo); // has practice but no answer
+      // Practice answers = has Topic MS PDF
+      if (topicMsSet.has(stid)) hasPracticeAns++;
+      else missingPracticeAns.push(subInfo);
 
-      if (qData.mcq > 0) hasMcq++;
+      // MCQ = has MCQ QP PDF
+      if (mcqQpSet.has(stid)) hasMcq++;
       else missingMcq.push(subInfo);
 
-      if (qData.mcqWithAns > 0) hasMcqAns++;
-      else if (qData.mcq > 0) missingMcqAns.push(subInfo); // has MCQ but no answer
+      // MCQ answers = has MCQ MS PDF
+      if (mcqMsSet.has(stid)) hasMcqAns++;
+      else missingMcqAns.push(subInfo);
     }
 
-    // Past paper stats
-    const ppStats = ppBySub[sid] || { qp: 0, mcqQp: 0, ms: 0 };
+    // Past paper stats — find unmatched QP and MS
+    const examQp = examQpBySub[sid] || 0;
+    const examMs = examMsBySub[sid] || 0;
     const msKeys = msKeysBySub[sid] || new Set();
-    let missingMs = 0;
-    // Check each QP row against MS key set
-    for (const p of allPps) {
-      if (p.subject_id !== sid) continue;
-      const pt = p.paper_type || "";
-      if (pt !== "Question Paper" && pt !== "QP" && pt !== "Topic QP") continue;
+    const qpKeys = qpKeysBySub[sid] || new Set();
+    const qpPapers = qpPapersBySub[sid] || [];
+    const msPapers = msPapersBySub[sid] || [];
+    const missingMsDetails: { year: number; season: string; paper_number: string }[] = [];
+    const missingQpDetails: { year: number; season: string; paper_number: string }[] = [];
+    for (const p of qpPapers) {
       const key = `${p.year}|${p.season}|${p.paper_number}`;
-      if (!msKeys.has(key)) missingMs++;
+      if (!msKeys.has(key)) missingMsDetails.push(p);
+    }
+    for (const p of msPapers) {
+      const key = `${p.year}|${p.season}|${p.paper_number}`;
+      if (!qpKeys.has(key)) missingQpDetails.push(p);
     }
 
     coverage[sid] = {
@@ -221,10 +214,12 @@ export async function GET(request: NextRequest) {
       practice_answer: { has: hasPracticeAns, total, missing: missingPracticeAns },
       mcq: { has: hasMcq, total, missing: missingMcq },
       mcq_answer: { has: hasMcqAns, total, missing: missingMcqAns },
-      past_paper_qp: ppStats.qp,
-      past_paper_mcq_qp: ppStats.mcqQp,
-      past_paper_ms: ppStats.ms,
-      past_paper_missing_ms: missingMs,
+      past_paper_qp: examQp,
+      past_paper_mcq_qp: 0, // deprecated
+      past_paper_ms: examMs,
+      past_paper_missing_ms: missingMsDetails.length,
+      past_paper_missing_ms_details: missingMsDetails,
+      past_paper_missing_qp_details: missingQpDetails,
     };
   }
 
