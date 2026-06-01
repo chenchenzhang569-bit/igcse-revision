@@ -17,6 +17,8 @@ function CheckoutContent() {
   const [user, setUser] = useState<any>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
   const [error, setError] = useState("");
+  const [upgradePrice, setUpgradePrice] = useState<number | null>(null);
+  const [loadingPrice, setLoadingPrice] = useState(true);
 
   const PRICE = 50; // ¥50 per subject
   const PRICE_ALL = 250;
@@ -32,6 +34,19 @@ function CheckoutContent() {
         return;
       }
       setUser(data.session.user);
+      
+      // Fetch upgrade price for all-subjects plan
+      if (plan === "all") {
+        fetch("/api/payment/purchases")
+          .then((r) => r.json())
+          .then((d) => {
+            setUpgradePrice(d.upgradePrice ?? null);
+            setLoadingPrice(false);
+          })
+          .catch(() => setLoadingPrice(false));
+      } else {
+        setLoadingPrice(false);
+      }
     });
   }, []);
 
@@ -157,8 +172,21 @@ function CheckoutContent() {
         <div className="bg-white border rounded-2xl p-8 text-center">
           <h1 className="text-2xl font-bold text-primary-900 mb-2">All Subjects</h1>
           <p className="text-gray-500 mb-8">CAIE + Edexcel — every subject, 12 months access</p>
-          <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>
-          <p className="text-sm text-gray-400 line-through mb-8">¥500</p>
+
+          {loadingPrice ? (
+            <div className="text-4xl font-bold text-primary-900 mb-2">...</div>
+          ) : upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? (
+            <>
+              <div className="text-4xl font-bold text-accent-500 mb-1">¥{upgradePrice / 100}</div>
+              <p className="text-sm text-emerald-600 font-semibold mb-1">升级仅需 — 已扣除已购金额</p>
+              <p className="text-sm text-gray-400 line-through mb-8">原价 ¥{PRICE_ALL}</p>
+            </>
+          ) : (
+            <>
+              <div className="text-4xl font-bold text-accent-500 mb-2">¥{PRICE_ALL}</div>
+              <p className="text-sm text-gray-400 line-through mb-8">¥500</p>
+            </>
+          )}
 
           {status === "error" && <p className="text-red-500 text-sm mb-4" dangerouslySetInnerHTML={{ __html: error }} />}
 
