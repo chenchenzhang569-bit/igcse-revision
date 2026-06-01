@@ -145,7 +145,10 @@ export default function InviteContent() {
             <span className="text-2xl" title={t("invite", "badgeName")}>🏆</span>
           )}
           <div>
-            <div className="text-3xl font-bold text-primary-900">{stats.paidCount}<span className="text-lg text-gray-400 font-normal">/3</span></div>
+            <div className="text-3xl font-bold text-primary-900">
+              {stats.paidCount}
+              {!stats.rewardClaimed && <span className="text-lg text-gray-400 font-normal">/3</span>}
+            </div>
             <div className="text-sm text-gray-500">{t("invite", "paidCount")}</div>
           </div>
           {stats.rewardClaimed && (
