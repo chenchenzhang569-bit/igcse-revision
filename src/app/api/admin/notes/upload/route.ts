@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     const content = formData.get("content") as string;
     const doc_type = formData.get("doc_type") as string || "notes";
     const is_free_preview = formData.get("is_free_preview") === "true";
+    const subject_id = formData.get("subject_id") as string;
 
     if (!file || !topic_id || !title) {
       return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
       .from("notes")
       .insert({
         topic_id,
+        subject_id: subject_id || null,
         subtopic_id: subtopic_id || null,
         title: title || file.name.replace(/\.pdf$/i, ""),
         content: `[type:${doc_type}]${content || ""}`,
