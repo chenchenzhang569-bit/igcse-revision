@@ -16,12 +16,9 @@ export async function POST(req: NextRequest) {
     if (!userEmail) {
       return NextResponse.json({ 
         error: "No user email",
-        body: JSON.stringify(body).substring(0, 500)
+        body: rawBody.substring(0, 500)
       }, { status: 400 });
     }
-
-    const subject = "Confirm your IGMaster account";
-    const htmlBody = `<h2>Welcome to IGMaster!</h2><p>Please confirm your account.</p><p><a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://igmaster.org"}/auth/callback">Confirm Email</a></p>`;
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -32,14 +29,18 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: "IGMaster <noreply@igmaster.org>",
         to: userEmail,
-        subject,
-        html: htmlBody,
+        subject: "Confirm your IGMaster account",
+        html: `<h2>Welcome to IGMaster!</h2><p>Please confirm your email to activate your account.</p>`,
       }),
     });
 
     const data = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: data.message || "Send failed" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Resend failed", 
+        resendCode: res.status,
+        resendError: data 
+      }, { status: 500 });
     }
     return NextResponse.json({ id: data.id });
   } catch (error: any) {
