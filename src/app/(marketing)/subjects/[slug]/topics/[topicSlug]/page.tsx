@@ -328,7 +328,7 @@ export default async function TopicPage({
         >
           ✏️ Questions
         </Link>
-        {subtopics.length > 0 && (
+        {subtopics.length > 0 && !sub && (
           <Link
             href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("subtopics")}`}
             className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
