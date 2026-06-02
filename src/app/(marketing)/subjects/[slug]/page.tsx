@@ -1,5 +1,4 @@
 // force-redeploy-v8-0606-mock
-export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PastPapersTab } from "./PastPapersTab";
@@ -261,31 +260,30 @@ export default async function SubjectPage({
 
   const { board, code, name, icon, key } = data;
 
-  // 服务端查 subject_id（Physics/Chemistry/Math is_published=true，anon key 可读）
+  // 并行查 subjectId + 用户
   let subjectId: string | null = null;
+  let currentUser: any = null;
   try {
     const supabase = createClient();
-    const { data: subjectRow } = await supabase
-      .from("subjects")
-      .select("id")
-      .eq("code", code)
-      .single();
-    subjectId = subjectRow?.id || null;
+    const [subjectRes, userRes] = await Promise.all([
+      supabase.from("subjects").select("id").eq("code", code).single(),
+      supabase.auth.getUser(),
+    ]);
+    subjectId = subjectRes.data?.id || null;
+    currentUser = userRes.data?.user || null;
   } catch (e) {
-    console.error("Subject lookup failed:", e);
-    subjectId = null;
+    console.error("Initial fetch failed:", e);
   }
 
-  // 购买校验
+  // 购买校验（需要 subjectId + userId）
   let hasAccess = false;
-  try {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user && subjectId) {
+  if (currentUser && subjectId) {
+    try {
+      const supabase = createClient();
       const { data: purchases } = await supabase
         .from("purchases")
         .select("id, subject_id, status, expires_at")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .in("status", ["paid", "trial"]);
       if (purchases && purchases.length > 0) {
         const now = new Date();
@@ -300,9 +298,9 @@ export default async function SubjectPage({
           );
         }
       }
+    } catch (e) {
+      console.error("Purchase check failed:", e);
     }
-  } catch (e) {
-    console.error("Purchase check failed:", e);
   }
 
   if (!hasAccess) {

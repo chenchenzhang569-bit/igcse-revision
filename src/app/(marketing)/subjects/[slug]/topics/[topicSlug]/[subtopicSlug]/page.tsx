@@ -1,5 +1,4 @@
 // fix: anon-key subtopic filtering + all subjects — force-redeploy 2026-05-27
-export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
@@ -153,30 +152,31 @@ export default async function SubtopicPage({
 }) {
   const { slug, topicSlug, subtopicSlug } = await params;
 
-  // Check purchase access
+  // Check purchase access — 并行查用户 + subject
   let hasAccess = false;
   try {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: subjectRow } = await supabase
-        .from("subjects").select("id").eq("slug", slug).maybeSingle();
-      if (subjectRow) {
-        const now = new Date();
-        const { data: purchases } = await supabase
-          .from("purchases")
-          .select("subject_id, expires_at")
-          .eq("user_id", user.id)
-          .in("status", ["paid", "trial"]);
-        if (purchases && purchases.length > 0) {
-          if (purchases.some(p => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
-            hasAccess = true;
-          } else {
-            hasAccess = purchases.some(p =>
-              p.subject_id === subjectRow.id &&
-              (!p.expires_at || new Date(p.expires_at) > now)
-            );
-          }
+    const [userRes, subjectRes] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase.from("subjects").select("id").eq("slug", slug).maybeSingle(),
+    ]);
+    const user = userRes.data?.user;
+    const subjectRow = subjectRes.data;
+    if (user && subjectRow) {
+      const now = new Date();
+      const { data: purchases } = await supabase
+        .from("purchases")
+        .select("subject_id, expires_at")
+        .eq("user_id", user.id)
+        .in("status", ["paid", "trial"]);
+      if (purchases && purchases.length > 0) {
+        if (purchases.some(p => !p.subject_id && (!p.expires_at || new Date(p.expires_at) > now))) {
+          hasAccess = true;
+        } else {
+          hasAccess = purchases.some(p =>
+            p.subject_id === subjectRow.id &&
+            (!p.expires_at || new Date(p.expires_at) > now)
+          );
         }
       }
     }

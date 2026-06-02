@@ -5,7 +5,6 @@ import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/LanguageContext";
 
-export const dynamic = "force-dynamic";
 
 interface Subject {
   slug: string;

@@ -37,50 +37,34 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 查看用户是否有该科目的购买记录
-  const { data: purchase } = await supabase
+  // 查看用户所有购买记录（一次查出，JS 里判断）
+  const { data: purchases } = await supabase
     .from("purchases")
-    .select("id, expires_at")
+    .select("subject_id, expires_at")
     .eq("user_id", user.id)
-    .eq("subject_id", paper.subject_id)
-    .in("status", ["paid", "trial"])
-    .maybeSingle();
+    .in("status", ["paid", "trial"]);
 
-  if (!purchase) {
-    // Also check all-subjects plan
-    const { data: allSubjects } = await supabase
-      .from("purchases")
-      .select("id, expires_at")
-      .eq("user_id", user.id)
-      .is("subject_id", null)
-      .in("status", ["paid", "trial"])
-      .maybeSingle();
-
-    if (!allSubjects) {
-      return NextResponse.json(
-      {
-        error: "请先购买该科目",
-        subjectId: paper.subject_id,
-      },
+  if (!purchases || purchases.length === 0) {
+    return NextResponse.json(
+      { error: "请先购买该科目", subjectId: paper.subject_id },
       { status: 402 }
     );
-    }
+  }
 
-    // Check if all-subjects plan is expired
-    if (allSubjects.expires_at && new Date(allSubjects.expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: "购买已过期，请重新购买" },
-        { status: 402 }
-      );
-    }
-  } else {
-    // 检查是否过期
-    if (purchase.expires_at && new Date(purchase.expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: "购买已过期，请重新购买" },
-        { status: 402 }
-      );
-    }
+  const now = new Date();
+  const hasValidPurchase = purchases.some(p => {
+    if (p.expires_at && new Date(p.expires_at) < now) return false;
+    // all-subjects plan covers everything
+    if (!p.subject_id) return true;
+    // specific subject match
+    return p.subject_id === paper.subject_id;
+  });
+
+  if (!hasValidPurchase) {
+    return NextResponse.json(
+      { error: "请先购买该科目", subjectId: paper.subject_id },
+      { status: 402 }
+    );
   }
 
   // 重定向到文件

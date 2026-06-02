@@ -2,7 +2,6 @@
 
 // force-redeploy-v24-redeploy
 import { useState, useEffect, useMemo } from "react";
-export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import StructuredQuestion from "@/components/StructuredQuestion";

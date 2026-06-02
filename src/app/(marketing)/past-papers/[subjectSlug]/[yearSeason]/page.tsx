@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { createClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
-
 const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const supabase = getSupabaseClient();

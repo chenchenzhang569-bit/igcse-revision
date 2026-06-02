@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import InviteContent from "./InviteContent";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export default function InvitePage() {
   return (
