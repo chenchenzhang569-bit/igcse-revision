@@ -20,6 +20,12 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Use Supabase's actual email content with confirmation link
+    const htmlBody = body.email?.html_body || body.email?.html || 
+      `<h2>Welcome to IGMaster!</h2><p>Please confirm your email to activate your account.</p>`;
+    const textBody = body.email?.text_body || body.email?.text || "";
+    const subject = body.email?.subject || "Confirm your IGMaster account";
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -29,8 +35,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: "IGMaster <noreply@igmaster.org>",
         to: userEmail,
-        subject: "Confirm your IGMaster account",
-        html: `<h2>Welcome to IGMaster!</h2><p>Please confirm your email to activate your account.</p>`,
+        subject,
+        html: htmlBody,
+        text: textBody || "",
       }),
     });
 
@@ -38,8 +45,8 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       return NextResponse.json({ 
         error: "Resend failed", 
-        resendCode: res.status,
-        resendError: data 
+        resendStatus: res.status,
+        resendData: data 
       }, { status: 500 });
     }
     return NextResponse.json({ id: data.id });
