@@ -71,9 +71,8 @@ export async function GET(request: NextRequest) {
     subjSubtopics[st.subject_id].push(st);
   }
 
-  // Fetch notes with file_url
+  // Fetch notes with file_url — no subject_id filter (notesBySub is checked per-subtopic in the loop below)
   let notesQ = admin.from("notes").select("id, subtopic_id, file_url").not("file_url", "is", null);
-  if (filterSubjectId) notesQ = notesQ.eq("subject_id", filterSubjectId);
   const { data: notes } = await notesQ;
   const notesBySub: Record<string, number> = {};
   for (const n of notes || []) {
