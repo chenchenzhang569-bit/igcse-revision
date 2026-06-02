@@ -4,7 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
-function CallbackContent() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -68,12 +68,10 @@ function CallbackContent() {
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading...</p>
-      </div>
-    }>
-      <CallbackContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-gray-500">Loading...</p>
+    </div>}>
+      <AuthCallbackContent />
     </Suspense>
   );
 }
