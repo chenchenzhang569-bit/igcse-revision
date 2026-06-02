@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const hash = window.location.hash;
 
+    // Handle password reset / magic link (access_token in hash)
     if (hash && hash.includes("access_token")) {
       const params = new URLSearchParams(hash.replace("#", ""));
       const access_token = params.get("access_token");
@@ -33,9 +35,29 @@ export default function AuthCallbackPage() {
       }
     }
 
-    // No valid hash found
-    router.replace("/login?error=no_reset_token");
-  }, [router]);
+    // Handle email confirmation (token_hash in query params)
+    const token_hash = searchParams.get("token_hash");
+    const type = searchParams.get("type");
+
+    if (token_hash && type) {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      supabase.auth.verifyOtp({ token_hash, type }).then(({ error }) => {
+        if (error) {
+          router.replace(`/login?error=${encodeURIComponent(error.message)}`);
+        } else {
+          const next = searchParams.get("next") || "/dashboard";
+          router.replace(next);
+        }
+      });
+      return;
+    }
+
+    // No valid params found
+    router.replace("/login?error=no_verification_token");
+  }, [router, searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
