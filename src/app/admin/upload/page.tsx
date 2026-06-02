@@ -31,6 +31,7 @@ interface Subtopic {
   display_name: string;
   pmt_code?: string;
   name?: string;
+  topic_id?: string;
   topic_name?: string;
 }
 
@@ -356,7 +357,8 @@ export default function AdminUploadPage() {
       formData.append("doc_type", noteType);
 
       if (uploadType === "notes" && selSubtopic) {
-        formData.append("topic_id", selSubtopic);
+        const selSub = subtopics.find(st => st.id === selSubtopic);
+        formData.append("topic_id", selSub?.topic_id || selSubtopic);
         formData.append("subtopic_id", selSubtopic);
       }
       if (uploadType === "past_paper") {

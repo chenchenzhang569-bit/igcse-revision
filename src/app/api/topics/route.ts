@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     display_name: st.display_name,
     pmt_code: st.pmt_code,
     name: st.name,
+    topic_id: st.topic_id,
     topic_name: st.topics?.display_name || "",
   }));
 
