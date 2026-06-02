@@ -12,15 +12,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    const userEmail = body.user?.email 
-      || (Array.isArray(body.email?.to) ? body.email?.to[0] : body.email?.to);
-    const subject = body.email?.subject || "IGMaster notification";
-    const htmlBody = body.email?.html_body || body.email?.html || "";
-    const textBody = body.email?.text_body || body.email?.text || "";
-
+    const userEmail = body.user?.email;
     if (!userEmail) {
-      return NextResponse.json({ error: "No recipient" }, { status: 400 });
+      return NextResponse.json({ 
+        error: "No user email",
+        body: JSON.stringify(body).substring(0, 500)
+      }, { status: 400 });
     }
+
+    const subject = "Confirm your IGMaster account";
+    const htmlBody = `<h2>Welcome to IGMaster!</h2><p>Please confirm your account.</p><p><a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://igmaster.org"}/auth/callback">Confirm Email</a></p>`;
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -33,7 +34,6 @@ export async function POST(req: NextRequest) {
         to: userEmail,
         subject,
         html: htmlBody,
-        text: textBody || htmlBody.replace(/<[^>]*>/g, ""),
       }),
     });
 
