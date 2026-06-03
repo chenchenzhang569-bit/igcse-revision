@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       .from("analytics_views")
       .select("tab, count")
       .gte("date", sinceStr)
-      .not("tab", "is", null);
+      .neq("tab", "");
 
     const tabAgg: Record<string, number> = {};
     for (const r of byTab || []) {

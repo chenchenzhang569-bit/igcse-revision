@@ -1,20 +1,22 @@
--- Create analytics_views table for atomic pageview tracking
+-- Create analytics_views table for atomic pageview tracking (方案2: 避免竞态条件)
 CREATE TABLE IF NOT EXISTS public.analytics_views (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   path TEXT NOT NULL,
-  tab TEXT,
+  tab TEXT NOT NULL DEFAULT '',
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   count INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(path, date, tab)
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- RPC function for atomic increment (方案2: 避免读→改→写竞态条件)
+CREATE UNIQUE INDEX IF NOT EXISTS analytics_views_unique
+  ON public.analytics_views (path, date, tab);
+
+-- RPC function for atomic increment
 CREATE OR REPLACE FUNCTION public.increment_page_view(
   p_path TEXT,
   p_date DATE DEFAULT CURRENT_DATE,
-  p_tab TEXT DEFAULT NULL
+  p_tab TEXT DEFAULT ''
 )
 RETURNS INTEGER
 LANGUAGE plpgsql

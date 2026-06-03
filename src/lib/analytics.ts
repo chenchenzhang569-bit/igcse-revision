@@ -136,9 +136,10 @@ export async function processPageView(event: TrackEvent): Promise<void> {
 
   // 原子追踪到 analytics_views（无竞态条件 — 方案2 RPC）
   const pageUrl = event.page_url || "/";
-  const tab = new URL(pageUrl, "http://x").searchParams.get("tab") || undefined;
+  const [cleanPath, qs] = pageUrl.split("?", 2);
+  const tab = new URLSearchParams(qs || "").get("tab") || "";
   const today = new Date().toISOString().slice(0, 10);
-  fireAndForgetIncrementPageView(pageUrl, today, tab);
+  fireAndForgetIncrementPageView(cleanPath, today, tab);
 
   if (!data.daily[today]) {
     data.daily[today] = { pv: 0, visitors: 0, bounces: 0, sessions: 0, total_time: 0 };
