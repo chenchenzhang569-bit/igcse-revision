@@ -308,7 +308,7 @@ export default function DashboardPage() {
                       })()}
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, height: 130 }}>
-                      <span className="text-2xl font-extrabold" style={{ color: DONUT_COLORS[idx] }}>{rate}%</span>
+                      <span className="text-2xl font-extrabold" style={{ color: DONUT_COLORS[idx] }}>{hasData ? `${rate}%` : "—"}</span>
                       <span className="text-xs text-gray-400 font-medium">{hasData ? `${correct}/${total}` : "0/0"}</span>
                     </div>
                     <p className="text-xs font-semibold text-center mt-2 px-1 leading-tight" style={{ color: DONUT_COLORS[idx] }}>
