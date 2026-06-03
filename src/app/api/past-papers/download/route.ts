@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getR2PresignedUrl } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 重定向到文件
-  return NextResponse.redirect(paper.file_url);
+  // 用 R2 签名 URL 替代直接重定向
+  const r2Url = await getR2PresignedUrl(paper.file_url);
+  if (!r2Url) {
+    return NextResponse.json({ error: "文件链接异常" }, { status: 500 });
+  }
+
+  return NextResponse.redirect(r2Url);
 }

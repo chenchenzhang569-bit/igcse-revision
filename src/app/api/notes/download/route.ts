@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getR2PresignedUrl } from "@/lib/r2";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -67,6 +68,11 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 重定向到 Supabase Storage URL
-  return NextResponse.redirect(note.file_url);
+  // 用 R2 签名 URL 替代直接重定向
+  const r2Url = await getR2PresignedUrl(note.file_url);
+  if (!r2Url) {
+    return NextResponse.json({ error: "文件链接异常" }, { status: 500 });
+  }
+
+  return NextResponse.redirect(r2Url);
 }
