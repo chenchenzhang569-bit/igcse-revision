@@ -293,11 +293,11 @@ export default function DashboardPage() {
                         const totalLen = circ;
                         return (
                           <>
-                            {/* Background ring - orange (incorrect portion) */}
-                            <circle cx={cx} cy={cy} r={R} fill="none" stroke="#FF8C00" strokeWidth="14" />
-                            {/* Correct arc - blue */}
+                            {/* Background ring - blue (incorrect portion) */}
+                            <circle cx={cx} cy={cy} r={R} fill="none" stroke="#001C71" strokeWidth="14" />
+                            {/* Correct arc - orange */}
                             {correctLen > 0 && (
-                              <circle cx={cx} cy={cy} r={R} fill="none" stroke="#001C71" strokeWidth="14"
+                              <circle cx={cx} cy={cy} r={R} fill="none" stroke="#FF8C00" strokeWidth="14"
                                 strokeDasharray={`${correctLen} ${totalLen}`}
                                 strokeLinecap="butt"
                                 transform={`rotate(-90 ${cx} ${cy})`}
