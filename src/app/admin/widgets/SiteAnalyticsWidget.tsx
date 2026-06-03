@@ -275,14 +275,12 @@ export default function SiteAnalyticsWidget({
                       for (const p of topPages) {
                         const url = p.name;
                         let group = "其他";
-                        if (url.includes("/topics/") || url.includes("/sections/")) group = "知识点练习";
-                        else if (url.startsWith("/past-papers")) group = "真题";
+                        if (url.startsWith("/past-papers")) group = "真题";
                         else if (url.startsWith("/mock-exams")) group = "模拟考";
-                        else if (url.startsWith("/subjects")) group = "科目浏览";
-                        else if (url === "/" || url === "") group = "首页";
-                        else if (url.startsWith("/pricing")) group = "定价";
-                        else if (url.startsWith("/login")) group = "登录";
-                        else if (url.startsWith("/register")) group = "注册";
+                        else if (url.includes("/mcq") || url.includes("mcq")) group = "MCQ";
+                        else if (url.includes("/notes/") || url.includes("notes")) group = "笔记";
+                        else if (url.includes("/topics/") || url.includes("/sections/")) group = "练习";
+                        else group = "其他";
                         groups[group] = (groups[group] || 0) + p.value;
                       }
                       const sorted = Object.entries(groups)
