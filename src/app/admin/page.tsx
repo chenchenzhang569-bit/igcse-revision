@@ -242,13 +242,22 @@ export default function AdminDashboardPage() {
         <SortableContext items={visibleOrder} strategy={verticalListSortingStrategy}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {visibleOrder.map(id => (
-              <SortableWidget key={id} id={id}>
-                {renderWidget(id)}
-              </SortableWidget>
+              id !== "analytics" && (
+                <SortableWidget key={id} id={id}>
+                  {renderWidget(id)}
+                </SortableWidget>
+              )
             ))}
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* Site Analytics - full width at bottom */}
+      {!hidden.has("analytics") && (
+        <div className="mt-4 w-full">
+          <SiteAnalyticsWidget token={token} onToggle={() => toggleWidget("analytics")} />
+        </div>
+      )}
 
       {hiddenList.length > 0 && (
         <div className="mt-6 p-3 bg-gray-50 rounded-lg">
