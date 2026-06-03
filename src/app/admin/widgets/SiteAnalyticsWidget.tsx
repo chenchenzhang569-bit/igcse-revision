@@ -265,30 +265,30 @@ export default function SiteAnalyticsWidget({
             return (
               <div className="space-y-6">
                 {/* Row 1: Today + Total + Week all in one line */}
-                <div className="flex items-center justify-around bg-gray-50 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-around bg-gray-50 rounded-xl px-4 py-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-[10px] font-normal text-gray-500">PV</span></div>
-                    <div className="text-[10px] text-gray-500">今日 PV</div>
+                    <div className="text-xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-xs font-normal text-gray-500">PV</span></div>
+                    <div className="text-xs text-gray-500">今日 PV</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-[10px] font-normal text-gray-500">PV</span></div>
-                    <div className="text-[10px] text-gray-500">累计 PV</div>
+                    <div className="text-xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-xs font-normal text-gray-500">PV</span></div>
+                    <div className="text-xs text-gray-500">累计 PV</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-[10px] font-normal text-gray-500">PV</span></div>
-                    <div className="text-[10px] text-gray-500">本周 PV</div>
+                    <div className="text-xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-xs font-normal text-gray-500">PV</span></div>
+                    <div className="text-xs text-gray-500">本周 PV</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-[10px] font-normal text-gray-500">访客</span></div>
-                    <div className="text-[10px] text-gray-500">今日访客</div>
+                    <div className="text-xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-xs font-normal text-gray-500">访客</span></div>
+                    <div className="text-xs text-gray-500">今日访客</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-[10px] font-normal text-gray-500">访客</span></div>
-                    <div className="text-[10px] text-gray-500">总访客</div>
+                    <div className="text-xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-xs font-normal text-gray-500">访客</span></div>
+                    <div className="text-xs text-gray-500">总访客</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-rose-600">{stats.bounce_rate}%</div>
-                    <div className="text-[10px] text-gray-500">跳出率</div>
+                    <div className="text-xl font-bold text-rose-600">{stats.bounce_rate}%</div>
+                    <div className="text-xs text-gray-500">跳出率</div>
                   </div>
                 </div>
 
