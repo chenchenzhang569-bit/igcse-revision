@@ -134,7 +134,12 @@ export async function processPageView(event: TrackEvent): Promise<void> {
     sources: {},
   };
 
+  // 原子追踪到 analytics_views（无竞态条件 — 方案2 RPC）
+  const pageUrl = event.page_url || "/";
+  const tab = new URL(pageUrl, "http://x").searchParams.get("tab") || undefined;
   const today = new Date().toISOString().slice(0, 10);
+  fireAndForgetIncrementPageView(pageUrl, today, tab);
+
   if (!data.daily[today]) {
     data.daily[today] = { pv: 0, visitors: 0, bounces: 0, sessions: 0, total_time: 0 };
   }
@@ -277,4 +282,20 @@ export async function cleanupOldSessions(): Promise<void> {
       await admin.from("app_config").delete().eq("key", row.key);
     }
   }
+}
+
+// 原子追踪到 analytics_views（fire-and-forget，不阻塞主流程）
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88";
+function fireAndForgetIncrementPageView(path: string, date: string, tab?: string) {
+  fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_page_view`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ p_path: path, p_date: date, p_tab: tab || null }),
+  }).catch(() => {
+    // silent — don't crash main flow
+  });
 }
