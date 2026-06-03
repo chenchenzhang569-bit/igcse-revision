@@ -60,6 +60,15 @@ export default function EconomicsTabs({
   topicSlug: string;
 }) {
   const [tab, setTab] = useState<Tab>("notes");
+
+  // Sync initial tab from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlTab = params.get("tab");
+    if (urlTab === "mcq") setTab("mcq");
+    else if (urlTab === "structured" || urlTab === "questions") setTab("questions");
+    else if (urlTab === "notes") setTab("notes");
+  }, []);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [submittedLevels, setSubmittedLevels] = useState<Set<string>>(new Set());
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
@@ -352,7 +361,13 @@ export default function EconomicsTabs({
         {tabs.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => {
+              setTab(t.key);
+              const url = new URL(window.location.href);
+              const tabParam = t.key === "questions" ? "structured" : t.key;
+              url.searchParams.set("tab", tabParam);
+              window.history.replaceState(null, "", url.toString());
+            }}
             className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
               tab === t.key
                 ? "border-primary-600 text-primary-600"

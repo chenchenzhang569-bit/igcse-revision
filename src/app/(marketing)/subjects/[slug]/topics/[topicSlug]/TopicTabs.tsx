@@ -80,6 +80,15 @@ export function TopicTabs({
   topicSlug?: string;
 }) {
   const [tab, setTab] = useState<Tab>("notes");
+
+  // Sync initial tab from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlTab = params.get("tab");
+    if (urlTab === "mcq") setTab("mcq");
+    else if (urlTab === "structured" || urlTab === "questions") setTab("structured");
+    else if (urlTab === "notes") setTab("notes");
+  }, []);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [submittedLevels, setSubmittedLevels] = useState<Set<string>>(new Set());
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
@@ -477,7 +486,13 @@ export function TopicTabs({
       <div className="flex border-b mb-6 items-center justify-between">
         <div className="flex">
           {tabs.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} onClick={() => {
+              setTab(t.key);
+              const url = new URL(window.location.href);
+              const tabParam = t.key === "structured" ? "structured" : t.key;
+              url.searchParams.set("tab", tabParam);
+              window.history.replaceState(null, "", url.toString());
+            }}
               className={`px-6 py-3 font-medium text-sm transition border-b-2 ${
                 activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-[#001C71]"
               }`}>

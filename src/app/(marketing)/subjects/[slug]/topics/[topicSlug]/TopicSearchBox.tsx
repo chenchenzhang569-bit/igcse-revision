@@ -166,7 +166,7 @@ export function TopicSearchBox({ subjectKey, topicSlug }: { subjectKey: string; 
           {filtered.map((t) => (
             <Link
               key={t.slug}
-              href={`/subjects/${subjectSlug}/topics/${t.slug}?tab=questions`}
+              href={`/subjects/${subjectSlug}/topics/${t.slug}?tab=structured`}
               onClick={() => setOpen(false)}
               className="block px-3 py-2 text-sm hover:bg-gray-50 text-gray-700 border-b border-gray-100 last:border-0"
             >
