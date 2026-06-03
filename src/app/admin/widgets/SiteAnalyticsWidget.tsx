@@ -229,123 +229,105 @@ export default function SiteAnalyticsWidget({
 
           default: {
             // card view
+            const allPages = Object.entries(stats.pages || {}).map(([k, v]) => ({ name: k, value: v }));
+            const totalAll = allPages.reduce((s, p) => s + p.value, 0);
+            const subjNames: Record<string, string> = {
+              "caie-mathematics-0580": "数学 0580",
+              "caie-additional-mathematics-0606": "附加数学 0606",
+              "caie-physics-0625": "物理 0625",
+              "caie-chemistry-0620": "化学 0620",
+              "caie-biology-0610": "生物 0610",
+              "caie-economics-0455": "经济 0455",
+              "caie-computer-science-0478": "计算机 0478",
+            };
+            const bySubj: Record<string, number> = {};
+            for (const p of allPages) {
+              for (const [slug, name] of Object.entries(subjNames)) {
+                if (p.name.includes(slug)) { bySubj[name] = (bySubj[name] || 0) + p.value; break; }
+              }
+            }
+            const subjSorted = Object.entries(bySubj).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            const byType: Record<string, number> = {};
+            for (const p of allPages) {
+              const url = p.name;
+              const tabMatch = url.match(/[?&]tab=([^&]+)/);
+              const tab = tabMatch ? tabMatch[1].toLowerCase() : null;
+              if (tab === "past-papers" || tab === "pastpaper") byType["真题"] = (byType["真题"] || 0) + p.value;
+              else if (tab === "mock-exams" || tab === "mockexam") byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
+              else if (tab === "mcq") byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
+              else if (tab === "notes") byType["笔记"] = (byType["笔记"] || 0) + p.value;
+              else if (tab === "questions" || tab === "structured") byType["练习"] = (byType["练习"] || 0) + p.value;
+              else if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
+              else if (url.startsWith("/mock-exams")) byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
+              else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
+              else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
+              else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
+            }
+            const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+
             return (
-              <div className="space-y-4">
-                {/* Overview numbers */}
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="text-center p-2 bg-blue-50 rounded-lg">
-                    <div className="text-xl font-bold text-primary-900">{fmt(stats.today_pv)}</div>
-                    <div className="text-[10px] text-gray-500">今日 PV</div>
-                  </div>
-                  <div className="text-center p-2 bg-orange-50 rounded-lg">
-                    <div className="text-xl font-bold text-orange-600">{fmt(stats.today_visitors)}</div>
-                    <div className="text-[10px] text-gray-500">今日访客</div>
-                  </div>
-                  <div className="text-center p-2 bg-green-50 rounded-lg">
-                    <div className="text-xl font-bold text-green-700">{fmt(stats.total_pv)}</div>
-                    <div className="text-[10px] text-gray-500">总 PV</div>
-                  </div>
-                  <div className="text-center p-2 bg-purple-50 rounded-lg">
-                    <div className="text-xl font-bold text-purple-600">{fmt(stats.total_visitors)}</div>
-                    <div className="text-[10px] text-gray-500">总访客</div>
-                  </div>
+              <div className="space-y-6">
+                {/* Row 1: Today PV in one line */}
+                <div className="flex items-center gap-6 bg-blue-50 rounded-xl px-5 py-3">
+                  <span className="text-[11px] text-gray-500 font-medium whitespace-nowrap">📅 今日</span>
+                  <span className="text-lg font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-[10px] font-normal text-gray-500">PV</span></span>
+                  <span className="text-lg font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-[10px] font-normal text-gray-500">访客</span></span>
                 </div>
-                {/* Week stats */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-2 bg-indigo-50 rounded-lg">
-                    <div className="text-lg font-bold text-indigo-600">{fmt(stats.week_pv)}</div>
-                    <div className="text-[10px] text-gray-500">本周 PV</div>
-                  </div>
-                  <div className="text-center p-2 bg-amber-50 rounded-lg">
-                    <div className="text-lg font-bold text-amber-600">{fmt(stats.week_visitors)}</div>
-                    <div className="text-[10px] text-gray-500">本周访客</div>
-                  </div>
-                  <div className="text-center p-2 bg-rose-50 rounded-lg">
-                    <div className="text-lg font-bold text-rose-600">{stats.bounce_rate}%</div>
-                    <div className="text-[10px] text-gray-500">跳出率</div>
-                  </div>
+
+                {/* Row 2: Total stats */}
+                <div className="flex items-center gap-6 bg-gray-50 rounded-xl px-5 py-3">
+                  <span className="text-[11px] text-gray-500 font-medium whitespace-nowrap">📊 累计</span>
+                  <span className="text-lg font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-[10px] font-normal text-gray-500">PV</span></span>
+                  <span className="text-lg font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-[10px] font-normal text-gray-500">访客</span></span>
                 </div>
-                {/* Hot data - two PieCharts side by side */}
-                {topPages.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门数据（所有页面）</h4>
-                    {(() => {
-                      const allPages = Object.entries(stats.pages || {}).map(([k, v]) => ({ name: k, value: v }));
-                      const totalAll = allPages.reduce((s, p) => s + p.value, 0);
-                      const subjNames: Record<string, string> = {
-                        "caie-mathematics-0580": "数学 0580",
-                        "caie-additional-mathematics-0606": "附加数学 0606",
-                        "caie-physics-0625": "物理 0625",
-                        "caie-chemistry-0620": "化学 0620",
-                        "caie-biology-0610": "生物 0610",
-                        "caie-economics-0455": "经济 0455",
-                        "caie-computer-science-0478": "计算机 0478",
-                      };
-                      // By subject - aggregate ALL pages, not just top 10
-                      const bySubj: Record<string, number> = {};
-                      for (const p of allPages) {
-                        for (const [slug, name] of Object.entries(subjNames)) {
-                          if (p.name.includes(slug)) { bySubj[name] = (bySubj[name] || 0) + p.value; break; }
-                        }
-                      }
-                      const subjSorted = Object.entries(bySubj).sort((a, b) => b[1] - a[1]).slice(0, 6);
-                      // By type - aggregate ALL pages, check tab params first
-                      const byType: Record<string, number> = {};
-                      for (const p of allPages) {
-                        const url = p.name;
-                        // Extract tab= param from query string
-                        const tabMatch = url.match(/[?&]tab=([^&]+)/);
-                        const tab = tabMatch ? tabMatch[1].toLowerCase() : null;
-                        if (tab === "past-papers" || tab === "pastpaper") byType["真题"] = (byType["真题"] || 0) + p.value;
-                        else if (tab === "mock-exams" || tab === "mockexam") byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
-                        else if (tab === "mcq") byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
-                        else if (tab === "notes") byType["笔记"] = (byType["笔记"] || 0) + p.value;
-                        else if (tab === "questions" || tab === "structured") byType["练习"] = (byType["练习"] || 0) + p.value;
-                        else if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
-                        else if (url.startsWith("/mock-exams")) byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
-                        else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
-                        else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
-                        else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
-                      }
-                      const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
-                      return (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <h5 className="text-xs text-gray-400 mb-1 text-center">按题型</h5>
-                            <ResponsiveContainer width="100%" height={160}>
-                              <PieChart>
-                                <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                                  {typeSorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                                </Pie>
-                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                          <div>
-                            <h5 className="text-xs text-gray-400 mb-1 text-center">按科目</h5>
-                            <ResponsiveContainer width="100%" height={160}>
-                              <PieChart>
-                                <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`}>
-                                  {subjSorted.map((_, i) => <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />)}
-                                </Pie>
-                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                      );
-                    })()}
+
+                {/* Row 3: Week + Bounce */}
+                <div className="flex items-center gap-6 bg-indigo-50 rounded-xl px-5 py-3">
+                  <span className="text-[11px] text-gray-500 font-medium whitespace-nowrap">📈 本周</span>
+                  <span className="text-lg font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-[10px] font-normal text-gray-500">PV</span></span>
+                  <span className="text-lg font-bold text-amber-600">{fmt(stats.week_visitors)} <span className="text-[10px] font-normal text-gray-500">访客</span></span>
+                  <span className="text-lg font-bold text-rose-600">{stats.bounce_rate}% <span className="text-[10px] font-normal text-gray-500">跳出</span></span>
+                </div>
+
+                {/* Hot data - two PieCharts side by side, bigger */}
+                {totalAll > 0 && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white border rounded-xl p-3">
+                        <h5 className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mb-1">📋 按题型</h5>
+                        <ResponsiveContainer width="100%" height={220}>
+                          <PieChart>
+                            <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 10 }}>
+                              {typeSorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                            </Pie>
+                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 11 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="bg-white border rounded-xl p-3">
+                        <h5 className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mb-1">🏫 按科目</h5>
+                        <ResponsiveContainer width="100%" height={220}>
+                          <PieChart>
+                            <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 10 }}>
+                              {subjSorted.map((_, i) => <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />)}
+                            </Pie>
+                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 11 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </div>
                 )}
+
                 {/* Sources */}
                 {sourceData.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-1">流量来源</h4>
-                    <div className="grid grid-cols-3 gap-1">
-                      {sourceData.slice(0, 6).map((s) => (
-                        <div key={s.name} className="text-center p-1 bg-gray-50 rounded">
-                          <div className="text-xs font-bold text-gray-700">{fmt(s.value)}</div>
-                          <div className="text-[10px] text-gray-400">{s.name}</div>
+                    <h4 className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mb-2">🔗 流量来源</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {sourceData.slice(0, 8).map((s) => (
+                        <div key={s.name} className="text-center p-2 bg-gray-50 rounded-lg">
+                          <div className="text-sm font-bold text-gray-700">{fmt(s.value)}</div>
+                          <div className="text-[10px] text-gray-400 truncate">{s.name}</div>
                         </div>
                       ))}
                     </div>
