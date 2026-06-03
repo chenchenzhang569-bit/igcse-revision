@@ -19,6 +19,8 @@ interface Subject {
 
 export default function SubjectsPage() {
   const t = useT();
+  const hideEdexcel = typeof window !== "undefined" && process.env.NEXT_PUBLIC_HIDE_EDEXCEL === "true";
+  const boards: ("CAIE" | "Edexcel")[] = hideEdexcel ? ["CAIE"] : ["CAIE", "Edexcel"];
   const [activeBoard, setActiveBoard] = useState<"CAIE" | "Edexcel">("CAIE");
   const [subjects, setSubjects] = useState<Subject[]>([]);
 

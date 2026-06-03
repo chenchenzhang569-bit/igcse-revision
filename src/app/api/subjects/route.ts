@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("subjects")
     .select("id, name, display_name, slug, code, icon, price_cny, is_published, exam_boards!inner(name, slug)")
+    .eq("is_published", true)
     .order("display_name");
 
   if (slug) query = query.eq("slug", slug);

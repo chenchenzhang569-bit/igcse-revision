@@ -35,6 +35,10 @@ const boards = [
   },
 ];
 
+// 生产环境隐藏 Edexcel（通过 Zeabur 环境变量控制）
+const hideEdexcel = typeof window !== "undefined" && process.env.NEXT_PUBLIC_HIDE_EDEXCEL === "true";
+const visibleBoards = hideEdexcel ? boards.filter((b) => b.name !== "Edexcel") : boards;
+
 function HomeContent() {
   const t = useT();
   const searchParams = useSearchParams();
@@ -99,7 +103,7 @@ function HomeContent() {
       {/* Exam Board Selector */}
       <section className="w-full px-3 sm:px-5 -mt-6 sm:-mt-8 relative z-10 pb-6 sm:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-          {boards.map((board) => (
+          {visibleBoards.map((board) => (
             <div
               key={board.slug}
               className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 md:p-8 hover:shadow-lg transition-all duration-300"
