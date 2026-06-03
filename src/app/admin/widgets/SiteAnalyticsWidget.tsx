@@ -256,12 +256,10 @@ export default function SiteAnalyticsWidget({
               else if (tab === "mock-exams" || tab === "mockexam") byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
               else if (tab === "mcq") byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
               else if (tab === "notes") byType["笔记"] = (byType["笔记"] || 0) + p.value;
-              else if (tab === "questions" || tab === "structured") byType["练习"] = (byType["练习"] || 0) + p.value;
+              else if (tab === "questions") byType["练习"] = (byType["练习"] || 0) + p.value;
+              else if (tab === "structured") byType["结构化"] = (byType["结构化"] || 0) + p.value;
               else if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
               else if (url.startsWith("/mock-exams")) byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
-              else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
-              else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
-              else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
             }
             const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
 
