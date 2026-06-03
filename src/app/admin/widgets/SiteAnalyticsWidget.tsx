@@ -306,7 +306,6 @@ export default function SiteAnalyticsWidget({
                         else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
                         else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
                         else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
-                        else if (url.startsWith("/subjects")) byType["科目浏览"] = (byType["科目浏览"] || 0) + p.value;
                       }
                       const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
                       return (
