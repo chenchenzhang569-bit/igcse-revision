@@ -101,8 +101,10 @@ export default function MyBankPage() {
         root[subtopicKey].bookmarks = [...(root[subtopicKey].bookmarks || []), bm];
       } else {
         // Regular question
-        const examBoard = (q.subjectSlug || "").startsWith("caie") ? "CAIE" : "Edexcel";
-        const subject = q.subjectSlug || "Unknown";
+        const slug = q.subjectSlug || "";
+        if (!slug) continue; // skip orphaned questions
+        const examBoard = slug.startsWith("caie") ? "CAIE" : "Edexcel";
+        const subject = slug;
         const subtopic = q.subtopic?.name || q.topic?.name || "Uncategorized";
 
         const boardKey = examBoard;

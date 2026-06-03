@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       const questionIds = [...new Set(qRows.map(r => r.question_id))];
       const { data: questions } = await supabase
         .from("questions")
-        .select("id, question_text, difficulty, question_type, topic_id, subtopic_id")
+        .select("id, question_text, difficulty, question_type, topic_id, subtopic_id, subject_id")
         .in("id", questionIds);
       const qMap: Record<string, any> = {};
       for (const q of questions || []) qMap[q.id] = q;
@@ -116,7 +116,9 @@ export async function GET(req: NextRequest) {
         if (!q) continue;
         const topic = tMap[q.topic_id] || null;
         const subtopic = stMap[q.subtopic_id] || null;
-        const subject = topic ? subjMap[topic.subject_id] : null;
+        // Try topic chain first, fallback to question.subject_id
+        let subject = topic ? subjMap[topic.subject_id] : null;
+        if (!subject && q.subject_id) subject = subjMap[q.subject_id] || null;
         const board = subject ? boardMap[subject.exam_board_id] : null;
         const subjectSlug = subject ? subject.slug : "";
 
