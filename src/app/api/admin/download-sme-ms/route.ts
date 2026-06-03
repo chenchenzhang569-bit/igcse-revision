@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const SME_ACCOUNT = {
-  email: "inspiringchermann@vmail.dev",
-  password: "WXVm8Chqq2",
+  email: process.env.SME_EMAIL || "inspiringchermann@vmail.dev",
+  password: process.env.SME_PASSWORD || "WXVm8Chqq2",
 };
 
 let cachedToken: string | null = null;
@@ -34,6 +35,9 @@ async function getSmeToken(): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
+    const authErr = await requireAdmin();
+    if (authErr) return authErr;
+
     const { qsId, subId, displayName } = await req.json();
     if (!qsId || !subId || !displayName) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });

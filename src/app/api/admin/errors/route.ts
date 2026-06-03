@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 import type { NextRequest } from "next/server";
 
 // GET /api/admin/errors — Admin only (service_role bypasses RLS)
 export async function GET(request: NextRequest) {
+  const authErr = await requireAdmin();
+  if (authErr) return authErr;
   const admin = createAdminClient();
   const { searchParams } = request.nextUrl;
   const status = searchParams.get("status");
@@ -38,6 +41,8 @@ export async function GET(request: NextRequest) {
 
 // PATCH /api/admin/errors — Update error status
 export async function PATCH(request: NextRequest) {
+  const authErr = await requireAdmin();
+  if (authErr) return authErr;
   const admin = createAdminClient();
   let body;
   try {
