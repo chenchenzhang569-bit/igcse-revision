@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import { useEffect, useRef } from "react";
 
 declare global {
@@ -158,6 +159,52 @@ export function AnalyticsTracker() {
       history.replaceState = origReplaceState;
     };
   }, []);
+=======
+import { useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+
+const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+
+// Read from env or fallback to the compile-time anon key
+function getAnonKey(): string {
+  if (typeof window !== "undefined") {
+    // Prefer NEXT_PUBLIC_ env (available client-side)
+    const envKey =
+      (window as any).__NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88";
+    return envKey;
+  }
+  return "";
+}
+
+export default function AnalyticsTracker() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!pathname) return;
+
+    const tab = searchParams.get("tab") || undefined;
+    const today = new Date().toISOString().split("T")[0];
+
+    fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_page_view`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: getAnonKey(),
+        Authorization: `Bearer ${getAnonKey()}`,
+      },
+      body: JSON.stringify({
+        p_path: pathname,
+        p_date: today,
+        p_tab: tab || null,
+      }),
+    }).catch(() => {
+      // silent — don't break the page for analytics
+    });
+  }, [pathname, searchParams]);
+>>>>>>> 756cfc2 (feat: analytics_views tracking RPC + frontend tracker + admin widget)
 
   return null;
 }

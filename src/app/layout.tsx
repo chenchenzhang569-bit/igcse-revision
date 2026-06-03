@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { ClientLayout } from "@/lib/i18n/ClientLayout";
+<<<<<<< HEAD
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
+=======
+import AnalyticsTracker from "@/components/AnalyticsTracker";
+import { Suspense } from "react";
+>>>>>>> 756cfc2 (feat: analytics_views tracking RPC + frontend tracker + admin widget)
 
 export const metadata: Metadata = {
   title: {
@@ -51,7 +56,13 @@ export default function RootLayout({
       </head>
       <body className="bg-white text-[#1E293B] antialiased font-poppins">
         <ClientLayout>{children}</ClientLayout>
+<<<<<<< HEAD
         <AnalyticsTracker />
+=======
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
+>>>>>>> 756cfc2 (feat: analytics_views tracking RPC + frontend tracker + admin widget)
       </body>
     </html>
   );
