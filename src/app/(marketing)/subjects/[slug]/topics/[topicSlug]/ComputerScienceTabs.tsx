@@ -53,7 +53,7 @@ export default function ComputerScienceTabs({
 
   function downloadNote(note: Note) {
     if (note.file_url) {
-      window.open(note.file_url, "_blank");
+      window.open(`/api/notes/download?id=${note.id}`, "_blank");
       return;
     }
     const text = note.content || "";
@@ -131,7 +131,7 @@ export default function ComputerScienceTabs({
                       /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(note.file_url) ? (
                         <div className="border rounded-lg overflow-hidden mb-3 bg-gray-50 flex justify-center">
                           <img
-                            src={note.file_url}
+                            src={`/api/notes/download?id=${note.id}`}
                             alt={note.title}
                             className="max-w-full h-auto"
                             style={{ maxHeight: "80vh" }}
@@ -139,7 +139,7 @@ export default function ComputerScienceTabs({
                         </div>
                       ) : (
                         <iframe
-                          src={note.file_url}
+                          src={`/api/notes/download?id=${note.id}`}
                           className="w-full h-[600px] border rounded-lg mb-3"
                           title={note.title}
                         />
@@ -188,7 +188,7 @@ export default function ComputerScienceTabs({
                   </div>
                   <div className="flex gap-2">
                     <a
-                      href={pair.qp.file_url}
+                      href={`/api/past-papers/download?id=${pair.qp.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition"
@@ -197,7 +197,7 @@ export default function ComputerScienceTabs({
                     </a>
                     {pair.ms && pair.ms.id !== pair.qp.id && (
                       <a
-                        href={pair.ms.file_url}
+                        href={`/api/past-papers/download?id=${pair.ms.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition"

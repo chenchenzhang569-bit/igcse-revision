@@ -458,7 +458,7 @@ export function TopicTabs({
 
   function downloadContent(note: Note) {
     if (note.file_url) {
-      window.open(note.file_url, "_blank");
+      window.open(`/api/notes/download?id=${note.id}`, "_blank");
       return;
     }
     const text = note.content || "";
@@ -554,10 +554,10 @@ export function TopicTabs({
                         <span className="text-sm text-gray-700">{fmtPmt("MCQ")}</span>
                       </div>
                       <div className="flex gap-2">
-                        <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
+                        <a href={`/api/past-papers/download?id=${pair.qp.id}`} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 Paper</a>
                         {pair.ms && pair.ms.id !== pair.qp.id && (
-                          <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
+                          <a href={`/api/past-papers/download?id=${pair.ms.id}`} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 Answer</a>
                         )}
                       </div>
@@ -662,10 +662,10 @@ export function TopicTabs({
                           <span className="text-sm text-gray-700">{fmtPmt("QP")}</span>
                         </div>
                         <div className="flex gap-2">
-                          <a href={pair.qp.file_url} target="_blank" rel="noopener noreferrer"
+                          <a href={`/api/past-papers/download?id=${pair.qp.id}`} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 Paper</a>
                           {pair.ms && pair.ms.id !== pair.qp.id && (
-                            <a href={pair.ms.file_url} target="_blank" rel="noopener noreferrer"
+                            <a href={`/api/past-papers/download?id=${pair.ms.id}`} target="_blank" rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 Answers</a>
                           )}
                         </div>

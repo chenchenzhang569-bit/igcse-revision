@@ -354,7 +354,7 @@ export default async function TopicPage({
                 <div key={note.id} className="bg-white border rounded-xl overflow-hidden">
                   {note.file_url ? (
                     <img
-                      src={note.file_url}
+                      src={`/api/notes/download?id=${note.id}`}
                       alt={note.title.replace("[ZNotes Summary] ", "")}
                       className="w-full"
                       loading="lazy"
@@ -398,7 +398,7 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
                 )}
                 {note.file_url && (
                   <a
-                    href={note.file_url}
+                    href={`/api/notes/download?id=${note.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"

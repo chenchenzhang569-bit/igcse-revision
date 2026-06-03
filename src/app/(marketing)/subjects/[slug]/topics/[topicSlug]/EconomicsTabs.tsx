@@ -393,7 +393,7 @@ export default function EconomicsTabs({
                     {/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(note.file_url) ? (
                       <div className="border rounded-lg overflow-hidden mb-3 bg-gray-50 flex justify-center">
                         <img
-                          src={note.file_url}
+                          src={`/api/notes/download?id=${note.id}`}
                           alt={note.title}
                           className="max-w-full h-auto"
                           style={{ maxHeight: "80vh" }}
@@ -401,13 +401,13 @@ export default function EconomicsTabs({
                       </div>
                     ) : (
                       <iframe
-                        src={note.file_url}
+                        src={`/api/notes/download?id=${note.id}`}
                         className="w-full h-[600px] border rounded-lg mb-3"
                         title={note.title}
                       />
                     )}
                     <a
-                      href={note.file_url}
+                      href={`/api/notes/download?id=${note.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
