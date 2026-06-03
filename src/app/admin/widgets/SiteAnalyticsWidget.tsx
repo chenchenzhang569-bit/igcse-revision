@@ -33,15 +33,23 @@ export default function SiteAnalyticsWidget({
   onToggle: () => void;
 }) {
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
+  const [tabStats, setTabStats] = useState<{ name: string; count: number }[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!token) return;
-    fetch("/api/analytics/stats", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then(setStats)
+    Promise.all([
+      fetch("/api/analytics/stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
+      fetch("/api/admin/analytics?days=365", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
+    ])
+      .then(([s, a]) => {
+        setStats(s);
+        setTabStats(a?.by_tab || null);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [token]);
@@ -259,6 +267,14 @@ export default function SiteAnalyticsWidget({
               else if (tab === "questions" || tab === "structured") byType["练习"] = (byType["练习"] || 0) + p.value;
               else if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
               else if (url.startsWith("/mock-exams")) byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
+            }
+            // Merge analytics_views tab data (from RPC, no race condition)
+            if (tabStats) {
+              const tabLabels: Record<string, string> = { mcq:"MCQ", notes:"笔记", structured:"练习", "past-papers":"真题", "mock-exams":"模拟考" };
+              for (const t of tabStats) {
+                const label = tabLabels[t.name];
+                if (label) byType[label] = (byType[label] || 0) + t.count;
+              }
             }
             const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
 
