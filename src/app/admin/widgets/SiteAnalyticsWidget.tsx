@@ -268,9 +268,10 @@ export default function SiteAnalyticsWidget({
                 {/* Hot data - two PieCharts side by side */}
                 {topPages.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门数据 TOP 10</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门数据（所有页面）</h4>
                     {(() => {
-                      const totalTop = topPages.reduce((s, p) => s + p.value, 0);
+                      const allPages = Object.entries(stats.pages || {}).map(([k, v]) => ({ name: k, value: v }));
+                      const totalAll = allPages.reduce((s, p) => s + p.value, 0);
                       const subjNames: Record<string, string> = {
                         "caie-mathematics-0580": "数学 0580",
                         "caie-additional-mathematics-0606": "附加数学 0606",
@@ -280,23 +281,32 @@ export default function SiteAnalyticsWidget({
                         "caie-economics-0455": "经济 0455",
                         "caie-computer-science-0478": "计算机 0478",
                       };
-                      // By subject - only subject pages
+                      // By subject - aggregate ALL pages, not just top 10
                       const bySubj: Record<string, number> = {};
-                      for (const p of topPages) {
+                      for (const p of allPages) {
                         for (const [slug, name] of Object.entries(subjNames)) {
                           if (p.name.includes(slug)) { bySubj[name] = (bySubj[name] || 0) + p.value; break; }
                         }
                       }
                       const subjSorted = Object.entries(bySubj).sort((a, b) => b[1] - a[1]).slice(0, 6);
-                      // By type - only content types
+                      // By type - aggregate ALL pages, check tab params first
                       const byType: Record<string, number> = {};
-                      for (const p of topPages) {
+                      for (const p of allPages) {
                         const url = p.name;
-                        if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
+                        // Extract tab= param from query string
+                        const tabMatch = url.match(/[?&]tab=([^&]+)/);
+                        const tab = tabMatch ? tabMatch[1].toLowerCase() : null;
+                        if (tab === "past-papers" || tab === "pastpaper") byType["真题"] = (byType["真题"] || 0) + p.value;
+                        else if (tab === "mock-exams" || tab === "mockexam") byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
+                        else if (tab === "mcq") byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
+                        else if (tab === "notes") byType["笔记"] = (byType["笔记"] || 0) + p.value;
+                        else if (tab === "questions") byType["练习"] = (byType["练习"] || 0) + p.value;
+                        else if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
                         else if (url.startsWith("/mock-exams")) byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
                         else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
                         else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
                         else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
+                        else if (url.startsWith("/subjects")) byType["科目浏览"] = (byType["科目浏览"] || 0) + p.value;
                       }
                       const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
                       return (
@@ -308,7 +318,7 @@ export default function SiteAnalyticsWidget({
                                 <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                                   {typeSorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                                 </Pie>
-                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalTop * 100).toFixed(1)}%)`, ""]} />
+                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} />
                               </PieChart>
                             </ResponsiveContainer>
                           </div>
@@ -319,7 +329,7 @@ export default function SiteAnalyticsWidget({
                                 <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`}>
                                   {subjSorted.map((_, i) => <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />)}
                                 </Pie>
-                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalTop * 100).toFixed(1)}%)`, ""]} />
+                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} />
                               </PieChart>
                             </ResponsiveContainer>
                           </div>
