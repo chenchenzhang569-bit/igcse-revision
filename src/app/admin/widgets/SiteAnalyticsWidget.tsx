@@ -265,11 +265,12 @@ export default function SiteAnalyticsWidget({
                     <div className="text-[10px] text-gray-500">跳出率</div>
                   </div>
                 </div>
-                {/* Top pages - grouped by category */}
+                {/* Hot data - two PieCharts side by side */}
                 {topPages.length > 0 && (
                   <div>
                     <h4 className="text-xs font-semibold text-gray-500 mb-2">热门数据 TOP 10</h4>
                     {(() => {
+                      const totalTop = topPages.reduce((s, p) => s + p.value, 0);
                       const subjNames: Record<string, string> = {
                         "caie-mathematics-0580": "数学 0580",
                         "caie-additional-mathematics-0606": "附加数学 0606",
@@ -279,38 +280,53 @@ export default function SiteAnalyticsWidget({
                         "caie-economics-0455": "经济 0455",
                         "caie-computer-science-0478": "计算机 0478",
                       };
-                      function extractSubject(url: string): string {
+                      // By subject
+                      const bySubj: Record<string, number> = {};
+                      for (const p of topPages) {
+                        let found = false;
                         for (const [slug, name] of Object.entries(subjNames)) {
-                          if (url.includes(slug)) return name;
+                          if (p.name.includes(slug)) { bySubj[name] = (bySubj[name] || 0) + p.value; found = true; break; }
                         }
-                        return "";
+                        if (!found) bySubj["其他"] = (bySubj["其他"] || 0) + p.value;
                       }
-                      const groups: Record<string, number> = {};
-                      const totalTop = topPages.reduce((s, p) => s + p.value, 0);
+                      const subjSorted = Object.entries(bySubj).sort((a, b) => b[1] - a[1]).slice(0, 6);
+                      // By type
+                      const byType: Record<string, number> = {};
                       for (const p of topPages) {
                         const url = p.name;
-                        const subj = extractSubject(url);
-                        let type = "其他";
-                        if (url.startsWith("/past-papers")) type = "真题";
-                        else if (url.startsWith("/mock-exams")) type = "模拟考";
-                        else if (url.includes("/mcq") || url.includes("mcq")) type = "MCQ";
-                        else if (url.includes("/notes/") || url.includes("notes")) type = "笔记";
-                        else if (url.includes("/topics/") || url.includes("/sections/")) type = "练习";
-                        const label = subj ? `${subj} ${type}` : type;
-                        groups[label] = (groups[label] || 0) + p.value;
+                        if (url.startsWith("/past-papers")) byType["真题"] = (byType["真题"] || 0) + p.value;
+                        else if (url.startsWith("/mock-exams")) byType["模拟考"] = (byType["模拟考"] || 0) + p.value;
+                        else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
+                        else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
+                        else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
+                        else byType["其他"] = (byType["其他"] || 0) + p.value;
                       }
-                      const sorted = Object.entries(groups)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 7);
+                      const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
                       return (
-                        <ResponsiveContainer width="100%" height={180}>
-                          <PieChart>
-                            <Pie data={sorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                              {sorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                            </Pie>
-                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalTop * 100).toFixed(1)}%)`, ""]} />
-                          </PieChart>
-                        </ResponsiveContainer>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h5 className="text-xs text-gray-400 mb-1 text-center">按题型</h5>
+                            <ResponsiveContainer width="100%" height={160}>
+                              <PieChart>
+                                <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                                  {typeSorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalTop * 100).toFixed(1)}%)`, ""]} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div>
+                            <h5 className="text-xs text-gray-400 mb-1 text-center">按科目</h5>
+                            <ResponsiveContainer width="100%" height={160}>
+                              <PieChart>
+                                <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`}>
+                                  {subjSorted.map((_, i) => <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalTop * 100).toFixed(1)}%)`, ""]} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
                       );
                     })()}
                   </div>
