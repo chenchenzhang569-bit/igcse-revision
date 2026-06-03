@@ -280,54 +280,28 @@ export default function SiteAnalyticsWidget({
 
             return (
               <div className="space-y-6">
-                {/* Row 1: Today + Total + Week all in one line */}
-                <div className="flex items-center justify-around bg-gray-50 rounded-xl px-4 py-5">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-sm font-normal text-gray-500">PV</span></div>
-                    <div className="text-sm text-gray-500">今日 PV</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-sm font-normal text-gray-500">PV</span></div>
-                    <div className="text-sm text-gray-500">累计 PV</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-sm font-normal text-gray-500">PV</span></div>
-                    <div className="text-sm text-gray-500">本周 PV</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-sm font-normal text-gray-500">访客</span></div>
-                    <div className="text-sm text-gray-500">今日访客</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-sm font-normal text-gray-500">访客</span></div>
-                    <div className="text-sm text-gray-500">总访客</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-rose-600">{stats.bounce_rate}%</div>
-                    <div className="text-sm text-gray-500">跳出率</div>
-                  </div>
-                </div>
+                {/* Row 1: Today + Total + Week */}\n                <div className="grid grid-cols-3 gap-2 bg-gray-50 rounded-xl px-2 py-3 md:flex md:items-center md:justify-around md:px-4 md:py-5">\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">今日</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">累计</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">本周</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-xs md:text-sm font-normal text-gray-500">访客</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">今日访客</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-xs md:text-sm font-normal text-gray-500">访客</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">总访客</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-rose-600">{stats.bounce_rate}%</div>\n                    <div className="text-[10px] md:text-sm text-gray-500">跳出率</div>\n                  </div>\n                </div>
 
                 {/* Hot data - two PieCharts side by side */}
                 {totalAll > 0 && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white border rounded-xl p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white border rounded-xl p-3 md:p-4">
                         <h5 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">📋 按题型</h5>
                         <ResponsiveContainer width="100%" height={240}>
                           <PieChart>
-                            <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
+                            <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} className="md:text-sm text-[10px]">
                               {typeSorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                             </Pie>
                             <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 13 }} />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      <div className="bg-white border rounded-xl p-4">
+                      <div className="bg-white border rounded-xl p-3 md:p-4">
                         <h5 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">🏫 按科目</h5>
                         <ResponsiveContainer width="100%" height={240}>
                           <PieChart>
-                            <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
+                            <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`} labelLine={false} className="md:text-sm text-[10px]">
                               {subjSorted.map((_, i) => <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />)}
                             </Pie>
                             <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 13 }} />
@@ -357,7 +331,7 @@ export default function SiteAnalyticsWidget({
                 {sourceData.length > 0 && (
                   <div>
                     <h4 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">🔗 流量来源</h4>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {sourceData.slice(0, 8).map((s) => (
                         <div key={s.name} className="text-center p-2 bg-gray-50 rounded-lg">
                           <div className="text-base font-bold text-gray-700">{fmt(s.value)}</div>
