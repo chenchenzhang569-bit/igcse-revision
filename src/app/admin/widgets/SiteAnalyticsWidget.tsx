@@ -268,23 +268,21 @@ export default function SiteAnalyticsWidget({
                 {/* Top pages - grouped by category */}
                 {topPages.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门页面 TOP 10 分布</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门题型 TOP 10</h4>
                     {(() => {
                       const groups: Record<string, number> = {};
                       const totalTop = topPages.reduce((s, p) => s + p.value, 0);
                       for (const p of topPages) {
                         const url = p.name;
                         let group = "其他";
-                        if (url === "/" || url === "") group = "首页";
-                        else if (url.startsWith("/subjects")) group = "科目页";
-                        else if (url.startsWith("/past-papers")) group = "真题页";
+                        if (url.includes("/topics/") || url.includes("/sections/")) group = "知识点练习";
+                        else if (url.startsWith("/past-papers")) group = "真题";
                         else if (url.startsWith("/mock-exams")) group = "模拟考";
+                        else if (url.startsWith("/subjects")) group = "科目浏览";
+                        else if (url === "/" || url === "") group = "首页";
                         else if (url.startsWith("/pricing")) group = "定价";
                         else if (url.startsWith("/login")) group = "登录";
                         else if (url.startsWith("/register")) group = "注册";
-                        else if (url.startsWith("/dashboard") || url.includes("dashboard")) group = "仪表盘";
-                        else if (url.startsWith("/checkout")) group = "结账";
-                        else if (url.startsWith("/admin")) group = "管理";
                         groups[group] = (groups[group] || 0) + p.value;
                       }
                       const sorted = Object.entries(groups)
