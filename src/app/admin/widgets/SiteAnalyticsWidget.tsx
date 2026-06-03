@@ -265,18 +265,42 @@ export default function SiteAnalyticsWidget({
                     <div className="text-[10px] text-gray-500">跳出率</div>
                   </div>
                 </div>
-                {/* Top pages */}
+                {/* Top pages - grouped by category */}
                 {topPages.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-1">热门页面</h4>
-                    <div className="space-y-1 max-h-[180px] overflow-y-auto">
-                      {topPages.map((p) => (
-                        <div key={p.name} className="flex justify-between text-xs py-1 border-b border-gray-50 last:border-0">
-                          <span className="text-gray-700 truncate mr-2">{p.name}</span>
-                          <span className="text-gray-500 font-semibold shrink-0">{fmt(p.value)}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门页面 TOP 10 分布</h4>
+                    {(() => {
+                      const groups: Record<string, number> = {};
+                      const totalTop = topPages.reduce((s, p) => s + p.value, 0);
+                      for (const p of topPages) {
+                        const url = p.name;
+                        let group = "其他";
+                        if (url === "/" || url === "") group = "首页";
+                        else if (url.startsWith("/subjects")) group = "科目页";
+                        else if (url.startsWith("/past-papers")) group = "真题页";
+                        else if (url.startsWith("/mock-exams")) group = "模拟考";
+                        else if (url.startsWith("/pricing")) group = "定价";
+                        else if (url.startsWith("/login")) group = "登录";
+                        else if (url.startsWith("/register")) group = "注册";
+                        else if (url.startsWith("/dashboard") || url.includes("dashboard")) group = "仪表盘";
+                        else if (url.startsWith("/checkout")) group = "结账";
+                        else if (url.startsWith("/admin")) group = "管理";
+                        groups[group] = (groups[group] || 0) + p.value;
+                      }
+                      const sorted = Object.entries(groups)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 7);
+                      return (
+                        <ResponsiveContainer width="100%" height={180}>
+                          <PieChart>
+                            <Pie data={sorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                              {sorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                            </Pie>
+                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalTop * 100).toFixed(1)}%)`, ""]} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      );
+                    })()}
                   </div>
                 )}
                 {/* Sources */}
