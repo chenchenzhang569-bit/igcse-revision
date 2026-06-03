@@ -285,7 +285,7 @@ export default function DashboardPage() {
                 const hasData = total > 0;
                 return (
                   <div key={slug} className="relative flex flex-col items-center" style={{ height: 210 }}>
-                    <svg width="130" height="130" viewBox="0 0 130 130" className="my-3">
+                    <svg width="130" height="130" viewBox="0 0 130 130">
                       {(() => {
                         const R = 52, cx = 65, cy = 65, circ = 2 * Math.PI * R;
                         const correctPct = hasData ? correct / total : 0;
