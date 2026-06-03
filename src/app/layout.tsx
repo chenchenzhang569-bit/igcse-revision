@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { ClientLayout } from "@/lib/i18n/ClientLayout";
-import dynamic from "next/dynamic";
-
-const AnalyticsTracker = dynamic(
-  () => import("@/components/AnalyticsTracker"),
-  { ssr: false }
-);
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 
 export const metadata: Metadata = {
   title: {
