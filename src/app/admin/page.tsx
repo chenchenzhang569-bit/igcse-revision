@@ -32,7 +32,7 @@ type DashboardData = {
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
 const ORDER_STORAGE_KEY = "admin_widget_order";
 
-const DEFAULT_ORDER = ["overview", "analytics", "payment", "revenue", "invites", "dau", "signups", "sources", "questions", "qa"];
+const DEFAULT_ORDER = ["overview", "analytics", "pageviews", "payment", "revenue", "invites", "dau", "signups", "sources", "questions", "qa"];
 
 function loadOrder(): string[] {
   try { const v = localStorage.getItem(ORDER_STORAGE_KEY); return v ? JSON.parse(v) : DEFAULT_ORDER; } catch { return DEFAULT_ORDER; }
