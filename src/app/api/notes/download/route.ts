@@ -37,38 +37,28 @@ export async function GET(req: NextRequest) {
 
     const subjectId = (note as any).subject_id;
 
-    // Check specific subject purchase
-    if (subjectId) {
-      const { data: purchase } = await supabase
-        .from("purchases")
-        .select("id, expires_at")
-        .eq("user_id", user.id)
-        .eq("subject_id", subjectId)
-        .in("status", ["paid", "trial"])
-        .maybeSingle();
+    // 查看用户所有购买记录（一次查出，JS 里判断）— 跟 page.tsx 一致
+    const { data: purchases } = await supabase
+      .from("purchases")
+      .select("subject_id, expires_at")
+      .eq("user_id", user.id)
+      .in("status", ["paid", "trial"]);
 
-      if (purchase) {
-        if (purchase.expires_at && new Date(purchase.expires_at) < new Date()) {
-          return NextResponse.json({ error: "购买已过期，请重新购买" }, { status: 402 });
-        }
-      } else {
-        // Also check all-subjects plan
-        const { data: allSubjects } = await supabase
-          .from("purchases")
-          .select("id, expires_at")
-          .eq("user_id", user.id)
-          .is("subject_id", null)
-          .in("status", ["paid", "trial"])
-          .maybeSingle();
+    if (!purchases || purchases.length === 0) {
+      return NextResponse.json({ error: "请先购买该科目" }, { status: 402 });
+    }
 
-        if (!allSubjects) {
-          return NextResponse.json({ error: "请先购买该科目" }, { status: 402 });
-        }
+    const now = new Date();
+    const hasValidPurchase = purchases.some(p => {
+      if (p.expires_at && new Date(p.expires_at) < now) return false;
+      // all-subjects plan covers everything
+      if (!p.subject_id) return true;
+      // specific subject match
+      return subjectId && p.subject_id === subjectId;
+    });
 
-        if (allSubjects.expires_at && new Date(allSubjects.expires_at) < new Date()) {
-          return NextResponse.json({ error: "购买已过期，请重新购买" }, { status: 402 });
-        }
-      }
+    if (!hasValidPurchase) {
+      return NextResponse.json({ error: "请先购买该科目" }, { status: 402 });
     }
   }
 
