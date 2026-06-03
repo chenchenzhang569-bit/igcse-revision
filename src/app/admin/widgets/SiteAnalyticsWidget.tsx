@@ -268,20 +268,36 @@ export default function SiteAnalyticsWidget({
                 {/* Top pages - grouped by category */}
                 {topPages.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门题型 TOP 10</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 mb-2">热门数据 TOP 10</h4>
                     {(() => {
+                      const subjNames: Record<string, string> = {
+                        "caie-mathematics-0580": "数学 0580",
+                        "caie-additional-mathematics-0606": "附加数学 0606",
+                        "caie-physics-0625": "物理 0625",
+                        "caie-chemistry-0620": "化学 0620",
+                        "caie-biology-0610": "生物 0610",
+                        "caie-economics-0455": "经济 0455",
+                        "caie-computer-science-0478": "计算机 0478",
+                      };
+                      function extractSubject(url: string): string {
+                        for (const [slug, name] of Object.entries(subjNames)) {
+                          if (url.includes(slug)) return name;
+                        }
+                        return "";
+                      }
                       const groups: Record<string, number> = {};
                       const totalTop = topPages.reduce((s, p) => s + p.value, 0);
                       for (const p of topPages) {
                         const url = p.name;
-                        let group = "其他";
-                        if (url.startsWith("/past-papers")) group = "真题";
-                        else if (url.startsWith("/mock-exams")) group = "模拟考";
-                        else if (url.includes("/mcq") || url.includes("mcq")) group = "MCQ";
-                        else if (url.includes("/notes/") || url.includes("notes")) group = "笔记";
-                        else if (url.includes("/topics/") || url.includes("/sections/")) group = "练习";
-                        else group = "其他";
-                        groups[group] = (groups[group] || 0) + p.value;
+                        const subj = extractSubject(url);
+                        let type = "其他";
+                        if (url.startsWith("/past-papers")) type = "真题";
+                        else if (url.startsWith("/mock-exams")) type = "模拟考";
+                        else if (url.includes("/mcq") || url.includes("mcq")) type = "MCQ";
+                        else if (url.includes("/notes/") || url.includes("notes")) type = "笔记";
+                        else if (url.includes("/topics/") || url.includes("/sections/")) type = "练习";
+                        const label = subj ? `${subj} ${type}` : type;
+                        groups[label] = (groups[label] || 0) + p.value;
                       }
                       const sorted = Object.entries(groups)
                         .sort((a, b) => b[1] - a[1])
