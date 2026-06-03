@@ -102,7 +102,7 @@ function HomeContent() {
 
       {/* Exam Board Selector */}
       <section className="w-full px-3 sm:px-5 -mt-6 sm:-mt-8 relative z-10 pb-6 sm:pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+        <div className={`grid grid-cols-1 ${visibleBoards.length > 1 ? 'lg:grid-cols-2' : ''} gap-4 sm:gap-5${visibleBoards.length === 1 ? ' max-w-3xl mx-auto' : ''}`}>
           {visibleBoards.map((board) => (
             <div
               key={board.slug}
