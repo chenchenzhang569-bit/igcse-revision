@@ -86,9 +86,9 @@ export default function SiteAnalyticsWidget({
     .slice(0, 10)
     .map(([k, v]) => ({ name: k || "/", value: v }));
 
-  // Daily trend (last 7 days)
+  // Daily trend (last 30 days)
   const weekDates: string[] = [];
-  for (let i = 6; i >= 0; i--) {
+  for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     weekDates.push(d.toISOString().slice(0, 10));
@@ -115,11 +115,11 @@ export default function SiteAnalyticsWidget({
               <div className="space-y-6">
                 {/* Daily trend */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-500 mb-2">近 7 日趋势</h4>
-                  <ResponsiveContainer width="100%" height={240}>
+                  <h4 className="text-sm font-semibold text-gray-500 mb-2">近 30 日趋势</h4>
+                  <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tick={{ fontSize: 13 }} />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
                       <YAxis tick={{ fontSize: 13 }} />
                       <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8 }} />
                       <Bar dataKey="pv" fill="#001C71" name="PV" radius={[2, 2, 0, 0]} />
@@ -340,11 +340,11 @@ export default function SiteAnalyticsWidget({
 
                 {/* Daily trend chart */}
                 <div>
-                  <h4 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">📊 近 7 日趋势</h4>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <h4 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">📊 近 30 日趋势</h4>
+                  <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="date" tick={{ fontSize: 13 }} />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
                       <YAxis tick={{ fontSize: 13 }} />
                       <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8 }} />
                       <Bar dataKey="pv" fill="#001C71" name="PV" radius={[2, 2, 0, 0]} />
