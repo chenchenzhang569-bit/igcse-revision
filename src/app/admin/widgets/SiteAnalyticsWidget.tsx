@@ -107,13 +107,13 @@ export default function SiteAnalyticsWidget({
               <div className="space-y-6">
                 {/* Daily trend */}
                 <div>
-                  <h4 className="text-xs font-semibold text-gray-500 mb-2">近 7 日趋势</h4>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <h4 className="text-sm font-semibold text-gray-500 mb-2">近 7 日趋势</h4>
+                  <ResponsiveContainer width="100%" height={240}>
                     <BarChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 10 }} />
-                      <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                      <XAxis dataKey="date" tick={{ fontSize: 13 }} />
+                      <YAxis tick={{ fontSize: 13 }} />
+                      <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8 }} />
                       <Bar dataKey="pv" fill="#001C71" name="PV" radius={[2, 2, 0, 0]} />
                       <Bar dataKey="visitors" fill="#FF8C00" name="访客" radius={[2, 2, 0, 0]} />
                     </BarChart>
@@ -123,26 +123,26 @@ export default function SiteAnalyticsWidget({
                 <div className="grid grid-cols-2 gap-4">
                   {deviceData.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">设备</h4>
-                      <ResponsiveContainer width="100%" height={150}>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">设备</h4>
+                      <ResponsiveContainer width="100%" height={180}>
                         <PieChart>
-                          <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                          <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
                             {deviceData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip contentStyle={{ fontSize: 13 }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                   )}
                   {browserData.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">浏览器</h4>
-                      <ResponsiveContainer width="100%" height={150}>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">浏览器</h4>
+                      <ResponsiveContainer width="100%" height={180}>
                         <PieChart>
-                          <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                          <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
                             {browserData.map((_, i) => <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />)}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip contentStyle={{ fontSize: 13 }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -151,13 +151,13 @@ export default function SiteAnalyticsWidget({
                 {/* OS pie */}
                 {osData.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 mb-2">操作系统</h4>
-                    <ResponsiveContainer width="100%" height={150}>
+                    <h4 className="text-sm font-semibold text-gray-500 mb-2">操作系统</h4>
+                    <ResponsiveContainer width="100%" height={180}>
                       <PieChart>
-                        <Pie data={osData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                        <Pie data={osData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
                           {osData.map((_, i) => <Cell key={i} fill={COLORS[(i + 4) % COLORS.length]} />)}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip contentStyle={{ fontSize: 13 }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -171,26 +171,26 @@ export default function SiteAnalyticsWidget({
                 <div className="grid grid-cols-2 gap-4">
                   {deviceData.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">设备分布</h4>
-                      <ResponsiveContainer width="100%" height={160}>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">设备分布</h4>
+                      <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
-                          <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label>
+                          <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label labelLine={false} style={{ fontSize: 13 }}>
                             {deviceData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip contentStyle={{ fontSize: 13 }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                   )}
                   {browserData.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">浏览器分布</h4>
-                      <ResponsiveContainer width="100%" height={160}>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">浏览器分布</h4>
+                      <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
-                          <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label>
+                          <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label labelLine={false} style={{ fontSize: 13 }}>
                             {browserData.map((_, i) => <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />)}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip contentStyle={{ fontSize: 13 }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -199,26 +199,26 @@ export default function SiteAnalyticsWidget({
                 <div className="grid grid-cols-2 gap-4">
                   {osData.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">操作系统</h4>
-                      <ResponsiveContainer width="100%" height={160}>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">操作系统</h4>
+                      <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
-                          <Pie data={osData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label>
+                          <Pie data={osData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label labelLine={false} style={{ fontSize: 13 }}>
                             {osData.map((_, i) => <Cell key={i} fill={COLORS[(i + 4) % COLORS.length]} />)}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip contentStyle={{ fontSize: 13 }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                   )}
                   {sourceData.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">流量来源</h4>
-                      <ResponsiveContainer width="100%" height={160}>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">流量来源</h4>
+                      <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
-                          <Pie data={sourceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label>
+                          <Pie data={sourceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label labelLine={false} style={{ fontSize: 13 }}>
                             {sourceData.map((_, i) => <Cell key={i} fill={COLORS[(i + 6) % COLORS.length]} />)}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip contentStyle={{ fontSize: 13 }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -265,56 +265,56 @@ export default function SiteAnalyticsWidget({
             return (
               <div className="space-y-6">
                 {/* Row 1: Today + Total + Week all in one line */}
-                <div className="flex items-center justify-around bg-gray-50 rounded-xl px-4 py-4">
+                <div className="flex items-center justify-around bg-gray-50 rounded-xl px-4 py-5">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-xs font-normal text-gray-500">PV</span></div>
-                    <div className="text-xs text-gray-500">今日 PV</div>
+                    <div className="text-2xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-sm font-normal text-gray-500">PV</span></div>
+                    <div className="text-sm text-gray-500">今日 PV</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-xs font-normal text-gray-500">PV</span></div>
-                    <div className="text-xs text-gray-500">累计 PV</div>
+                    <div className="text-2xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-sm font-normal text-gray-500">PV</span></div>
+                    <div className="text-sm text-gray-500">累计 PV</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-xs font-normal text-gray-500">PV</span></div>
-                    <div className="text-xs text-gray-500">本周 PV</div>
+                    <div className="text-2xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-sm font-normal text-gray-500">PV</span></div>
+                    <div className="text-sm text-gray-500">本周 PV</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-xs font-normal text-gray-500">访客</span></div>
-                    <div className="text-xs text-gray-500">今日访客</div>
+                    <div className="text-2xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-sm font-normal text-gray-500">访客</span></div>
+                    <div className="text-sm text-gray-500">今日访客</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-xs font-normal text-gray-500">访客</span></div>
-                    <div className="text-xs text-gray-500">总访客</div>
+                    <div className="text-2xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-sm font-normal text-gray-500">访客</span></div>
+                    <div className="text-sm text-gray-500">总访客</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-rose-600">{stats.bounce_rate}%</div>
-                    <div className="text-xs text-gray-500">跳出率</div>
+                    <div className="text-2xl font-bold text-rose-600">{stats.bounce_rate}%</div>
+                    <div className="text-sm text-gray-500">跳出率</div>
                   </div>
                 </div>
 
-                {/* Hot data - two PieCharts side by side, bigger */}
+                {/* Hot data - two PieCharts side by side */}
                 {totalAll > 0 && (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white border rounded-xl p-3">
-                        <h5 className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mb-1">📋 按题型</h5>
-                        <ResponsiveContainer width="100%" height={220}>
+                      <div className="bg-white border rounded-xl p-4">
+                        <h5 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">📋 按题型</h5>
+                        <ResponsiveContainer width="100%" height={240}>
                           <PieChart>
-                            <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 10 }}>
+                            <Pie data={typeSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
                               {typeSorted.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                             </Pie>
-                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 11 }} />
+                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 13 }} />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      <div className="bg-white border rounded-xl p-3">
-                        <h5 className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mb-1">🏫 按科目</h5>
-                        <ResponsiveContainer width="100%" height={220}>
+                      <div className="bg-white border rounded-xl p-4">
+                        <h5 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">🏫 按科目</h5>
+                        <ResponsiveContainer width="100%" height={240}>
                           <PieChart>
-                            <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 10 }}>
+                            <Pie data={subjSorted.map(([n, v]) => ({ name: n, value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name.replace(" 0", " ")} ${(percent * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 13 }}>
                               {subjSorted.map((_, i) => <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />)}
                             </Pie>
-                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 11 }} />
+                            <Tooltip formatter={(v: number) => [`${fmt(v)} (${(v / totalAll * 100).toFixed(1)}%)`, ""]} contentStyle={{ fontSize: 13 }} />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
@@ -325,12 +325,12 @@ export default function SiteAnalyticsWidget({
                 {/* Sources */}
                 {sourceData.length > 0 && (
                   <div>
-                    <h4 className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mb-2">🔗 流量来源</h4>
+                    <h4 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">🔗 流量来源</h4>
                     <div className="grid grid-cols-4 gap-2">
                       {sourceData.slice(0, 8).map((s) => (
                         <div key={s.name} className="text-center p-2 bg-gray-50 rounded-lg">
-                          <div className="text-sm font-bold text-gray-700">{fmt(s.value)}</div>
-                          <div className="text-[10px] text-gray-400 truncate">{s.name}</div>
+                          <div className="text-base font-bold text-gray-700">{fmt(s.value)}</div>
+                          <div className="text-xs text-gray-400 truncate">{s.name}</div>
                         </div>
                       ))}
                     </div>
