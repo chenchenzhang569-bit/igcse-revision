@@ -280,17 +280,15 @@ export default function SiteAnalyticsWidget({
                         "caie-economics-0455": "经济 0455",
                         "caie-computer-science-0478": "计算机 0478",
                       };
-                      // By subject
+                      // By subject - only subject pages
                       const bySubj: Record<string, number> = {};
                       for (const p of topPages) {
-                        let found = false;
                         for (const [slug, name] of Object.entries(subjNames)) {
-                          if (p.name.includes(slug)) { bySubj[name] = (bySubj[name] || 0) + p.value; found = true; break; }
+                          if (p.name.includes(slug)) { bySubj[name] = (bySubj[name] || 0) + p.value; break; }
                         }
-                        if (!found) bySubj["其他"] = (bySubj["其他"] || 0) + p.value;
                       }
                       const subjSorted = Object.entries(bySubj).sort((a, b) => b[1] - a[1]).slice(0, 6);
-                      // By type
+                      // By type - only content types
                       const byType: Record<string, number> = {};
                       for (const p of topPages) {
                         const url = p.name;
@@ -299,7 +297,6 @@ export default function SiteAnalyticsWidget({
                         else if (url.includes("/mcq") || url.includes("mcq")) byType["MCQ"] = (byType["MCQ"] || 0) + p.value;
                         else if (url.includes("/notes/") || url.includes("notes")) byType["笔记"] = (byType["笔记"] || 0) + p.value;
                         else if (url.includes("/topics/") || url.includes("/sections/")) byType["练习"] = (byType["练习"] || 0) + p.value;
-                        else byType["其他"] = (byType["其他"] || 0) + p.value;
                       }
                       const typeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
                       return (
