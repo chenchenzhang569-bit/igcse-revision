@@ -492,6 +492,28 @@ export function TopicTabs({
               const tabParam = t.key === "structured" ? "structured" : t.key;
               url.searchParams.set("tab", tabParam);
               window.history.replaceState(null, "", url.toString());
+              // Direct analytics track — ensure tab switch is recorded
+              try {
+                const sid = (window as any).__igSessionId || localStorage.getItem("ig_session_id") || crypto.randomUUID?.() || Math.random().toString(36).slice(2, 15);
+                fetch("/api/analytics/track", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    session_id: sid,
+                    page_url: window.location.pathname + "?" + url.searchParams.toString(),
+                    referrer: document.referrer || "",
+                    user_agent: navigator.userAgent,
+                    device_type: /mobile/i.test(navigator.userAgent) ? "mobile" : /tablet/i.test(navigator.userAgent) ? "tablet" : "desktop",
+                    browser: /edg/i.test(navigator.userAgent) ? "edge" : /chrome/i.test(navigator.userAgent) ? "chrome" : /safari/i.test(navigator.userAgent) ? "safari" : "other",
+                    os: /windows/i.test(navigator.userAgent) ? "windows" : /mac/i.test(navigator.userAgent) ? "macos" : /android/i.test(navigator.userAgent) ? "android" : "other",
+                    screen_width: window.innerWidth,
+                    screen_height: window.innerHeight,
+                    language: navigator.language,
+                    event_type: "pageview",
+                  }),
+                  keepalive: true,
+                }).catch(() => {});
+              } catch {}
             }}
               className={`px-6 py-3 font-medium text-sm transition border-b-2 ${
                 activeTab === t.key ? "border-primary-600 text-primary-600" : "border-transparent text-gray-400 hover:text-[#001C71]"
