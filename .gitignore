@@ -10,6 +10,7 @@ znotes_content/
 znotes_generate*.py
 znotes_playwright.py
 tsconfig.tsbuildinfo
+supabase/.temp/
 scripts/scrape_economics_p2.py
 scripts/fix_econ_p2_difficulty.py
 scripts/scrape_econ_mock_pw.py

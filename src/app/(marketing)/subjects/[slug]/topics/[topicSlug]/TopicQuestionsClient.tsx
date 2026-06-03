@@ -252,6 +252,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
   const [loading, setLoading] = useState(true);
   const [activeDifficulty, setActiveDifficulty] = useState<string>("easy");
   const [userId, setUserId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const storageKey = userId ? `topic-answers-${userId}-${topicId}` : `topic-answers-${topicId}`;
 
   // Fetch userId for user-specific localStorage key
@@ -263,6 +264,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
       );
       const { data: { session } } = await ssrClient.auth.getSession();
       setUserId(session?.user?.id || null);
+      setAccessToken(session?.access_token || null);
     })();
   }, []);
 
@@ -360,6 +362,21 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
       setLoading(false);
     })();
   }, [topicId, preloadedQuestions]);
+
+  // Log view activity after questions load (authenticated users only)
+  useEffect(() => {
+    if (!accessToken || allQuestions.length === 0) return;
+    fetch("/api/activity/log", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        activity_type: "view:structured",
+        detail: `topic:${topicId}`,
+        subject_id: null,
+        page_url: window.location.pathname,
+      }),
+    }).catch(() => {});
+  }, [accessToken, allQuestions.length, topicId]);
 
   // Handle ?saved=1&q=questionId from my-bank link
   useEffect(() => {

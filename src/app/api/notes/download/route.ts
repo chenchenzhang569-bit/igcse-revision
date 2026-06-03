@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getR2PresignedUrl } from "@/lib/r2";
+import { logDownload } from "@/lib/download-logger";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -66,6 +67,18 @@ export async function GET(req: NextRequest) {
   const r2Url = await getR2PresignedUrl(note.file_url);
   if (!r2Url) {
     return NextResponse.json({ error: "文件链接异常" }, { status: 500 });
+  }
+
+  // Fire-and-forget download log (best effort, after response)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    logDownload({
+      userId: user.id,
+      noteId: noteId,
+      fileName: (note as any)?.file_name || (note as any)?.title || "",
+      subjectId: (note as any)?.subject_id || "",
+      pageUrl: req.url,
+    }).catch(() => {});
   }
 
   return NextResponse.redirect(r2Url);
