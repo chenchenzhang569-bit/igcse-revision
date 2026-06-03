@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface Stats {
@@ -283,38 +283,31 @@ export default function DashboardPage() {
                 const total = sub?.total || 0;
                 const rate = total > 0 ? (sub?.rate || 0) : 100;
                 const hasData = total > 0;
-                const pieData = hasData
-                  ? [{ name: "Correct", value: correct }, { name: "Incorrect", value: total - correct }]
-                  : [{ name: "Ready", value: 1 }];
                 return (
                   <div key={slug} className="relative flex flex-col items-center" style={{ height: 210 }}>
-                    <ResponsiveContainer width="100%" height={160}>
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%" cy="50%"
-                          innerRadius={45} outerRadius={65}
-                          paddingAngle={3}
-                          dataKey="value"
-                          stroke="#E5E7EB"
-                          strokeWidth={2}
-                        >
-                          {hasData ? (
-                            <>
-                              <Cell fill="#001C71" />
-                              <Cell fill="#FF8C00" />
-                            </>
-                          ) : (
-                            <Cell fill="#E5E7EB" />
-                          )}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }}
-                          formatter={(v: number, name: string) => [v, name === "Correct" ? t("dashboard", "correct") : name === "Incorrect" ? t("dashboard", "incorrect") : t("dashboard", "ready")]}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, height: 160 }}>
+                    <svg width="130" height="130" viewBox="0 0 130 130" className="my-3">
+                      {(() => {
+                        const R = 52, cx = 65, cy = 65, circ = 2 * Math.PI * R;
+                        const correctPct = hasData ? correct / total : 0;
+                        const correctLen = correctPct * circ;
+                        const totalLen = circ;
+                        return (
+                          <>
+                            {/* Background ring */}
+                            <circle cx={cx} cy={cy} r={R} fill="none" stroke="#E5E7EB" strokeWidth="14" />
+                            {/* Correct arc (start from top, clockwise) */}
+                            {correctLen > 0 && (
+                              <circle cx={cx} cy={cy} r={R} fill="none" stroke="#FF8C00" strokeWidth="14"
+                                strokeDasharray={`${correctLen} ${totalLen}`}
+                                strokeLinecap="butt"
+                                transform={`rotate(-90 ${cx} ${cy})`}
+                              />
+                            )}
+                          </>
+                        );
+                      })()}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, height: 130 }}>
                       <span className="text-2xl font-extrabold" style={{ color: DONUT_COLORS[idx] }}>{rate}%</span>
                       <span className="text-xs text-gray-400 font-medium">{hasData ? `${correct}/${total}` : "0/0"}</span>
                     </div>
