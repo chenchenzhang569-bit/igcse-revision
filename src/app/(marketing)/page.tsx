@@ -36,7 +36,7 @@ const boards = [
 ];
 
 // 生产环境隐藏 Edexcel（通过 Zeabur 环境变量控制）
-const hideEdexcel = typeof window !== "undefined" && process.env.NEXT_PUBLIC_HIDE_EDEXCEL === "true";
+const hideEdexcel = process.env.NEXT_PUBLIC_HIDE_EDEXCEL === "true";
 const visibleBoards = hideEdexcel ? boards.filter((b) => b.name !== "Edexcel") : boards;
 
 function HomeContent() {
