@@ -296,15 +296,16 @@ export default function DashboardPage() {
                           innerRadius={45} outerRadius={65}
                           paddingAngle={3}
                           dataKey="value"
-                          stroke="none"
+                          stroke="#E5E7EB"
+                          strokeWidth={2}
                         >
                           {hasData ? (
                             <>
-                              <Cell fill="#FF8C00" />
                               <Cell fill="#001C71" />
+                              <Cell fill="#FF8C00" />
                             </>
                           ) : (
-                            <Cell fill="#FF8C00" />
+                            <Cell fill="#E5E7EB" />
                           )}
                         </Pie>
                         <Tooltip
