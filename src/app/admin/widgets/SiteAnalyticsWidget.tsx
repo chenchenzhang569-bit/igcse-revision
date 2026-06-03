@@ -338,6 +338,21 @@ export default function SiteAnalyticsWidget({
                   </div>
                 )}
 
+                {/* Daily trend chart */}
+                <div>
+                  <h4 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 mb-2">📊 近 7 日趋势</h4>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="date" tick={{ fontSize: 13 }} />
+                      <YAxis tick={{ fontSize: 13 }} />
+                      <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8 }} />
+                      <Bar dataKey="pv" fill="#001C71" name="PV" radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="visitors" fill="#FF8C00" name="访客" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
                 {/* Sources */}
                 {sourceData.length > 0 && (
                   <div>
