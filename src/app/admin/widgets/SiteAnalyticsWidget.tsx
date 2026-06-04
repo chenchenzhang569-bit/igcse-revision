@@ -281,7 +281,7 @@ export default function SiteAnalyticsWidget({
             return (
               <div className="space-y-6">
                 {/* Row 1: Today + Total + Week */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-gray-50 rounded-xl px-3 py-3 md:flex md:items-center md:justify-around md:px-4 md:py-5">
+                <div className="grid grid-cols-3 gap-2 bg-gray-50 rounded-xl px-2 py-3 md:flex md:items-center md:justify-around md:px-4 md:py-5">
                   <div className="text-center">
                     <div className="text-lg md:text-2xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>
                     <div className="text-[10px] md:text-sm text-gray-500">今日</div>
