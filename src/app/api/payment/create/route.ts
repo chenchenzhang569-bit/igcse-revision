@@ -14,11 +14,6 @@ function parseJwt(token: string) {
   } catch { return null; }
 }
 
-function getReturnUrl(request: NextRequest): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-  return `${siteUrl}/api/payment/return`;
-}
-
 export async function POST(request: NextRequest) {
   // Auth: try Authorization header first, then cookie
   let userId: string | null = null;
@@ -98,7 +93,7 @@ export async function POST(request: NextRequest) {
     }
     let url: string;
     const amountYuan = (upgradeAmount / 100).toFixed(2);
-    const returnUrl = getReturnUrl(request);
+    const returnUrl = `${new URL(request.url).origin}/api/payment/return`;
     try {
       url = createPagePayUrl({
         outTradeNo: tradeNo,
@@ -151,7 +146,7 @@ export async function POST(request: NextRequest) {
   }
 
   let url: string;
-  const returnUrl = getReturnUrl(request);
+  const returnUrl = `${new URL(request.url).origin}/api/payment/return`;
   try {
     url = createPagePayUrl({
       outTradeNo: tradeNo,
@@ -167,3 +162,4 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url });
 }
+// deploy trigger 1779554954
