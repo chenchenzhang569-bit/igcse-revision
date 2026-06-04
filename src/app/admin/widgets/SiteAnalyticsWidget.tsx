@@ -280,7 +280,33 @@ export default function SiteAnalyticsWidget({
 
             return (
               <div className="space-y-6">
-                {/* Row 1: Today + Total + Week */}\n                <div className="grid grid-cols-3 gap-2 bg-gray-50 rounded-xl px-2 py-3 md:flex md:items-center md:justify-around md:px-4 md:py-5">\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">今日</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">累计</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">本周</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-xs md:text-sm font-normal text-gray-500">访客</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">今日访客</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-xs md:text-sm font-normal text-gray-500">访客</span></div>\n                    <div className="text-[10px] md:text-sm text-gray-500">总访客</div>\n                  </div>\n                  <div className="text-center">\n                    <div className="text-lg md:text-2xl font-bold text-rose-600">{stats.bounce_rate}%</div>\n                    <div className="text-[10px] md:text-sm text-gray-500">跳出率</div>\n                  </div>\n                </div>
+                {/* Row 1: Today + Total + Week */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-gray-50 rounded-xl px-3 py-3 md:flex md:items-center md:justify-around md:px-4 md:py-5">
+                  <div className="text-center">
+                    <div className="text-lg md:text-2xl font-bold text-primary-900">{fmt(stats.today_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>
+                    <div className="text-[10px] md:text-sm text-gray-500">今日</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg md:text-2xl font-bold text-green-700">{fmt(stats.total_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>
+                    <div className="text-[10px] md:text-sm text-gray-500">累计</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg md:text-2xl font-bold text-indigo-600">{fmt(stats.week_pv)} <span className="text-xs md:text-sm font-normal text-gray-500">PV</span></div>
+                    <div className="text-[10px] md:text-sm text-gray-500">本周</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg md:text-2xl font-bold text-orange-600">{fmt(stats.today_visitors)} <span className="text-xs md:text-sm font-normal text-gray-500">访客</span></div>
+                    <div className="text-[10px] md:text-sm text-gray-500">今日访客</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg md:text-2xl font-bold text-purple-600">{fmt(stats.total_visitors)} <span className="text-xs md:text-sm font-normal text-gray-500">访客</span></div>
+                    <div className="text-[10px] md:text-sm text-gray-500">总访客</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg md:text-2xl font-bold text-rose-600">{stats.bounce_rate}%</div>
+                    <div className="text-[10px] md:text-sm text-gray-500">跳出率</div>
+                  </div>
+                </div>
 
                 {/* Hot data - two PieCharts side by side */}
                 {totalAll > 0 && (

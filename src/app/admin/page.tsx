@@ -12,6 +12,7 @@ import QuestionDistWidget from "./widgets/QuestionDistWidget";
 import SubjectQAWidget from "./widgets/SubjectQAWidget";
 import SiteAnalyticsWidget from "./widgets/SiteAnalyticsWidget";
 import AnalyticsViewsWidget from "./widgets/AnalyticsViewsWidget";
+import ActivityWidget from "./widgets/ActivityWidget";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -32,7 +33,7 @@ type DashboardData = {
 const WIDGET_STORAGE_KEY = "admin_widget_hidden";
 const ORDER_STORAGE_KEY = "admin_widget_order";
 
-const DEFAULT_ORDER = ["overview", "analytics", "pageviews", "payment", "revenue", "invites", "dau", "signups", "sources", "questions", "qa"];
+const DEFAULT_ORDER = ["overview", "activity", "analytics", "pageviews", "payment", "revenue", "invites", "dau", "signups", "sources", "questions", "qa"];
 
 function loadOrder(): string[] {
   try { const v = localStorage.getItem(ORDER_STORAGE_KEY); return v ? JSON.parse(v) : DEFAULT_ORDER; } catch { return DEFAULT_ORDER; }
@@ -221,6 +222,7 @@ export default function AdminDashboardPage() {
       case "questions": return <QuestionDistWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("questions")} />;
       case "qa": return <SubjectQAWidget token={token} availableSubjects={data.available_subjects} onToggle={() => toggleWidget("qa")} />;
       case "analytics": return <SiteAnalyticsWidget token={token} onToggle={() => toggleWidget("analytics")} />;
+      case "activity": return <ActivityWidget token={token} onToggle={() => toggleWidget("activity")} />;
       case "pageviews": return <AnalyticsViewsWidget token={token} onToggle={() => toggleWidget("pageviews")} />;
       default: return null;
     }
