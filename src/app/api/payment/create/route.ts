@@ -93,7 +93,8 @@ export async function POST(request: NextRequest) {
     }
     let url: string;
     const amountYuan = (upgradeAmount / 100).toFixed(2);
-    const returnUrl = `${new URL(request.url).origin}/api/payment/return`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+    const returnUrl = `${siteUrl}/api/payment/return`;
     try {
       url = createPagePayUrl({
         outTradeNo: tradeNo,
@@ -146,7 +147,8 @@ export async function POST(request: NextRequest) {
   }
 
   let url: string;
-  const returnUrl = `${new URL(request.url).origin}/api/payment/return`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  const returnUrl = `${siteUrl}/api/payment/return`;
   try {
     url = createPagePayUrl({
       outTradeNo: tradeNo,
