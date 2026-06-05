@@ -59,7 +59,10 @@ export default function PricingPage() {
   useEffect(() => {
     fetch("/api/subjects")
       .then((r) => r.json())
-      .then(setSubjects)
+      .then((data) => {
+        const hideEdexcel = process.env.NEXT_PUBLIC_HIDE_EDEXCEL === "true";
+        setSubjects(hideEdexcel ? data.filter((s: any) => s.board_name !== "Edexcel") : data);
+      })
       .catch(() => {});
 
     // Check auth + trial status
