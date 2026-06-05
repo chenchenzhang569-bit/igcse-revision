@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
     // Parse the body
     const data = JSON.parse(body);
 
-    // Extract email data
+    // Extract email data - Resend inbound sends arrays for to/cc
     const sender = data.from || data.email || "";
-    const recipient = data.to || data.recipient || "";
+    const recipient = Array.isArray(data.to) ? data.to.join(", ") : (data.to || data.recipient || "");
     const subject = data.subject || "";
     const bodyText = data.text || data.body_plain || "";
     const bodyHtml = data.html || data.body_html || "";
