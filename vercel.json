@@ -14,5 +14,11 @@
         { "key": "Accept-Ranges", "value": "bytes" }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/sync/resend-inbound",
+      "schedule": "*/3 * * * *"
+    }
   ]
 }
