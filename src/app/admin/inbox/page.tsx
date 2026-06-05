@@ -27,11 +27,19 @@ export default function AdminInboxPage() {
   useEffect(() => {
     const fetchEmails = async () => {
       try {
-        const res = await fetch("/api/admin/inbound-emails");
-        if (!res.ok) {
-          setError(await res.text());
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data, error } = await supabase
+          .from("inbound_emails")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (error) {
+          setError(error.message);
         } else {
-          setEmails(await res.json() || []);
+          setEmails(data || []);
         }
       } catch {
         setError("network error");
