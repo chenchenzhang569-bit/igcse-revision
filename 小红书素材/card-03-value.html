@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGMaster 性价比</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background: #f5f5f7; }
+  .card {
+    width: 1080px; height: 1920px;
+    background: linear-gradient(180deg, #001C71 0%, #001C71 55%, #f5f5f7 55%, #f5f5f7 100%);
+    position: relative; overflow: hidden;
+  }
+  .price-card {
+    background: white; border-radius: 24px; padding: 32px;
+    box-shadow: 0 8px 32px rgba(0,28,113,0.12);
+    transition: all 0.3s;
+  }
+  .price-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,28,113,0.18); }
+  .price-card.featured {
+    border: 2px solid #FF8C00;
+    position: relative;
+  }
+  .price-card.featured::before {
+    content: '最划算';
+    position: absolute; top: -12px; right: 20px;
+    background: linear-gradient(135deg, #FF8C00, #ffa033);
+    color: white; font-size: 12px; font-weight: 700;
+    padding: 4px 14px; border-radius: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Top section -->
+  <div class="px-12 pt-16 relative z-10">
+    <div class="text-center">
+      <div class="text-5xl mb-4">💰</div>
+      <h1 class="text-5xl font-black text-white leading-tight mb-2">
+        一节课的钱
+      </h1>
+      <h2 class="text-4xl font-black text-[#FF8C00] leading-tight mb-4">
+        换一科复习资料
+      </h2>
+      <div class="w-16 h-1 bg-[#FF8C00] mx-auto rounded-full mb-8"></div>
+    </div>
+  </div>
+
+  <!-- Price comparison cards -->
+  <div class="px-10 mt-2 relative z-10">
+    <!-- Old way -->
+    <div class="price-card mb-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="text-2xl">💸</div>
+        <div>
+          <div class="text-gray-400 text-sm">传统方式</div>
+          <div class="text-gray-900 font-bold text-xl">一节补习课</div>
+        </div>
+      </div>
+      <div class="text-gray-900 text-4xl font-black mb-1">¥300<span class="text-lg text-gray-400 font-normal">-500</span></div>
+      <div class="text-gray-400 text-sm mb-3">1 节课（2小时）</div>
+      <div class="border-t border-gray-100 pt-3 text-gray-500 text-sm space-y-1">
+        <div>❌ 需要固定时间</div>
+        <div>❌ 来回路上浪费时间</div>
+        <div>❌ 一学期几千块</div>
+      </div>
+    </div>
+
+    <!-- IGMaster single -->
+    <div class="price-card mb-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="text-2xl">📚</div>
+        <div>
+          <div class="text-gray-400 text-sm">IGMaster</div>
+          <div class="text-gray-900 font-bold text-xl">单科订阅</div>
+        </div>
+      </div>
+      <div class="text-gray-900 text-4xl font-black mb-1">¥50<span class="text-lg text-gray-400 font-normal">/年</span></div>
+      <div class="text-gray-400 text-sm mb-3">一年任意刷</div>
+      <div class="border-t border-gray-100 pt-3 text-gray-500 text-sm space-y-1">
+        <div>✅ 笔记+刷题+真题+模拟考</div>
+        <div>✅ 随时学，碎片时间刷</div>
+        <div>✅ 手机电脑同步</div>
+      </div>
+    </div>
+
+    <!-- Featured: All subjects -->
+    <div class="price-card featured mb-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="text-2xl">🎯</div>
+        <div>
+          <div class="text-gray-400 text-sm">IGMaster</div>
+          <div class="text-gray-900 font-bold text-xl">全部科目</div>
+        </div>
+      </div>
+      <div class="text-[#FF8C00] text-4xl font-black mb-1">¥250<span class="text-lg text-gray-400 font-normal">/年</span></div>
+      <div class="text-gray-400 text-sm mb-3">8科全包，平均一科 ¥31</div>
+      <div class="border-t border-gray-100 pt-3 text-gray-500 text-sm space-y-1">
+        <div>✅ 8大科目全部开放</div>
+        <div>✅ 比单科买省 ¥150</div>
+        <div>✅ 比补习一节课还便宜</div>
+      </div>
+    </div>
+
+    <!-- Value summary -->
+    <div class="text-center mt-2">
+      <div class="inline-block bg-white rounded-2xl px-8 py-4 shadow-sm">
+        <p class="text-gray-600 font-medium text-lg">
+          💡 一节补习课 = <span class="text-[#001C71] font-bold">1科用1年</span>
+        </p>
+        <p class="text-gray-400 text-sm mt-1">或者 = <span class="text-[#FF8C00] font-bold">8科都用1年</span>（全科包）</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center mt-6 px-10">
+    <div class="bg-white text-[#001C71] text-xl font-bold py-4 px-8 rounded-2xl shadow-lg">
+      👉 igmaster.org
+    </div>
+    <p class="text-white/50 text-sm mt-2">先免费浏览科目内容，觉得合适再买</p>
+  </div>
+</div>
+</body>
+</html>

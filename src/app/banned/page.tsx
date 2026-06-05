@@ -13,7 +13,7 @@ export default function BannedPage() {
           <span className="text-gray-400 text-xs">For appeals, contact: support@igmaster.com</span>
         </p>
         <a
-          href="mailto:support@igmaster.com"
+          href="mailto:support@igmaster.org"
           className="inline-block bg-accent-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-accent-600 transition"
         >
           Contact Support

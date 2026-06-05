@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGMaster 四大功能</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background: #f5f5f7; }
+  .card {
+    width: 1080px; height: 1920px;
+    background: linear-gradient(160deg, #f8f9fc 0%, #eef1f7 100%);
+    position: relative; overflow: hidden;
+  }
+  .header-bg {
+    background: linear-gradient(135deg, #001C71 0%, #002a8a 100%);
+    border-radius: 0 0 40px 40px;
+    padding: 48px 48px 36px;
+    position: relative;
+  }
+  .icon-circle {
+    width: 64px; height: 64px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .step-connector {
+    width: 2px; height: 60px;
+    background: linear-gradient(to bottom, #001C71, #FF8C00);
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Header -->
+  <div class="header-bg">
+    <div class="flex items-center justify-center gap-3 mb-3">
+      <div class="text-3xl">🎯</div>
+    </div>
+    <h1 class="text-5xl font-black text-white text-center leading-tight">
+      IGCSE 复习四步走
+    </h1>
+    <p class="text-white/70 text-center text-lg mt-3">
+      从学到练，一个网站全搞定
+    </p>
+  </div>
+
+  <!-- Steps -->
+  <div class="px-10 -mt-4 relative z-10 space-y-1">
+    
+    <!-- Step 1 -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm mb-3 flex gap-5">
+      <div class="icon-circle bg-blue-50 text-[#001C71] flex-shrink-0">📖</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="bg-[#001C71] text-white text-xs font-bold px-3 py-1 rounded-full">STEP</span>
+          <span class="text-[#001C71] font-bold text-sm">1</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-1">看笔记 → 理解知识点</h3>
+        <p class="text-gray-500 text-sm">每个 Topic 都有 SME 和 ZNotes 图文笔记，手机就能翻</p>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm mb-3 flex gap-5">
+      <div class="icon-circle bg-orange-50 text-[#FF8C00] flex-shrink-0">✏️</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="bg-[#FF8C00] text-white text-xs font-bold px-3 py-1 rounded-full">STEP</span>
+          <span class="text-[#FF8C00] font-bold text-sm">2</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-1">刷题 → 巩固练习</h3>
+        <p class="text-gray-500 text-sm">按 Topic 刷 structured + MCQ，答完立刻对答案看解析</p>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm mb-3 flex gap-5">
+      <div class="icon-circle bg-blue-50 text-[#001C71] flex-shrink-0">📄</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="bg-[#001C71] text-white text-xs font-bold px-3 py-1 rounded-full">STEP</span>
+          <span class="text-[#001C71] font-bold text-sm">3</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-1">做真题 → 熟悉题型</h3>
+        <p class="text-gray-500 text-sm">历年真题 PDF 直接下载，不用满网搜了</p>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm mb-3 flex gap-5">
+      <div class="icon-circle bg-orange-50 text-[#FF8C00] flex-shrink-0">📋</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="bg-[#FF8C00] text-white text-xs font-bold px-3 py-1 rounded-full">STEP</span>
+          <span class="text-[#FF8C00] font-bold text-sm">4</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-1">模拟考 → 考前冲刺</h3>
+        <p class="text-gray-500 text-sm">在线作答，提交后自动评分，找薄弱点</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Before/After -->
+  <div class="px-10 mt-6">
+    <h3 class="text-center text-gray-500 text-sm mb-4">⬇️ 以前 vs 现在 ⬇️</h3>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-red-50 rounded-2xl p-5 text-center">
+        <div class="text-2xl mb-2">❌</div>
+        <div class="text-red-500 text-lg font-bold mb-1">以前</div>
+        <div class="text-red-400 text-sm">笔记看SME<br>刷题去A站<br>找真题去B站<br>3个账号切来切去</div>
+      </div>
+      <div class="bg-green-50 rounded-2xl p-5 text-center">
+        <div class="text-2xl mb-2">✅</div>
+        <div class="text-green-600 text-lg font-bold mb-1">现在</div>
+        <div class="text-green-500 text-sm">笔记+刷题+真题+模拟考<br>全部在<br><span class="font-bold text-[#001C71]">igmaster.org</span><br>一个网站搞定</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center mt-8 px-10">
+    <div class="bg-[#001C71] text-white text-xl font-bold py-4 px-8 rounded-2xl shadow-lg">
+      👉 igmaster.org
+    </div>
+    <p class="text-gray-400 text-sm mt-2">手机电脑同步 ｜ 碎片时间刷起来</p>
+  </div>
+</div>
+</body>
+</html>

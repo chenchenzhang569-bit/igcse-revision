@@ -160,7 +160,7 @@ function Footer() {
       <p className="text-white/60 mb-5 text-sm">{t("home", "heroSub")}</p>
       <p className="text-xs text-white/40 space-x-3">
         <span>&copy; 2026 IGMaster. {t("footer", "copyright")}.</span>
-        <a href="mailto:beryl_zhong@hotmail.com" className="hover:text-white/70 transition">{t("footer", "contact")}</a>
+        <a href="mailto:support@igmaster.org" className="hover:text-white/70 transition">{t("footer", "contact")}</a>
         <span>·</span>
         <a href="/disclaimer" className="hover:text-white/70 transition">{t("footer", "disclaimer")}</a>
       </p>

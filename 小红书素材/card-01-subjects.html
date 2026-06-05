@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGMaster 科目全覆盖</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background: #f5f5f7; }
+  .card {
+    width: 1080px; height: 1920px;
+    background: linear-gradient(135deg, #001C71 0%, #002a8a 50%, #0038a3 100%);
+    position: relative; overflow: hidden;
+  }
+  .circle-1 {
+    position: absolute; width: 600px; height: 600px;
+    background: rgba(255,255,255,0.03); border-radius: 50%;
+    top: -200px; right: -200px;
+  }
+  .circle-2 {
+    position: absolute; width: 400px; height: 400px;
+    background: rgba(255,140,0,0.08); border-radius: 50%;
+    bottom: 100px; left: -150px;
+  }
+  .subject-item {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 20px 24px;
+    transition: all 0.3s;
+  }
+  .subject-item:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+  .badge {
+    background: linear-gradient(135deg, #FF8C00, #ffa033);
+    color: #001C71; font-weight: 700; padding: 4px 12px;
+    border-radius: 20px; font-size: 12px; display: inline-block;
+  }
+  .feature-item {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Decorative circles -->
+  <div class="circle-1"></div>
+  <div class="circle-2"></div>
+
+  <!-- Content -->
+  <div class="relative z-10 p-12 flex flex-col h-full">
+    <!-- Header -->
+    <div class="text-center mt-8">
+      <div class="inline-block bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full text-white/70 text-sm mb-6">
+        🌟 IGCSE 一站式复习平台
+      </div>
+      <h1 class="text-6xl font-black text-white leading-tight mb-2">
+        一个网站
+      </h1>
+      <h2 class="text-5xl font-black text-[#FF8C00] leading-tight mb-6">
+        搞定所有复习
+      </h2>
+      <div class="w-20 h-1 bg-[#FF8C00] mx-auto rounded-full mb-8"></div>
+    </div>
+
+    <!-- Subjects Grid -->
+    <div class="flex-1">
+      <h3 class="text-white text-2xl font-bold mb-6 flex items-center gap-3">
+        📚 覆盖 8 大 IGCSE 科目
+      </h3>
+      <div class="grid grid-cols-2 gap-4 mb-10">
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">📐</span>
+          <div>
+            <div class="text-white font-bold text-lg">数学 0580</div>
+            <div class="text-white/50 text-sm">CAIE Mathematics</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">📊</span>
+          <div>
+            <div class="text-white font-bold text-lg">附加数学 0606</div>
+            <div class="text-white/50 text-sm">CAIE Add Math</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">⚛️</span>
+          <div>
+            <div class="text-white font-bold text-lg">物理 0625</div>
+            <div class="text-white/50 text-sm">CAIE Physics</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">🧪</span>
+          <div>
+            <div class="text-white font-bold text-lg">化学 0620</div>
+            <div class="text-white/50 text-sm">CAIE Chemistry</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">🧬</span>
+          <div>
+            <div class="text-white font-bold text-lg">生物 0610</div>
+            <div class="text-white/50 text-sm">CAIE Biology</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">📈</span>
+          <div>
+            <div class="text-white font-bold text-lg">经济 0455</div>
+            <div class="text-white/50 text-sm">CAIE Economics</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4">
+          <span class="text-3xl">💻</span>
+          <div>
+            <div class="text-white font-bold text-lg">计算机 0478</div>
+            <div class="text-white/50 text-sm">CAIE CS</div>
+          </div>
+        </div>
+        <div class="subject-item flex items-center gap-4 opacity-50">
+          <span class="text-3xl">➕</span>
+          <div>
+            <div class="text-white font-bold text-lg">更多科目</div>
+            <div class="text-white/50 text-sm">持续更新中</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="grid grid-cols-2 gap-3 mb-8">
+        <div class="feature-item text-center">
+          <div class="text-2xl mb-1">📝</div>
+          <div class="text-white font-semibold text-sm">按题型刷题</div>
+          <div class="text-white/50 text-xs mt-1">每题有详细解析</div>
+        </div>
+        <div class="feature-item text-center">
+          <div class="text-2xl mb-1">📖</div>
+          <div class="text-white font-semibold text-sm">知识点笔记</div>
+          <div class="text-white/50 text-xs mt-1">SME+ZNotes整理</div>
+        </div>
+        <div class="feature-item text-center">
+          <div class="text-2xl mb-1">📄</div>
+          <div class="text-white font-semibold text-sm">历年真题</div>
+          <div class="text-white/50 text-xs mt-1">PDF直接下载</div>
+        </div>
+        <div class="feature-item text-center">
+          <div class="text-2xl mb-1">📋</div>
+          <div class="text-white font-semibold text-sm">模拟考试</div>
+          <div class="text-white/50 text-xs mt-1">在线作答+自动评分</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center border-t border-white/10 pt-6">
+      <div class="inline-block bg-white text-[#001C71] font-bold px-10 py-4 rounded-2xl text-xl shadow-lg">
+        igmaster.org
+      </div>
+      <p class="text-white/40 text-sm mt-3">手机电脑同步 ｜ 碎片时间也能学</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
