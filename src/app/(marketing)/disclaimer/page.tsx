@@ -36,7 +36,7 @@ export default function DisclaimerPage() {
           <h2 className="text-lg font-semibold text-primary-900">4. Takedown Requests</h2>
           <p>
             If you are a copyright holder and believe that any content on IGMaster infringes your rights, please contact us immediately at{" "}
-            <a href="mailto:beryl_zhong@hotmail.com" className="text-primary-600 underline">beryl_zhong@hotmail.com</a>.
+            <a href="mailto:support@igmaster.org" className="text-primary-600 underline">support@igmaster.org</a>.
             We will review your request promptly and remove the disputed content within 7 business days where appropriate.
           </p>
         </section>
@@ -59,7 +59,7 @@ export default function DisclaimerPage() {
           <h2 className="text-lg font-semibold text-primary-900">7. Contact</h2>
           <p>
             For any legal inquiries, please reach out to{" "}
-            <a href="mailto:beryl_zhong@hotmail.com" className="text-primary-600 underline">beryl_zhong@hotmail.com</a>.
+            <a href="mailto:support@igmaster.org" className="text-primary-600 underline">support@igmaster.org</a>.
           </p>
         </section>
       </div>
