@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
+import { deleteFromR2ByUrl } from "@/lib/r2";
 
 export async function DELETE(
   _req: NextRequest,
@@ -12,13 +13,20 @@ export async function DELETE(
   const { id } = await params;
   const supabase = createAdminClient();
 
-  // 先查出文件 URL 来删除 storage 文件
+  // 先查出文件 URL 来删除存储文件
   const { data: paper } = await supabase.from("past_papers").select("file_url").eq("id", id).single();
   if (paper?.file_url) {
-    const url = new URL(paper.file_url);
-    const pathParts = url.pathname.split("/storage/v1/object/public/past-papers/");
-    if (pathParts.length === 2) {
-      await supabase.storage.from("past-papers").remove([pathParts[1]]);
+    if (paper.file_url.startsWith("r2://")) {
+      await deleteFromR2ByUrl(paper.file_url).catch(() => {});
+    } else {
+      // Old Supabase Storage URL
+      try {
+        const url = new URL(paper.file_url);
+        const pathParts = url.pathname.split("/storage/v1/object/public/past-papers/");
+        if (pathParts.length === 2) {
+          await supabase.storage.from("past-papers").remove([pathParts[1]]);
+        }
+      } catch {}
     }
   }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
+import { uploadToR2 } from "@/lib/r2";
 
 const SME_ACCOUNT = {
   email: process.env.SME_EMAIL || "inspiringchermann@vmail.dev",
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     }
     const pdfBuffer = Buffer.from(await pdfResp.arrayBuffer());
 
-    // 3. Upload to Supabase Storage
+    // 3. Upload to R2
     const safeName = displayName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -104,33 +105,12 @@ export async function POST(req: NextRequest) {
       .replace(/^-|-$/g, "");
     const fileName = `cs/topic-questions/ms/${safeName}.pdf`;
 
+    const r2Url = await uploadToR2("past-papers", fileName, pdfBuffer, "application/pdf");
+
+    // 4. Insert into past_papers (use service_role straight to REST API)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-    const upResp = await fetch(
-      `${supabaseUrl}/storage/v1/object/past-papers/${fileName}`,
-      {
-        method: "POST",
-        headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
-          "Content-Type": "application/pdf",
-        },
-        body: pdfBuffer,
-      }
-    );
-
-    if (!upResp.ok) {
-      const upErr = await upResp.text();
-      return NextResponse.json(
-        { error: "Upload failed", detail: upErr },
-        { status: 500 }
-      );
-    }
-
-    const fileUrl = `${supabaseUrl}/storage/v1/object/public/past-papers/${fileName}`;
-
-    // 4. Insert into past_papers
     const insertResp = await fetch(`${supabaseUrl}/rest/v1/past_papers`, {
       method: "POST",
       headers: {
@@ -143,7 +123,7 @@ export async function POST(req: NextRequest) {
         subtopic_id: subId,
         title: `${displayName} MS`,
         paper_type: "MCQ MS",
-        file_url: fileUrl,
+        file_url: r2Url,
         file_name: fileName,
         season: "SME",
       }),

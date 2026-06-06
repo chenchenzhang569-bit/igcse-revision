@@ -346,13 +346,20 @@ export default function MockExamPaperPage() {
   const structQuestions = questions.filter((q) => q.question_type !== "mcq");
 
   // Render a stem part
+function toProxyUrl(src: string): string {
+  if (src.includes("supabase.co") && src.includes("sme-images")) {
+    return `/api/proxy/sme-image?url=${encodeURIComponent(src)}`;
+  }
+  return src;
+}
+
   function renderPart(part: StemPart, key: number) {
     if (typeof part === "string") return <span key={key} dangerouslySetInnerHTML={{ __html: renderMath(part) }} className="whitespace-pre-wrap" />;
     if (part.type === "table") {
       return <div key={key} dangerouslySetInnerHTML={{ __html: part.html }} />;
     }
     // Image
-    const src = part.src;
+    const src = toProxyUrl(part.src);
     if (src.startsWith("data:image/svg+xml")) {
       let svgContent = "";
       if (src.includes(";base64,")) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteFromR2ByUrl } from "@/lib/r2";
 import type { NextRequest } from "next/server";
 
 function parseJwt(token: string) {
@@ -100,13 +101,20 @@ export async function DELETE(request: NextRequest) {
   const { data: record } = await admin.from(table).select("file_url").eq("id", id).maybeSingle();
 
   if (record?.file_url) {
-    const url = new URL(record.file_url);
-    // Extract path after bucket name: /storage/v1/object/public/bucket-name/path/to/file
-    const parts = url.pathname.split("/");
-    const bucketIdx = parts.findIndex((p) => p === bucket);
-    if (bucketIdx >= 0) {
-      const storagePath = parts.slice(bucketIdx + 1).join("/");
-      await admin.storage.from(bucket).remove([storagePath]);
+    // New format: r2://bucket/key → delete from R2
+    if (record.file_url.startsWith("r2://")) {
+      await deleteFromR2ByUrl(record.file_url).catch(() => {});
+    } else {
+      // Old format: Supabase Storage URL
+      try {
+        const url = new URL(record.file_url);
+        const parts = url.pathname.split("/");
+        const bucketIdx = parts.findIndex((p) => p === bucket);
+        if (bucketIdx >= 0) {
+          const storagePath = parts.slice(bucketIdx + 1).join("/");
+          await admin.storage.from(bucket).remove([storagePath]);
+        }
+      } catch {}
     }
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
+import { uploadToR2 } from "@/lib/r2";
 
 export async function POST(req: NextRequest) {
   const authErr = await requireAdmin();
@@ -21,38 +22,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
     }
 
-    // 只允许 PDF
     if (!file.type.includes("pdf") && !file.name.endsWith(".pdf")) {
       return NextResponse.json({ error: "只支持 PDF 文件" }, { status: 400 });
     }
 
-    // 限制 50MB
     if (file.size > 50 * 1024 * 1024) {
       return NextResponse.json({ error: "文件不能超过 50MB" }, { status: 400 });
     }
 
-    const supabase = createAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // 上传到 Supabase Storage
+    // 上传到 R2
     const filePath = `${topic_id}/${Date.now()}_${file.name}`;
-    const { error: uploadError } = await supabase.storage
-      .from("notes-pdfs")
-      .upload(filePath, buffer, {
-        contentType: "application/pdf",
-        upsert: false,
-      });
+    const r2Url = await uploadToR2("notes-pdfs", filePath, buffer, "application/pdf");
 
-    if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
-    }
-
-    // 获取公开 URL
-    const { data: urlData } = supabase.storage
-      .from("notes-pdfs")
-      .getPublicUrl(filePath);
-
-    // 存入 notes 表 (store doc_type in content as prefix)
+    // 存入 notes 表
+    const supabase = createAdminClient();
     const { data: note, error: dbError } = await supabase
       .from("notes")
       .insert({
@@ -61,7 +46,7 @@ export async function POST(req: NextRequest) {
         subtopic_id: subtopic_id || null,
         title: title || file.name.replace(/\.pdf$/i, ""),
         content: `[type:${doc_type}]${content || ""}`,
-        file_url: urlData.publicUrl,
+        file_url: r2Url,
         file_name: file.name,
         is_free_preview,
       })

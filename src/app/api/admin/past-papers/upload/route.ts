@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
+import { uploadToR2 } from "@/lib/r2";
 
 export async function POST(req: NextRequest) {
   const authErr = await requireAdmin();
@@ -25,25 +26,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "只支持 PDF 文件" }, { status: 400 });
     }
 
-    const supabase = createAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
 
+    // 上传到 R2
     const filePath = `${subject_id}/${year}_${season}_paper${paper_number}.pdf`;
-    const { error: uploadError } = await supabase.storage
-      .from("past-papers")
-      .upload(filePath, buffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+    const r2Url = await uploadToR2("past-papers", filePath, buffer, "application/pdf");
 
-    if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("past-papers")
-      .getPublicUrl(filePath);
-
+    // 写入 DB
+    const supabase = createAdminClient();
     const { data: paper, error: dbError } = await supabase
       .from("past_papers")
       .insert({
@@ -53,7 +43,7 @@ export async function POST(req: NextRequest) {
         season,
         paper_number,
         paper_type,
-        file_url: urlData.publicUrl,
+        file_url: r2Url,
         is_free: is_free ?? true,
       })
       .select()
