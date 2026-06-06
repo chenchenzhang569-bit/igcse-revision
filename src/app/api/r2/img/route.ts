@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": data.contentType,
         "Cache-Control": "public, max-age=31536000, immutable",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   }

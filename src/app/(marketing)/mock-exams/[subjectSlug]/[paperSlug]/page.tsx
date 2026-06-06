@@ -375,7 +375,7 @@ function toProxyUrl(src: string): string {
         );
       }
     }
-    return <img key={key} src={src} alt="diagram" referrerPolicy="no-referrer" crossOrigin="anonymous" className="my-3 max-w-full rounded-lg border" />;
+    return <img key={key} src={src} alt="diagram" referrerPolicy="no-referrer" className="my-3 max-w-full rounded-lg border" />;
   }
 
   return (
