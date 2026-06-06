@@ -412,7 +412,7 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
 
   const handleGradeOne = (qId: string, q: Question, userAns: string) => {
     if (graded[qId]) return; // already graded
-    const isMcq = q.question_type === "multiple_choice" || q.question_text.includes("\nA) ");
+    const isMcq = q.question_type === "multiple_choice" || q.question_type === "mcq" || /\n[A-D][.)]\s/.test(q.question_text);
     let correct: boolean;
     if (isMcq) {
       correct = userAns === q.answer_text?.trim().charAt(0);
@@ -510,7 +510,7 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
     );
   }
 
-  const isMcq = q.question_type === "multiple_choice" || q.question_text.includes("\nA) ");
+  const isMcq = q.question_type === "multiple_choice" || q.question_type === "mcq" || /\n[A-D][.)]\s/.test(q.question_text);
   const { stem, options } = parseQuestion(q.question_text);
   const subParts = parseSubParts(stem);
   const hasSubParts = subParts.length > 1;
@@ -857,7 +857,7 @@ function parseQuestion(text: string): { stem: string; options: string[] } {
   const optionLines: string[] = [];
   let stemEnd = lines.length;
   for (let i = lines.length - 1; i >= 0; i--) {
-    if (/^[A-D]\)\s+/.test(lines[i])) {
+    if (/^[A-D][.)]\s+/.test(lines[i])) {
       optionLines.unshift(lines[i]);
       stemEnd = i;
     } else if (optionLines.length > 0) {
