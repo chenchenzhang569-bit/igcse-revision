@@ -82,14 +82,14 @@ export default function ActivityWidget({
               </div>
               <div className="space-y-2">
                 {data.anomalies.slice(0, MAX_DISPLAY).map((a, i) => (
-                  <div key={i} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 text-sm">
+                  <div key={i} className="bg-white rounded-lg px-3 py-2 text-sm">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono text-xs text-gray-400 truncate">{a.email}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      <span className="font-mono text-xs text-gray-400 truncate flex-1">{a.email}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${
                         a.type === "高频下载" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"
                       }`}>{a.type}</span>
                     </div>
-                    <span className="text-xs font-semibold text-red-600 shrink-0">{a.reason}</span>
+                    <div className="text-xs font-semibold text-red-600 mt-0.5">{a.reason}</div>
                   </div>
                 ))}
               </div>
@@ -122,12 +122,14 @@ export default function ActivityWidget({
               <h4 className="text-xs font-semibold text-gray-500 mb-2">最近活动</h4>
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {data.recent.slice(0, 20).map((log: any) => (
-                  <div key={log.id} className="flex items-center gap-2 text-xs text-gray-600 py-1 border-b border-gray-50">
-                    <span className="text-[10px] text-gray-400 shrink-0 w-14">
-                      {new Date(log.created_at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                    <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 shrink-0">{log.activity_type}</span>
-                    <span className="truncate text-gray-400">{log.detail || log.page_url || ""}</span>
+                  <div key={log.id} className="text-xs text-gray-600 py-1.5 border-b border-gray-50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-400 shrink-0 w-12">
+                        {new Date(log.created_at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 shrink-0">{log.activity_type}</span>
+                      <span className="truncate text-gray-500 flex-1">{log.detail || log.page_url || ""}</span>
+                    </div>
                   </div>
                 ))}
               </div>
