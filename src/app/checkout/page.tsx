@@ -164,26 +164,19 @@ function CheckoutContent() {
   };
 
   const handleManualPay = async () => {
-    // Show QR codes + a temporary short code (don't submit yet)
     if (!subjectId) return;
-    // Generate a random 4-digit code client-side for display
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    setManualShortCode(code);
-    setShowManual(true);
-  };
-
-  const handleConfirmPaid = async () => {
-    // User clicked "I've paid" - create the review
     setManualStatus("submitting");
     try {
       const res = await fetch("/api/payment/manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subjectId, shortCode: manualShortCode }),
+        body: JSON.stringify({ subjectId }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "提交失败"); return; }
+      setManualShortCode(data.shortCode || data.review?.short_code || "");
       setManualStatus("done");
+      setShowManual(true);
     } catch (e: any) {
       setError(e.message || "Network error");
       setManualStatus("idle");
@@ -345,22 +338,13 @@ function CheckoutContent() {
               <p className="text-xs text-gray-400 mt-3 text-center">请备注数字 <strong>{manualShortCode}</strong> 以便核对</p>
             </div>
 
-            {manualStatus === "done" ? (
-              <p className="text-sm text-green-600 font-medium">✅ 已提交，等待审核</p>
-            ) : (
-              <>
-                <p className="text-xs text-gray-400 mb-4">
-                  转账后点击下方按钮提交审核
-                </p>
-                <button
-                  onClick={handleConfirmPaid}
-                  disabled={manualStatus === "submitting"}
-                  className="w-full py-3 rounded-xl bg-green-500 text-white font-semibold hover:bg-green-600 transition disabled:opacity-50"
-                >
-                  {manualStatus === "submitting" ? "提交中..." : "✅ 我已付款"}
-                </button>
-              </>
-            )}
+            <p className="text-xs text-gray-400 mb-4">
+              转账后点击下方按钮提交审核，管理员确认后自动开通
+            </p>
+
+            <p className="text-sm text-green-600 font-medium">✅ 已提交，等待审核</p>
+          </div>
+        )}
 
         <button
           onClick={() => router.back()}
