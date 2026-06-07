@@ -19,9 +19,6 @@ function CheckoutContent() {
   const [error, setError] = useState("");
   const [upgradePrice, setUpgradePrice] = useState<number | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(true);
-  const [showManual, setShowManual] = useState(false);
-  const [manualStatus, setManualStatus] = useState<"idle" | "submitting" | "done">("idle");
-  const [manualShortCode, setManualShortCode] = useState("");
 
   const PRICE = 50; // ¥50 per subject
   const PRICE_ALL = 250;
@@ -163,25 +160,7 @@ function CheckoutContent() {
     }
   };
 
-  const handleManualPay = async () => {
-    if (!subjectId) return;
-    setManualStatus("submitting");
-    try {
-      const res = await fetch("/api/payment/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subjectId }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "提交失败"); return; }
-      setManualShortCode(data.shortCode || data.review?.short_code || "");
-      setManualStatus("done");
-      setShowManual(true);
-    } catch (e: any) {
-      setError(e.message || "Network error");
-      setManualStatus("idle");
-    }
-  };
+  // Loading state
   if (!user) {
     return <div className="flex items-center justify-center min-h-screen">
       <p className="text-gray-500">Redirecting to login...</p>
@@ -283,68 +262,25 @@ function CheckoutContent() {
           {isTrial ? "Expires in 7 days" : "One-time payment. 12 months access."}
         </p>
 
-        {!showManual ? (
-          <>
-            {status === "error" && (
-              <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg" dangerouslySetInnerHTML={{ __html: error }} />
-            )}
-
-            <button
-              onClick={isTrial ? handleTrial : handlePay}
-              disabled={status === "submitting"}
-              className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
-                isTrial
-                  ? "bg-green-500 hover:bg-green-600"
-                  : "bg-accent-500 hover:bg-accent-600"
-              }`}
-            >
-              {status === "submitting"
-                ? "Processing..."
-                : isTrial
-                ? "Start Free Trial"
-                : "Pay with Alipay"}
-            </button>
-
-            {!isTrial && (
-              <button
-                onClick={handleManualPay}
-                disabled={manualStatus === "submitting"}
-                className="mt-3 w-full py-3 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 font-semibold hover:border-accent-500 hover:text-accent-500 transition disabled:opacity-50"
-              >
-                {manualStatus === "submitting" ? "请稍候..." : "💳 人工转账"}
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="text-center">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-              <p className="text-amber-700 text-sm font-medium mb-1">📌 转账备注</p>
-              <p className="text-3xl font-bold text-amber-600 tracking-widest select-all">
-                {manualShortCode}
-              </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 mb-4">
-              <div className="flex justify-center gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">支付宝</p>
-                  <img src="/images/alipay-qr.jpg" alt="支付宝收款码" className="w-36 h-36 mx-auto rounded-lg object-contain" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">微信</p>
-                  <img src="/images/wechat-qr.jpg" alt="微信收款码" className="w-36 h-36 mx-auto rounded-lg object-contain" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-400 mt-3 text-center">请备注数字 <strong>{manualShortCode}</strong> 以便核对</p>
-            </div>
-
-            <p className="text-xs text-gray-400 mb-4">
-              转账后点击下方按钮提交审核，管理员确认后自动开通
-            </p>
-
-            <p className="text-sm text-green-600 font-medium">✅ 已提交，等待审核</p>
-          </div>
+        {status === "error" && (
+          <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg" dangerouslySetInnerHTML={{ __html: error }} />
         )}
+
+        <button
+          onClick={isTrial ? handleTrial : handlePay}
+          disabled={status === "submitting"}
+          className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
+            isTrial
+              ? "bg-green-500 hover:bg-green-600"
+              : "bg-accent-500 hover:bg-accent-600"
+          }`}
+        >
+          {status === "submitting"
+            ? "Processing..."
+            : isTrial
+            ? "Start Free Trial"
+            : "Pay with Alipay"}
+        </button>
 
         <button
           onClick={() => router.back()}
