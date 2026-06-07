@@ -399,19 +399,41 @@ export default function AdminUploadPage() {
 
   // Delete
   const handleDelete = async (doc: Document) => {
-    if (!token || !confirm(`Delete "${doc.title}"?`)) return;
-
-    const res = await fetch(
-      `/api/admin/documents?id=${doc.id}&type=${doc.type === "past_paper" ? "past_papers" : "notes"}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+    let currentToken = token;
+    if (!currentToken) {
+      // Try refreshing session
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data } = await supabase.auth.getSession();
+      currentToken = data.session?.access_token || null;
+      if (currentToken) setToken(currentToken);
+      else {
+        alert("登录已过期，请刷新页面");
+        return;
       }
-    );
+    }
+    if (!confirm(`确定删除 "${doc.title}"？`)) return;
 
-    if (res.ok) {
-      if (doc.type === "past_paper") { fetchPastPapers(); fetchSubtopicPapers(); }
-      else fetchNotes();
+    try {
+      const res = await fetch(
+        `/api/admin/documents?id=${doc.id}&type=${doc.type === "past_paper" ? "past_papers" : "notes"}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${currentToken}` },
+        }
+      );
+
+      if (res.ok) {
+        if (doc.type === "past_paper") { fetchPastPapers(); fetchSubtopicPapers(); }
+        else fetchNotes();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "删除失败");
+      }
+    } catch (e: any) {
+      alert("删除失败: " + (e.message || "网络错误"));
     }
   };
 
