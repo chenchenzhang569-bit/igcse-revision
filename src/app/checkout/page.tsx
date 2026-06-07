@@ -362,9 +362,6 @@ function CheckoutContent() {
               </>
             )}
 
-          </div>
-        )}
-
         <button
           onClick={() => router.back()}
           className="mt-3 w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition"
