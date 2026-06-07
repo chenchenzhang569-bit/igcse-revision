@@ -123,13 +123,13 @@ export default function ActivityWidget({
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {data.recent.slice(0, 20).map((log: any) => (
                   <div key={log.id} className="text-xs text-gray-600 py-1.5 border-b border-gray-50">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-400 shrink-0 w-12">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[10px] text-gray-400 shrink-0">
                         {new Date(log.created_at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                       <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 shrink-0">{log.activity_type}</span>
-                      <span className="truncate text-gray-500 flex-1">{log.detail || log.page_url || ""}</span>
                     </div>
+                    <div className="truncate text-gray-500 text-[11px]">{log.detail || log.page_url || ""}</div>
                   </div>
                 ))}
               </div>
