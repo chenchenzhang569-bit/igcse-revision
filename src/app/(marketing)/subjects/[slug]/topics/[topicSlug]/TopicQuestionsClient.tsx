@@ -371,7 +371,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
       headers: { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         activity_type: "view:structured",
-        detail: `topic:${topicId}`,
+        detail: bugContext
+          ? `${bugContext.subject} ${bugContext.code} ${bugContext.topicName?.match(/^\d+\.\d+/)?.[0] || ""}`
+          : `topic:${topicId}`,
         subject_id: null,
         page_url: window.location.pathname,
       }),
