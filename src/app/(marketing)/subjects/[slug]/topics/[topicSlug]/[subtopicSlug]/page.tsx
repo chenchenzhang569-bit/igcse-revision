@@ -385,6 +385,21 @@ export default async function SubtopicPage({
           slug={slug}
           topicSlug={topicSlug}
         />
+      ) : slug.startsWith("edexcel") ? (
+        <AdditionalMathsTabs
+          notes={notes}
+          structuredQuestions={structuredQs}
+          subtopicId={subtopicId}
+          subtopicName={subtopic.displayName}
+          slug={slug}
+          topicSlug={topicSlug}
+          bugContext={{
+            board: "Edexcel",
+            subject: subjectKey.charAt(0).toUpperCase() + subjectKey.slice(1),
+            code: slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1",
+            topicName: topicDisplay,
+          }}
+        />
       ) : (
         <TopicTabs
           notes={notes}
