@@ -64,6 +64,11 @@ export async function GET(req: NextRequest) {
   }
 
   // 用 R2 签名 URL 替代直接重定向
+  // If file_url is a public Supabase Storage URL, redirect directly
+  if (note.file_url.includes("/storage/v1/object/public/")) {
+    return NextResponse.redirect(note.file_url);
+  }
+  
   const r2Url = await getR2PresignedUrl(note.file_url);
   if (!r2Url) {
     return NextResponse.json({ error: "文件链接异常" }, { status: 500 });
