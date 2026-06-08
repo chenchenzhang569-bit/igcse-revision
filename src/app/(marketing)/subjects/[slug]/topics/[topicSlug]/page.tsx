@@ -432,8 +432,8 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
         </div>
       )}
 
-      {/* Subtopics tab — ONLY for non-additional-maths, non-economics (those show subtopics directly above) */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && (
+      {/* Subtopics tab — ONLY for non-additional-maths, non-economics, non-DB-driven (those show subtopics directly above) */}
+      {activeTab === "subtopics" && !isDbDriven && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
