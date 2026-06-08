@@ -187,8 +187,8 @@ export default async function SubtopicPage({
   }
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
-  // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
-  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science") {
+  // For DB-driven subjects: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || slug.startsWith("edexcel")) {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -229,8 +229,10 @@ export default async function SubtopicPage({
       ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1"
       : slug.includes("physics") ? "0625" : slug.includes("chemistry") ? "0620" : slug.includes("biology") ? "0610" : "0580";
     const useBoardScope = subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science";
-    const topicSearchPat = useBoardScope
+    const topicSearchPat = useBoardScope && !slug.startsWith("edexcel")
       ? `*${subjectCode}*${encodeURIComponent(topicSlug)}`
+      : slug.startsWith("edexcel")
+      ? `${encodeURIComponent(topicSlug)}`
       : subjectKey === "additional-maths"
       ? `*0606-${encodeURIComponent(topicSlug)}`
       : subjectKey === "economics"
@@ -262,8 +264,8 @@ export default async function SubtopicPage({
         if (Array.isArray(subData) && subData.length > 0) subtopicId = subData[0].id;
       } catch {}
     }
-    // Fallback for additional-maths/economics: lookup by subtopic slug
-    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science")) {
+    // Fallback for DB-driven subjects: lookup by subtopic slug
+    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || slug.startsWith("edexcel"))) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "force-cache" });
         const subData = await subRes.json();
