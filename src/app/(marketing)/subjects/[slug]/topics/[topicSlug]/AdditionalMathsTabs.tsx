@@ -51,26 +51,26 @@ export default function AdditionalMathsTabs({
   return (
     <div className="mt-6">
       {/* Tab bar */}
-      <div className="flex gap-1 border-b">
+      <div className="bg-gray-50 rounded-xl p-1 flex gap-1">
         <button
           onClick={() => setTab("notes")}
-          className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
+          className={`flex-1 px-5 py-3 text-sm font-bold rounded-lg transition-all ${
             tab === "notes"
-              ? "border-primary-600 text-primary-600"
-              : "border-transparent text-gray-400 hover:text-gray-600"
+              ? "bg-white text-primary-600 shadow-sm border border-gray-200"
+              : "text-gray-500 hover:text-gray-800 border border-transparent"
           }`}
         >
-          📝 Notes {notes.length > 0 && `(${notes.length})`}
+          📝 Notes {notes.length > 0 && <span className="ml-1 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{notes.length}</span>}
         </button>
         <button
           onClick={() => setTab("questions")}
-          className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition ${
+          className={`flex-1 px-5 py-3 text-sm font-bold rounded-lg transition-all ${
             tab === "questions"
-              ? "border-primary-600 text-primary-600"
-              : "border-transparent text-gray-400 hover:text-gray-600"
+              ? "bg-white text-primary-600 shadow-sm border border-gray-200"
+              : "text-gray-500 hover:text-gray-800 border border-transparent"
           }`}
         >
-          ✏️ Questions {structuredQuestions.length > 0 && `(${structuredQuestions.length})`}
+          ✏️ Questions {structuredQuestions.length > 0 && <span className="ml-1 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{structuredQuestions.length}</span>}
         </button>
       </div>
 
@@ -127,7 +127,7 @@ export default function AdditionalMathsTabs({
         <>
           {/* PMT past paper PDF links */}
           {pairedPapers.length > 0 && (
-            <div className="mb-6">
+            <div className="mt-5 mb-6">
               <h3 className="text-base font-bold text-white bg-[#001C71] px-4 py-2.5 rounded-lg mb-3">📥 Past Paper by Topics Download</h3>
               <div className="space-y-3">
                 {pairedPapers.map((pair, i) => (
