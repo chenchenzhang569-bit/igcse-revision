@@ -125,10 +125,10 @@ export default function AdditionalMathsTabs({
       {/* Questions tab */}
       {tab === "questions" && subtopicId && (
         <>
-          {/* PMT past paper PDF links — same style as CAIE */}
+          {/* PMT past paper PDF links */}
           {pairedPapers.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📥 Past Paper by Topics Download</h3>
+              <h3 className="text-base font-bold text-white bg-[#001C71] px-4 py-2.5 rounded-lg mb-3">📥 Past Paper by Topics Download</h3>
               <div className="space-y-3">
                 {pairedPapers.map((pair, i) => (
                   <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
@@ -147,6 +147,11 @@ export default function AdditionalMathsTabs({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+          {structuredQuestions.length > 0 && (
+            <div className="mb-3">
+              <h3 className="text-base font-bold text-white bg-[#001C71] px-4 py-2.5 rounded-lg">💻 Practice Online ({structuredQuestions.length} questions)</h3>
             </div>
           )}
           <TopicQuestionsClient
