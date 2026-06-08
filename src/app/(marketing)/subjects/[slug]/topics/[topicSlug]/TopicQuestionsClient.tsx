@@ -139,9 +139,9 @@ function parseSubParts(stem: string): SubPart[] {
 
   const isRoman = (s: string) => /^[ivx]+$/i.test(s);
 
-  // Find all markers
+  // Find all markers — only at line start, not mid-sentence like "in part (a)"
   const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
-  const re = /([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
+  const re = /^([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
