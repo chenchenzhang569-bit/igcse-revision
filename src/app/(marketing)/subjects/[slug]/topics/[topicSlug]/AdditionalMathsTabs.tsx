@@ -128,7 +128,7 @@ export default function AdditionalMathsTabs({
           {/* PMT past paper PDF links — same style as CAIE */}
           {pairedPapers.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📥 Topic Questions & Answer Keys</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📥 Past Paper by Topics Download</h3>
               <div className="space-y-3">
                 {pairedPapers.map((pair, i) => (
                   <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
