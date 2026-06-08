@@ -30,6 +30,7 @@ interface Question {
 export default function AdditionalMathsTabs({
   notes = [],
   structuredQuestions = [],
+  pairedPapers = [],
   subtopicId,
   subtopicName,
   slug,
@@ -38,6 +39,7 @@ export default function AdditionalMathsTabs({
 }: {
   notes: Note[];
   structuredQuestions: Question[];
+  pairedPapers?: { qp: { id: string; title: string; file_url: string }; ms?: { id: string; title: string; file_url: string } }[];
   subtopicId: string | null;
   subtopicName: string;
   slug: string;
@@ -122,16 +124,48 @@ export default function AdditionalMathsTabs({
 
       {/* Questions tab */}
       {tab === "questions" && subtopicId && (
-        <TopicQuestionsClient
-          topicId={subtopicId}
-          preloadedQuestions={structuredQuestions}
-          bugContext={bugContext || {
-            board: "CAIE",
-            subject: "Additional Mathematics",
-            code: "0606",
-            topicName: subtopicName,
-          }}
-        />
+        <>
+          {/* PMT past paper PDF links */}
+          {pairedPapers.length > 0 && (
+            <div className="mt-4 mb-6 space-y-2">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Topic Questions (PDF)</h3>
+              <div className="flex flex-wrap gap-3">
+                {pairedPapers.map((pair, i) => (
+                  <div key={i} className="flex gap-2">
+                    <a
+                      href={`/api/past-papers/download?id=${pair.qp.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-100 transition"
+                    >
+                      📄 {pair.qp.title.replace(/\s*QP$/, "")} QP
+                    </a>
+                    {pair.ms && (
+                      <a
+                        href={`/api/past-papers/download?id=${pair.ms.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm font-medium hover:bg-green-100 transition"
+                      >
+                        📋 {pair.ms.title.replace(/\s*MS$/, "")} MS
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <TopicQuestionsClient
+            topicId={subtopicId}
+            preloadedQuestions={structuredQuestions}
+            bugContext={bugContext || {
+              board: "CAIE",
+              subject: "Additional Mathematics",
+              code: "0606",
+              topicName: subtopicName,
+            }}
+          />
+        </>
       )}
       {tab === "questions" && !subtopicId && (
         <div className="mt-6 text-center py-20 text-gray-400">
