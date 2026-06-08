@@ -123,10 +123,10 @@ export function TopicTabs({
     { key: "mcq", label: "📋 Multiple Choice", count: mcqs.length + mcqPairs.length },
     { key: "structured", label: "📄 Question Paper", count: pairedPapers.length + structuredQuestions.length },
   ];
-  // Only show tabs that have content — but always keep at least the Notes tab visible
+  // Only show tabs that have content — but when all empty, show all tabs so UI isn't blank
   let tabs = allTabs.filter(t => t.count > 0);
   if (tabs.length === 0) {
-    tabs = [allTabs[0]];
+    tabs = allTabs;
   }
   const validKeys = new Set(tabs.map(t => t.key));
   const activeTab: Tab = validKeys.has(tab) ? tab : (tabs[0]?.key || "notes");
