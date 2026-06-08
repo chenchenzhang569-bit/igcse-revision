@@ -889,7 +889,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               return (
                 <button
                   key={letter}
-                  onClick={() => { if (!isGraded) { setAnswers((p) => ({ ...p, [q.id]: letter })); } }}
+                  onClick={() => {
+                    if (!isGraded) {
+                      setAnswers((p) => ({ ...p, [q.id]: letter }));
+                      handleGradeOne(q.id, q, letter);
+                      setMarkSchemeVisible(prev => ({ ...prev, [q.id]: true }));
+                    }
+                  }}
                   disabled={isGraded}
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${bg} ${isGraded ? "cursor-default" : "cursor-pointer"}`}
                 >
