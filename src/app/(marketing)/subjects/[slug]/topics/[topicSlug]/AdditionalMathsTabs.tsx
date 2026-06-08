@@ -125,31 +125,25 @@ export default function AdditionalMathsTabs({
       {/* Questions tab */}
       {tab === "questions" && subtopicId && (
         <>
-          {/* PMT past paper PDF links */}
+          {/* PMT past paper PDF links — same style as CAIE */}
           {pairedPapers.length > 0 && (
-            <div className="mt-4 mb-6 space-y-2">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Topic Questions (PDF)</h3>
-              <div className="flex flex-wrap gap-3">
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">📥 Topic Questions & Answer Keys</h3>
+              <div className="space-y-3">
                 {pairedPapers.map((pair, i) => (
-                  <div key={i} className="flex gap-2">
-                    <a
-                      href={`/api/past-papers/download?id=${pair.qp.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-100 transition"
-                    >
-                      📄 {pair.qp.title.replace(/\s*QP$/, "")} QP
-                    </a>
-                    {pair.ms && (
-                      <a
-                        href={`/api/past-papers/download?id=${pair.ms.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm font-medium hover:bg-green-100 transition"
-                      >
-                        📋 {pair.ms.title.replace(/\s*MS$/, "")} MS
-                      </a>
-                    )}
+                  <div key={pair.qp.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Topic {i + 1}</span>
+                      <span className="text-sm text-gray-700">{pair.qp.title.replace(/\s*QP$/, "")}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={`/api/past-papers/download?id=${pair.qp.id}`} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition">📄 Paper</a>
+                      {pair.ms && (
+                        <a href={`/api/past-papers/download?id=${pair.ms.id}`} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition">📝 Answer</a>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
