@@ -324,8 +324,12 @@ export default async function SubtopicPage({
         }
         for (const ms of mcqMss) { if (!usedMcq.has(ms.id)) mcqPairs.push({ qp: { id: ms.id, title: ms.title, file_url: ms.file_url, paper_type: ms.paper_type } }); }
 
-        const topicQps = papers.filter((p: any) => p.paper_type === "Topic QP");
-        const topicMss = papers.filter((p: any) => p.paper_type === "Topic MS");
+        const topicQps = papers.filter((p: any) =>
+  ["Topic QP", "QP", "Question Paper"].includes(p.paper_type)
+);
+const topicMss = papers.filter((p: any) =>
+  ["Topic MS", "MS", "Mark Scheme"].includes(p.paper_type)
+);
         const usedTopic = new Set<string>();
         for (const qp of topicQps) {
           const base = qp.title.replace(/\s*QP$/, "").trim();
