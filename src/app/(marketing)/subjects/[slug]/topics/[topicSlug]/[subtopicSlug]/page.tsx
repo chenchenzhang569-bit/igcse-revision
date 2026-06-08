@@ -127,6 +127,11 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "4-government-and-the-macroeconomy": "4. Government & the Macroeconomy",
   "5-economic-development": "5. Economic Development",
   "6-international-trade-and-globalisation": "6. International Trade & Globalisation",
+  // Edexcel Chemistry 4CH1
+  "edexcel-chemistry-4ch1-1-principles-of-chemistry": "Principles of Chemistry",
+  "edexcel-chemistry-4ch1-2-inorganic-chemistry": "Inorganic Chemistry",
+  "edexcel-chemistry-4ch1-3-physical-chemistry": "Physical Chemistry",
+  "edexcel-chemistry-4ch1-4-organic-chemistry": "Organic Chemistry",
 };
 
 function PaywallBanner({ subjectSlug }: { subjectSlug: string }) {

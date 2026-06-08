@@ -117,6 +117,11 @@ const TOPIC_DISPLAY: Record<string, string> = {
   "programming": "Programming",
   "databases": "Databases",
   "boolean-logic": "Boolean Logic",
+  // Edexcel Chemistry 4CH1
+  "edexcel-chemistry-4ch1-1-principles-of-chemistry": "Principles of Chemistry",
+  "edexcel-chemistry-4ch1-2-inorganic-chemistry": "Inorganic Chemistry",
+  "edexcel-chemistry-4ch1-3-physical-chemistry": "Physical Chemistry",
+  "edexcel-chemistry-4ch1-4-organic-chemistry": "Organic Chemistry",
 };
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
