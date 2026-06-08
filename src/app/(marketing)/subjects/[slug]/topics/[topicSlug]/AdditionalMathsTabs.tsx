@@ -101,13 +101,11 @@ export default function AdditionalMathsTabs({
                   )}
                   {note.file_url && (
                     <>
-                      <div className="w-full relative border rounded-lg mb-3 overflow-hidden" style={{ aspectRatio: '210/297' }}>
-                        <iframe
-                          src={`/api/notes/download?id=${note.id}`}
-                          className="absolute inset-0 w-full h-full"
-                          title={note.title}
-                        />
-                      </div>
+                      <iframe
+                        src={`/api/notes/download?id=${note.id}`}
+                        className="w-full h-[600px] border rounded-lg mb-3"
+                        title={note.title}
+                      />
                       <a
                         href={`/api/notes/download?id=${note.id}`}
                         target="_blank"
