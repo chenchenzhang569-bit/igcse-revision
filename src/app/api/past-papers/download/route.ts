@@ -14,15 +14,28 @@ export async function GET(req: NextRequest) {
 
   const supabase = createClient();
 
-  // 查试卷
-  const { data: paper, error } = await supabase
+  // 查试卷 — 先查 past_papers，再查 topic_papers
+  let paper = null;
+  let error = null;
+  
+  const { data: pp, error: ppErr } = await supabase
     .from("past_papers")
     .select("id, subject_id, file_url, title, is_free")
     .eq("id", paperId)
     .single();
-
-  if (error || !paper) {
-    return NextResponse.json({ error: "试卷不存在" }, { status: 404 });
+  
+  if (!ppErr && pp) {
+    paper = pp;
+  } else {
+    const { data: tp, error: tpErr } = await supabase
+      .from("topic_papers")
+      .select("id, subject_id, file_url, title, is_free")
+      .eq("id", paperId)
+      .single();
+    if (tpErr || !tp) {
+      return NextResponse.json({ error: "试卷不存在" }, { status: 404 });
+    }
+    paper = tp;
   }
 
   if (!paper.file_url) {
