@@ -312,15 +312,18 @@ export default async function SubtopicPage({
 
     if (filterVal) {
       // Fetch notes, questions, and past_papers in parallel
-      const [notesArr, allQs, papers] = await Promise.all([
+      const [notesArr, allQs, papers, topicPapers] = await Promise.all([
         fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "force-cache" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
         fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,options,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
         fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "force-cache" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
+        fetch(`${API}/topic_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "force-cache" })
+          .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
       ]);
       notes = notesArr;
+      if (Array.isArray(topicPapers)) papers = papers.concat(topicPapers);
       if (Array.isArray(allQs)) {
         // Edexcel: keep all questions in structured tab (no separate MCQ tab)
         // TopicQuestionsClient handles MCQ-style sub-parts with buttons
