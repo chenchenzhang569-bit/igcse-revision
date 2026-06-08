@@ -294,7 +294,8 @@ export default async function SubtopicPage({
       ]);
       notes = notesArr;
       if (Array.isArray(allQs)) {
-        // Edexcel: all questions are structured (no MCQ tab)
+        // Edexcel: keep all questions in structured tab (no separate MCQ tab)
+        // TopicQuestionsClient handles MCQ-style sub-parts with buttons
         if (slug.startsWith("edexcel")) {
           structuredQs = allQs;
         } else {
