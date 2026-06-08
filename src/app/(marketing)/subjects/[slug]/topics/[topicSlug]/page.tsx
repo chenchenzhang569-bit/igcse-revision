@@ -224,9 +224,10 @@ export default async function TopicPage({
             return {
               slug: s.slug,
               displayName: match ? match[2] : fullName,
-              pmtCode: subjectKey === "additional-maths"
+              pmtCode: match ? match[1]
+                : (subjectKey === "additional-maths" || slug.startsWith("edexcel"))
                 ? `${topicSortOrder}.${s.sort_order}`
-                : (match ? match[1] : undefined),
+                : undefined,
             };
           });
         }

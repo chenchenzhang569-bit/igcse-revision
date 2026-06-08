@@ -123,8 +123,11 @@ export function TopicTabs({
     { key: "mcq", label: "📋 Multiple Choice", count: mcqs.length + mcqPairs.length },
     { key: "structured", label: "📄 Question Paper", count: pairedPapers.length + structuredQuestions.length },
   ];
-  // Only show tabs that have content
-  const tabs = allTabs.filter(t => t.count > 0);
+  // Only show tabs that have content — but always keep at least the Notes tab visible
+  let tabs = allTabs.filter(t => t.count > 0);
+  if (tabs.length === 0) {
+    tabs = [allTabs[0]];
+  }
   const validKeys = new Set(tabs.map(t => t.key));
   const activeTab: Tab = validKeys.has(tab) ? tab : (tabs[0]?.key || "notes");
 
