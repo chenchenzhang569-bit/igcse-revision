@@ -589,8 +589,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
     setCurrentIdx(0);
   };
 
-  // Completion screen for a group
-  if (!q || submitted.has(activeDifficulty)) {
+  // Completion screen for a group — skip for Edexcel (no submit flow)
+  if (!q || (submitted.has(activeDifficulty) && bugContext?.board !== "Edexcel")) {
     const diffQs = byDifficulty[activeDifficulty] || [];
     const s = scores[activeDifficulty];
     return (
@@ -860,8 +860,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </div>
         ) : null}
 
-        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
-        {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && q.explanation && (
+        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) — Edexcel uses answer_text */}
+        {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && (q.explanation || (bugContext?.board === "Edexcel" && q.answer_text)) && (
             <div className="mt-3">
               <button
                 onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -871,7 +871,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               </button>
               {markSchemeVisible[q.id] && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{(bugContext?.board === "Edexcel" ? (q.clean_answer_text || q.answer_text || "") : (typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')))}</ReactMarkdown>
                 </div>
               )}
             </div>
@@ -994,15 +994,15 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
             ← Prev
           </button>
 
-          {/* Submit — only for groups with MCQ questions */}
+          {/* Submit — skip for Edexcel (no grading) */}
           <div className="flex gap-2">
-            {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
+            {currentIdx === currentQs.length - 1 && !allGradedInGroup && bugContext?.board !== "Edexcel" && (
               <button onClick={handleSubmitGroup}
                 className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition text-sm">
                 Submit
               </button>
             )}
-            {allGradedInGroup && !submitted.has(activeDifficulty) && (
+            {allGradedInGroup && !submitted.has(activeDifficulty) && bugContext?.board !== "Edexcel" && (
               <button onClick={() => setSubmitted((prev) => new Set([...prev, activeDifficulty]))}
                 className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition text-sm">
                 Finish →
