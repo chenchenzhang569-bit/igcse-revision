@@ -793,6 +793,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                   );
                 }
                 // Leaf → show label + text + input + grading
+                // If text has ☐ A/B/C/D options, render as MCQ buttons
+                const hasCheckboxOptions = /☐\s+\*{0,2}[A-D]\*{0,2}/.test(sp.text);
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">
@@ -803,16 +805,43 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                           : <span className="text-red-500 ml-1">✗</span>
                       )}
                     </p>
-                    {sp.text && (
+                    {sp.text && !hasCheckboxOptions && (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
                         dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
                     )}
-                    <MathInput
-                      value={subAns}
-                      onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
-                      disabled={isGraded}
-                      hideSymbols={!/\$/.test(sp.text)}
-                    />
+                    {hasCheckboxOptions ? (
+                      <div className="space-y-2">
+                        {["A","B","C","D"].map((letter) => {
+                          // Extract option text after ☐ **A**    or ☐ A
+                          const optRe = new RegExp(`☐\\s+\\*{0,2}${letter}\\*{0,2}\\s+(.+)`, 'm');
+                          const optMatch = sp.text.match(optRe);
+                          const optText = optMatch ? optMatch[1].trim() : letter;
+                          const isSelected = subAns === letter;
+                          return (
+                            <button
+                              key={letter}
+                              onClick={() => {
+                                if (!isGraded) setAnswers((p) => ({ ...p, [subKey]: letter }));
+                              }}
+                              disabled={isGraded}
+                              className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                                isSelected ? "bg-primary-50 border-primary-300" : "bg-white border-gray-200 hover:border-primary-300"
+                              }`}
+                            >
+                              <span className="font-semibold text-primary-600 mr-2">{letter}.</span>
+                              <span className="text-gray-700 text-sm">{optText}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <MathInput
+                        value={subAns}
+                        onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
+                        disabled={isGraded}
+                        hideSymbols={!/\$/.test(sp.text)}
+                      />
+                    )}
                   </div>
                 );
               })}
