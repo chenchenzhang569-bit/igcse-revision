@@ -872,8 +872,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         ) : null}
 
         {isMcq ? (
-          <div className="space-y-2.5">
-            {options.map((opt, i) => {
+          <>
+            <div className="prose prose-sm max-w-none text-gray-800 mb-4"
+              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
+            <div className="space-y-2.5">
+              {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
               const isSelected = userAns === letter;
               const isCorrectOption = letter === (q.clean_answer_text || q.answer_text)?.trim().charAt(0);
@@ -898,6 +901,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               );
             })}
           </div>
+          </>
         ) : null}
 
         {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) — Edexcel uses answer_text */}
