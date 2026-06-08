@@ -663,30 +663,68 @@ export function TopicTabs({
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Structured questions from DB */}
+            {/* Structured questions from DB — grouped by difficulty */}
             {structuredQuestions.length > 0 && (
               <div className="space-y-6">
-                {structuredQuestions.map((q, i) => (
-                  <div key={q.id} className="bg-white border rounded-xl p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
-                      <span className="text-xs text-gray-400">{q.marks} marks</span>
-                    </div>
-                    <div className="text-gray-800 prose prose-sm max-w-none mb-4">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
-                    </div>
-                    {q.answer_text && (
-                      <details className="group">
-                        <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
-                          Show Answer
-                        </summary>
-                        <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text)}</ReactMarkdown>
+                {(() => {
+                  const diffOrder = { easy: 0, medium: 1, hard: 2 };
+                  const sorted = [...structuredQuestions].sort(
+                    (a, b) => (diffOrder[a.difficulty] ?? 9) - (diffOrder[b.difficulty] ?? 9)
+                  );
+                  const grouped: Record<string, any[]> = { easy: [], medium: [], hard: [] };
+                  for (const q of sorted) {
+                    const level = q.difficulty || "easy";
+                    if (grouped[level]) grouped[level].push(q);
+                    else grouped.easy.push(q);
+                  }
+                  const groupOrder = ["easy", "medium", "hard"];
+                  const labels: Record<string, string> = {
+                    easy: "🟢 Easy", medium: "🟡 Medium", hard: "🔴 Hard",
+                  };
+                  const bgColors: Record<string, string> = {
+                    easy: "bg-green-50 border-green-200",
+                    medium: "bg-yellow-50 border-yellow-200",
+                    hard: "bg-red-50 border-red-200",
+                  };
+                  let globalIdx = 0;
+                  return groupOrder.map((level) => {
+                    const group = grouped[level] || [];
+                    if (group.length === 0) return null;
+                    return (
+                      <div key={level} className={`border rounded-xl ${bgColors[level]}`}>
+                        <div className="flex items-center justify-between px-5 py-3 border-b border-inherit">
+                          <span className="font-semibold text-sm">{labels[level]} ({group.length} questions)</span>
                         </div>
-                      </details>
-                    )}
-                  </div>
-                ))}
+                        <div className="p-3 space-y-3">
+                          {group.map((q: any) => {
+                            const idx = ++globalIdx;
+                            return (
+                              <div key={q.id} className="bg-white border rounded-xl p-5">
+                                <div className="flex items-center gap-2 mb-4">
+                                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{idx}</span>
+                                  <span className="text-xs text-gray-400">{q.marks} marks</span>
+                                </div>
+                                <div className="text-gray-800 prose prose-sm max-w-none mb-4">
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
+                                </div>
+                                {q.answer_text && (
+                                  <details className="group">
+                                    <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
+                                      Show Answer
+                                    </summary>
+                                    <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text)}</ReactMarkdown>
+                                    </div>
+                                  </details>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
             {/* Paired past papers */}
