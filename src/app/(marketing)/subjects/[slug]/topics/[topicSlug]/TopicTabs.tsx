@@ -1,7 +1,7 @@
 // force-redeploy-v7-supabase-session
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -57,6 +57,97 @@ type PaperPair = {
 
 type Tab = "notes" | "mcq" | "structured";
 
+const MATH_SYMBOLS = ["√","π","°","²","³","×","÷","±","≤","≥","≠","≈","∞","∠","→","%","½","¼","¾","⁻¹","Δ","θ","Σ","∫"];
+
+// Simple MathInput: textarea + math symbols + handwriting
+function MathInput({ value, onChange, disabled }: {
+  value: string; onChange: (v: string) => void; disabled: boolean;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawing = useRef(false);
+  const [showHandwrite, setShowHandwrite] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const insertSymbol = (sym: string) => {
+    if (disabled) return;
+    const el = textareaRef.current;
+    const start = el?.selectionStart ?? value.length;
+    const end = el?.selectionEnd ?? value.length;
+    const newVal = value.slice(0, start) + sym + value.slice(end);
+    onChange(newVal);
+  };
+
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    const c = canvasRef.current; if (!c) return;
+    const ctx = c.getContext("2d"); if (!ctx) return;
+    isDrawing.current = true;
+    const rect = c.getBoundingClientRect();
+    const x = ("touches" in e ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = ("touches" in e ? e.touches[0].clientY : e.clientY) - rect.top;
+    ctx.beginPath(); ctx.moveTo(x, y);
+  };
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing.current) return;
+    const c = canvasRef.current; if (!c) return;
+    const ctx = c.getContext("2d"); if (!ctx) return;
+    const rect = c.getBoundingClientRect();
+    const x = ("touches" in e ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = ("touches" in e ? e.touches[0].clientY : e.clientY) - rect.top;
+    ctx.lineTo(x, y); ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.stroke();
+  };
+  const endDraw = () => { isDrawing.current = false; };
+  const clearCanvas = () => {
+    const c = canvasRef.current; if (!c) return;
+    c.getContext("2d")?.clearRect(0, 0, c.width, c.height);
+  };
+
+  return (
+    <div className="mt-2">
+      <textarea ref={textareaRef} value={value} onChange={e => onChange(e.target.value)}
+        placeholder="Type your answer..." disabled={disabled} rows={3}
+        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 disabled:bg-gray-50 resize-y"
+      />
+      {!disabled && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {MATH_SYMBOLS.map(s => (
+            <button key={s} type="button" onClick={() => insertSymbol(s)}
+              className="px-2 py-0.5 text-xs bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded text-gray-600">{s}</button>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-2 mt-1.5">
+        {!disabled && (
+          <button type="button" onClick={() => setShowHandwrite(!showHandwrite)}
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 text-gray-500"
+          >✏️ Handwrite</button>
+        )}
+        {!disabled && (
+          <button type="button" onClick={() => setShowPreview(!showPreview)}
+            className={`flex items-center gap-1 px-2 py-1 text-xs rounded border ${showPreview ? 'bg-primary-50 text-primary-700 border-primary-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-500 border-gray-200'}`}
+          >👁️ Preview</button>
+        )}
+      </div>
+      {showHandwrite && (
+        <div className="mt-2 border border-primary-300 rounded-lg p-3 bg-primary-50/30">
+          <canvas ref={canvasRef} width={600} height={150}
+            onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+            onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+            className="w-full border border-gray-200 rounded bg-white touch-none cursor-crosshair"
+          />
+          <div className="flex gap-2 mt-2">
+            <button onClick={clearCanvas} className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 text-gray-600">Clear</button>
+          </div>
+        </div>
+      )}
+      {showPreview && value.trim() && (
+        <div className="mt-2 p-3 bg-primary-50/50 border border-primary-200 rounded-lg text-sm text-gray-800 whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ __html: value }} />
+      )}
+    </div>
+  );
+}
+
 export function TopicTabs({
   notes,
   mcqs = [],
@@ -95,6 +186,7 @@ export function TopicTabs({
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
   const [bugModalOpen, setBugModalOpen] = useState(false);
+  const [structuredAnswers, setStructuredAnswers] = useState<Record<string, string>>({});
 
   // Fetch bookmarked question IDs for this subtopic
   useEffect(() => {
@@ -711,6 +803,13 @@ export function TopicTabs({
                                 <div className="text-gray-800 prose prose-sm max-w-none mb-4">
                                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
                                 </div>
+                                {subjectSlug.startsWith("edexcel") && (
+                                  <MathInput
+                                    value={structuredAnswers[q.id] || ""}
+                                    onChange={(v) => setStructuredAnswers(prev => ({ ...prev, [q.id]: v }))}
+                                    disabled={false}
+                                  />
+                                )}
                                 {q.answer_text && (
                                   <details className="group">
                                     <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
