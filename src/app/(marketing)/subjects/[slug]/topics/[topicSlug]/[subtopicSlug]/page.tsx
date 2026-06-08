@@ -257,6 +257,29 @@ export default async function SubtopicPage({
     );
     topicRow = tResults.find(r => r !== null) || null;
 
+    // For DB-driven subjects: fetch all subtopics for Previous/Next navigation
+    let allDbSubtopics: { slug: string; displayName: string; pmtCode: string }[] = [];
+    if (topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || slug.startsWith("edexcel"))) {
+      try {
+        const stAllRes = await fetch(
+          `${API}/subtopics?select=slug,display_name,sort_order&topic_id=eq.${topicRow.id}&order=sort_order`,
+          { headers: H, cache: "force-cache" }
+        );
+        const stAllData = await stAllRes.json();
+        if (Array.isArray(stAllData)) {
+          allDbSubtopics = stAllData.map((s: any) => {
+            const fullName = s.display_name || s.slug;
+            const match = fullName.match(/^(\d+\.\d+)\s+(.*)/);
+            return {
+              slug: s.slug,
+              displayName: match ? match[2] : fullName,
+              pmtCode: match ? match[1] : `${topicRow.sort_order || 1}.${s.sort_order || 1}`,
+            };
+          });
+        }
+      } catch {}
+    }
+
     if (topicRow && pmtCode) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "force-cache" });
@@ -423,7 +446,7 @@ const topicMss = papers.filter((p: any) =>
 
       {/* Back/Next Navigation — within same Topic */}
       {(() => {
-        const allSubs = getSubtopics(subjectKey, topicSlug);
+        const allSubs = allDbSubtopics.length > 0 ? allDbSubtopics : getSubtopics(subjectKey, topicSlug);
         const currentIdx = allSubs.findIndex(s => s.slug === subtopicSlug);
         const prevSub = currentIdx > 0 ? allSubs[currentIdx - 1] : null;
         const nextSub = currentIdx < allSubs.length - 1 ? allSubs[currentIdx + 1] : null;
