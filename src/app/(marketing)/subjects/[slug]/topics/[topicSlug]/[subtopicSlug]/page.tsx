@@ -294,14 +294,19 @@ export default async function SubtopicPage({
       ]);
       notes = notesArr;
       if (Array.isArray(allQs)) {
-        for (const q of allQs) {
-          const txt = q.question_text || "";
-          const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
-          const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
-          if (hasAbcd || ansIsLetter) {
-            mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
-          } else {
-            structuredQs.push(q);
+        // Edexcel: all questions are structured (no MCQ tab)
+        if (slug.startsWith("edexcel")) {
+          structuredQs = allQs;
+        } else {
+          for (const q of allQs) {
+            const txt = q.question_text || "";
+            const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
+            const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
+            if (hasAbcd || ansIsLetter) {
+              mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
+            } else {
+              structuredQs.push(q);
+            }
           }
         }
       }
