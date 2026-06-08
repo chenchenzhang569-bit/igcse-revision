@@ -9,6 +9,17 @@ import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal, { type BugContext } from "@/components/ReportBugModal";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+
+const markdownComponents = {
+  img: (props: any) => (
+    <img {...props} style={{ maxWidth: "100%", height: "auto" }} />
+  ),
+};
+
+function allowDataUrls(url: string) {
+  return url;
+}
 
 interface Question {
   id: string;
@@ -900,7 +911,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               </button>
               {markSchemeVisible[q.id] && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{(bugContext?.board === "Edexcel" ? (q.clean_answer_text || q.answer_text || "") : (typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')))}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{(bugContext?.board === "Edexcel" ? (q.clean_answer_text || q.answer_text || "") : (typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')))}</ReactMarkdown>
                 </div>
               )}
             </div>
