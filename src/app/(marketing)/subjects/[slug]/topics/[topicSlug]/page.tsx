@@ -174,7 +174,8 @@ export default async function TopicPage({
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
   const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science";
-  let subtopics: any[] = isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
+  const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
+  let subtopics: any[] = isDbDriven ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
   // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
   const activeTab = tab || (isSimpleSubject ? "subtopics" : isMaths ? "notes" : "subtopics");
@@ -208,8 +209,8 @@ export default async function TopicPage({
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
       }
-      // For additional-maths/economics: fetch subtopics from DB
-      if (isSimpleSubject) {
+      // For DB-driven subjects: fetch subtopics from DB
+      if (isDbDriven) {
         const stRes = await fetch(
           `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
           { headers: baseHeaders, cache: "force-cache" }
@@ -285,8 +286,8 @@ export default async function TopicPage({
         {isMaths && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
       </div>
 
-      {/* For additional-maths/economics: show subtopics directly, no tabs */}
-      {isSimpleSubject && subtopics.length > 0 && (
+      {/* For DB-driven subjects: show subtopics directly, no tabs */}
+      {isDbDriven && subtopics.length > 0 && (
         <div className="mt-8">
           <p className="text-gray-500 mb-4">{subtopics.length} subtopics</p>
           <div className="space-y-3">
