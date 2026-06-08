@@ -103,7 +103,7 @@ export default function AdditionalMathsTabs({
                     <>
                       <iframe
                         src={`/api/notes/download?id=${note.id}`}
-                        className="w-full h-[600px] border rounded-lg mb-3"
+                        className="w-full h-[60vw] max-h-[300px] sm:h-[600px] border rounded-lg mb-3"
                         title={note.title}
                       />
                       <a
