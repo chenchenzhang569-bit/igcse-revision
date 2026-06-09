@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
-// force-redeploy-v3-paywall
+// force-redeploy-v4-inline-r2
 export const revalidate = 3600;
 
 const supabase = getSupabaseClient();
@@ -119,10 +120,26 @@ export default async function MockExamsPage({
   const isR2Subject = R2_SUBJECTS.includes(subject.dbSubject);
 
   if (isR2Subject) {
-    // Fetch from R2 JSON — use absolute URL (Server Component needs full URL)
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `https://igcse-revision-cdgy.vercel.app`);
-    const r2Res = await fetch(`${baseUrl}/api/r2/json/${subjectSlug}`, { cache: "no-store" });
-    if (!r2Res.ok) {
+    // Fetch from R2 directly (inline, no HTTP self-call)
+    const r2Acct = process.env.R2_ACCOUNT_ID || "7524670a3d7d50fd979765dedb5b378d";
+    const r2Key = process.env.R2_ACCESS_KEY || "baf9fd99dfe0501ceb0f8da65bccfbfc";
+    const r2Secret = process.env.R2_SECRET_KEY || "";
+    const r2s3 = new S3Client({
+      region: "auto",
+      endpoint: `https://${r2Acct}.r2.cloudflarestorage.com`,
+      credentials: { accessKeyId: r2Key, secretAccessKey: r2Secret },
+    });
+    let rawQuestions: any[];
+    try {
+      const cmd = new GetObjectCommand({
+        Bucket: "sme-images",
+        Key: "mock/edexcel_bio_mock_questions.json",
+      });
+      const resp = await r2s3.send(cmd);
+      const body = await resp.Body!.transformToString("utf-8");
+      rawQuestions = JSON.parse(body);
+    } catch (e) {
+      console.error("R2 direct fetch error:", e);
       return (
         <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
           <Link href="/" className="text-sm text-gray-400 hover:text-primary-600">← Home</Link>
@@ -134,8 +151,7 @@ export default async function MockExamsPage({
           </div>
         </div>
       );
-    }
-    const rawQuestions = await r2Res.json();
+    } // end catch
 
     // Group by set/paper
     const setMap: Record<string, { setNumber: number; slug: string; papers: any[] }> = {};
