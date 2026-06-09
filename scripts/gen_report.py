@@ -295,8 +295,8 @@ doc.add_heading('必须设置的变量', level=2)
 add_table(doc, ['变量名', '说明', '示例'],
     [
         ['NEXT_PUBLIC_SUPABASE_URL', 'Supabase 项目 URL', 'https://aondldqwwvttwpervrfq.supabase.co'],
-        ['NEXT_PUBLIC_SUPABASE_ANON_KEY', 'Supabase 公开 anon key', 'eyJhbGciOiJIUzI1NiIs...'],
-        ['SUPABASE_SERVICE_ROLE_KEY', '管理密钥（最高权限，勿泄露）', 'eyJhbGciOiJIUzI1NiIs...'],
+        ['NEXT_PUBLIC_SUPABASE_ANON_KEY', 'Supabase 公开 anon key', "os.environ.get("SERVICE_ROLE_KEY", "")"],
+        ['SUPABASE_SERVICE_ROLE_KEY', '管理密钥（最高权限，勿泄露）', "os.environ.get("SERVICE_ROLE_KEY", "")"],
         ['NEXT_PUBLIC_SITE_URL', '网站地址', 'https://igmaster.org'],
         ['SME_EMAIL', 'SaveMyExams 登录邮箱', 'inspiringchermann@vmail.dev'],
         ['SME_PASSWORD', 'SaveMyExams 登录密码', '********'],

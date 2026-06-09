@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 
 # ===== 配置 =====
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88"
+SERVICE_ROLE_KEY = "os.environ.get("SERVICE_ROLE_KEY", "")"
 PROJECT_DIR = os.path.expanduser("~/igcse-revision")
 
 # 所有表（按外键依赖排序）

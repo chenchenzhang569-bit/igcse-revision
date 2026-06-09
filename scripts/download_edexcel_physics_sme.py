@@ -11,7 +11,7 @@ SME_TOPIC_URL = "https://www.savemyexams.com/igcse/physics/edexcel/19/topic-ques
 
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
 SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
-SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88"
+SERVICE_ROLE_KEY = "os.environ.get("SERVICE_ROLE_KEY", "")"
 
 SUBJECT_UUID = "bc5149b5-9700-4b2a-a2f5-8d908a88be38"
 

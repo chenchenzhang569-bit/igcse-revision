@@ -1,0 +1,29 @@
+// Paste in Console on https://www.savemyexams.com/igcse/chemistry/edexcel/19/mock-exams/
+// Step 1: Check what's in the data
+var nd = JSON.parse(document.querySelector('#__NEXT_DATA__').textContent);
+var pp = nd.props.pageProps;
+console.log('Keys:', Object.keys(pp));
+console.log('Has mockExamPaperSets:', !!pp.mockExamPaperSets);
+if (pp.mockExamPaperSets) {
+  pp.mockExamPaperSets.forEach(function(s, i){
+    console.log('Set ' + i + ':', s.attributes.slug, 'keys:', Object.keys(s));
+    if (s.included) {
+      console.log('  included count:', s.included.length);
+      s.included.forEach(function(item){
+        if (item.type === 'mock_exam_paper') {
+          console.log('  Paper:', item.id, item.attributes.slug, 'mins=' + item.attributes.minutes);
+        }
+      });
+    } else {
+      console.log('  No included array');
+      // Maybe data is somewhere else?
+      if (s.relationships) console.log('  relationships:', JSON.stringify(s.relationships).slice(0,200));
+    }
+  });
+} else {
+  // Print the first 2 keys' data to see structure
+  Object.keys(pp).slice(0,5).forEach(function(k){
+    var v = pp[k];
+    if (v && typeof v === 'object') console.log(k + ':', JSON.stringify(v).slice(0,300));
+  });
+}

@@ -1,0 +1,9 @@
+// Paste in Console on https://www.savemyexams.com/igcse/chemistry/edexcel/19/mock-exams/
+JSON.parse(document.querySelector('#__NEXT_DATA__').textContent).props.pageProps.mockExamPaperSets.forEach(function(s){
+  var a=s.attributes;
+  console.log(a.slug);
+  (s.included||[]).filter(function(x){return x.type==='mock_exam_paper'}).forEach(function(p){
+    var pa=p.attributes;
+    console.log('  '+p.id+' '+pa.slug+' mins='+pa.minutes);
+  });
+});

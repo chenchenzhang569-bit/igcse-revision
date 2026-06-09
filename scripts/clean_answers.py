@@ -4,7 +4,7 @@
 import sys, json, time, requests, argparse
 
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-SRV_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88"
+SRV_KEY = "os.environ.get("SERVICE_ROLE_KEY", "")"
 DS_KEY = "sk-8a31bc8a84ab416d97dab6ee8c19ffae"
 
 HEADERS_W = {"apikey": SRV_KEY, "Authorization": f"Bearer {SRV_KEY}", "Content-Type": "application/json"}

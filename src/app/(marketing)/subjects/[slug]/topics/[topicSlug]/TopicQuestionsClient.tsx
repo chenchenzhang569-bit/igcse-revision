@@ -904,7 +904,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
               const isSelected = userAns === letter;
-              const isCorrectOption = letter === (q.clean_answer_text || q.answer_text)?.trim().charAt(0);
+              const isCorrectOption = letter === (q.correct_answer || (q.clean_answer_text || q.answer_text || '').match(/[Tt]he\s+(?:correct\s+)?answer\s+is\s+([A-D])\b/)?.[1] || '');
               let bg = "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50";
               if (isGraded && isSelected && isCorrectOption) bg = "bg-green-50 border-green-400";
               else if (isGraded && isSelected && !isCorrectOption) bg = "bg-red-50 border-red-400";

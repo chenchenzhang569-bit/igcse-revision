@@ -2,7 +2,7 @@
 import requests
 
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88"
+KEY = "os.environ.get("SERVICE_ROLE_KEY", "")"
 h = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
 
 # profiles

@@ -79,6 +79,7 @@
   }
 
   var allQuestions = [];
+  var nextOrder = 0;
   var totalPapers = 0;
   var donePapers = 0;
 
@@ -108,55 +109,43 @@
         for (var qi = 0; qi < qs.length; qi++) {
           var q = qs[qi];
           var attrs = q.attributes || {};
-          var order = attrs.order || 0;
+          var baseOrder = attrs.order || 0;
           var difficulty = attrs.difficulty || "medium";
           var parts = attrs.parts || [];
 
-          // Build stem from all parts
-          var stems = [];
-          var solutions = [];
-          var totalMarks = 0;
-          var qType = "structured";
-          var opts = null;
-          var correctAnswer = "";
-
           for (var pi = 0; pi < parts.length; pi++) {
             var p = parts[pi];
-            var label = parts.length > 1 ? "(" + String.fromCharCode(97 + pi) + ") " : "";
+            var partLabel = parts.length > 1 ? "(" + String.fromCharCode(97 + pi) + ") " : "";
             var problem = pm(p.problem || []).trim();
-            stems.push(label + problem);
-
             var sol = pm(p.solution || []).trim();
-            solutions.push(label + sol);
-
-            totalMarks += p.marks || 0;
+            var marks = p.marks || 0;
+            var type = "structured", opts = null, ca = "";
 
             // Check for MCQ
             if (p.choices && p.choices.length > 0) {
-              qType = "mcq";
-              opts = [];
+              type = "mcq"; opts = [];
               for (var ci = 0; ci < p.choices.length; ci++) {
                 var ch = p.choices[ci];
                 var charLabel = String.fromCharCode(65 + (ch.order || ci));
                 var chContent = ch.content ? pm(ch.content).trim() : "";
                 opts.push(charLabel + ". " + chContent);
-                if (ch.is_correct) correctAnswer = charLabel;
+                if (ch.is_correct) ca = charLabel;
               }
             }
-          }
 
-          allQuestions.push({
-            set: setSlug,
-            paper: paperSlug,
-            order: order,
-            type: qType,
-            diff: difficulty,
-            marks: totalMarks,
-            stem: stems.join("\n\n"),
-            sol: solutions.join("\n\n"),
-            opts: opts,
-            ca: correctAnswer,
-          });
+            allQuestions.push({
+              set: setSlug,
+              paper: paperSlug,
+              order: nextOrder++,
+              type: type,
+              diff: difficulty,
+              marks: marks,
+              stem: partLabel + problem,
+              sol: partLabel + sol,
+              opts: opts,
+              ca: ca,
+            });
+          }
         }
       } catch (e) {
         console.error("  Error: " + (e.message || e));
