@@ -1,35 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
-const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || "7524670a3d7d50fd979765dedb5b378d";
+const R2_ACCESS_KEY = process.env.R2_ACCESS_KEY || "baf9fd99dfe0501ceb0f8da65bccfbfc";
+const R2_SECRET_KEY = process.env.R2_SECRET_KEY || "";
 
-// Known mock exam JSON files in Supabase Storage
-const MOCK_FILES: Record<string, string> = {
-  "edexcel-biology-4bi1":
-    `${SUPABASE_URL}/storage/v1/object/public/sme-images/mock/edexcel_bio_mock_questions.json`,
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY,
+    secretAccessKey: R2_SECRET_KEY,
+  },
+});
+
+const MOCK_FILES: Record<string, { bucket: string; key: string }> = {
+  "edexcel-biology-4bi1": { bucket: "sme-images", key: "mock/edexcel_bio_mock_questions.json" },
 };
 
 /**
  * GET /api/r2/json/:subject
- * Returns mock exam questions JSON for a given subject.
- * Data stored in Supabase Storage (public bucket).
+ * Returns mock exam questions JSON for a given subject from R2.
  */
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ subject: string }> }
 ) {
   const { subject } = await params;
-  const fileUrl = MOCK_FILES[subject];
-
-  if (!fileUrl) {
+  const file = MOCK_FILES[subject];
+  if (!file) {
     return NextResponse.json({ error: "Subject not found" }, { status: 404 });
   }
 
   try {
-    const resp = await fetch(fileUrl, { cache: "no-store" });
-    if (!resp.ok) {
-      return NextResponse.json({ error: "File not found in storage" }, { status: 404 });
-    }
-    const body = await resp.text();
+    const cmd = new GetObjectCommand({ Bucket: file.bucket, Key: file.key });
+    const resp = await s3.send(cmd);
+    const body = await resp.Body!.transformToString("utf-8");
     return new NextResponse(body, {
       headers: {
         "Content-Type": "application/json",
@@ -38,6 +44,6 @@ export async function GET(
       },
     });
   } catch (e) {
-    return NextResponse.json({ error: "Failed to fetch from storage" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch from R2" }, { status: 500 });
   }
 }
