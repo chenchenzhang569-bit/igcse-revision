@@ -41,7 +41,7 @@ export async function GET(
     return new NextResponse(body, {
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Cache-Control": "public, max-age=60, s-maxage=60",
         "Access-Control-Allow-Origin": "*",
       },
     });
