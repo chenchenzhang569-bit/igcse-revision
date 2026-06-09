@@ -93,7 +93,8 @@ export function SubjectSearchBox({
     if (!query.trim()) return [];
     const q = query.toLowerCase();
 
-    if (isMath) {
+    // CAIE Maths: search through sections
+    if (isMath && !isEdexcel) {
       const results: SearchResult[] = [];
       for (const sec of topicSections) {
         for (const t of sec.topics) {
@@ -113,7 +114,7 @@ export function SubjectSearchBox({
       return results.slice(0, 8);
     }
 
-    // Edexcel: search DB subtopics
+    // Edexcel: search DB subtopics (including Edexcel Maths)
     if (isEdexcel) {
       const results: SearchResult[] = [];
       for (const st of edexcelSubtopics) {
@@ -151,7 +152,7 @@ export function SubjectSearchBox({
     if (!query.trim()) return topicSections;
     const q = query.toLowerCase();
 
-    if (isMath) {
+    if (isMath && !isEdexcel) {
       return topicSections
         .map((sec) => ({
           ...sec,
@@ -168,10 +169,10 @@ export function SubjectSearchBox({
         });
     }
     return topicSections;
-  }, [query, topicSections, isMath]);
+  }, [query, topicSections, isMath, isEdexcel]);
 
   const filteredTopics = useMemo(() => {
-    if (!query.trim() || isMath) return topics;
+    if (!query.trim() || (isMath && !isEdexcel)) return topics;
     const q = query.toLowerCase();
     return topics.filter(
       (t) =>
@@ -215,7 +216,7 @@ export function SubjectSearchBox({
         </div>
       </div>
 
-      {isMath ? (
+      {isMath && !isEdexcel ? (
         <div className="space-y-3">
           {filteredSections.map((sec, idx) => {
             const sectionSlug = sec.section
