@@ -38,6 +38,17 @@ export default async function MockExamsIndexPage() {
     .map((dbSubject) => ({ dbSubject, ...SUBJECT_MAP[dbSubject] }))
     .filter((s) => s.slug);
 
+  // Add R2-based subjects (not in DB) with fake set count
+  const R2_SUBJECTS = [
+    { dbSubject: "edexcel-biology", name: "Biology (Edexcel 4BI1)", icon: "🧬", slug: "edexcel-biology-4bi1" },
+  ];
+  for (const rs of R2_SUBJECTS) {
+    if (!availableSubjects.find((s) => s.slug === rs.slug)) {
+      availableSubjects.push(rs as any);
+      setCount[rs.dbSubject] = 3; // 3 sets
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold text-primary-900 mb-2">Mock Exams</h1>
