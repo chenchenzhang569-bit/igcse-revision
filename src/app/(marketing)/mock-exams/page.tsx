@@ -15,6 +15,7 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; slug: string }> 
   "0606": { name: "Additional Mathematics (0606)", icon: "➕", slug: "caie-additional-mathematics-0606" },
   "edexcel-biology": { name: "Biology (Edexcel 4BI1)", icon: "🧬", slug: "edexcel-biology-4bi1" },
   "edexcel-chemistry": { name: "Chemistry (Edexcel 4CH1)", icon: "🧪", slug: "edexcel-chemistry-4ch1" },
+  "edexcel-physics": { name: "Physics (Edexcel 4PH1)", icon: "⚛️", slug: "edexcel-physics-4ph1" },
 };
 
 export default async function MockExamsIndexPage() {
@@ -43,6 +44,7 @@ export default async function MockExamsIndexPage() {
   const R2_SUBJECTS = [
     { dbSubject: "edexcel-biology", name: "Biology (Edexcel 4BI1)", icon: "🧬", slug: "edexcel-biology-4bi1" },
     { dbSubject: "edexcel-chemistry", name: "Chemistry (Edexcel 4CH1)", icon: "🧪", slug: "edexcel-chemistry-4ch1" },
+    { dbSubject: "edexcel-physics", name: "Physics (Edexcel 4PH1)", icon: "⚛️", slug: "edexcel-physics-4ph1" },
   ];
   for (const rs of R2_SUBJECTS) {
     if (!availableSubjects.find((s) => s.slug === rs.slug)) {

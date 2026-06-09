@@ -18,6 +18,7 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: strin
   "caie-additional-mathematics-0606": { name: "Additional Math", icon: "➕", dbSubject: "0606" },
   "edexcel-biology-4bi1": { name: "Biology (Edexcel)", icon: "🧬", dbSubject: "edexcel-biology" },
   "edexcel-chemistry-4ch1": { name: "Chemistry (Edexcel)", icon: "🧪", dbSubject: "edexcel-chemistry" },
+  "edexcel-physics-4ph1": { name: "Physics (Edexcel)", icon: "⚛️", dbSubject: "edexcel-physics" },
 };
 
 const TIER_COLORS: Record<string, string> = {
@@ -117,7 +118,7 @@ export default async function MockExamsPage({
   // --- End paywall ---
 
   // Fetch mock exam data
-  const R2_SUBJECTS = ["edexcel-biology", "edexcel-chemistry"];
+  const R2_SUBJECTS = ["edexcel-biology", "edexcel-chemistry", "edexcel-physics"];
   const isR2Subject = R2_SUBJECTS.includes(subject.dbSubject);
 
   if (isR2Subject) {
@@ -134,6 +135,8 @@ export default async function MockExamsPage({
     try {
       const r2Filename = subject.dbSubject === "edexcel-chemistry"
         ? "mock/edexcel_chem_mock_questions.json"
+        : subject.dbSubject === "edexcel-physics"
+        ? "mock/edexcel_phys_mock_questions.json"
         : "mock/edexcel_bio_mock_questions.json";
       const cmd = new GetObjectCommand({
         Bucket: "sme-images",
@@ -176,9 +179,13 @@ export default async function MockExamsPage({
       // Add paper if not yet in set
       const isPaper1c = q.paper === "paper-1c";
       const isPaper1b = q.paper === "paper-1b";
-      const paperNum = isPaper1c ? "1C" : (isPaper1b ? "1B" : "2B");
-      const paperMins = (isPaper1c || isPaper1b) ? 120 : 75;
-      const slugPrefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : "edexcel-biology-";
+      const isPaper1p = q.paper === "paper-1p";
+      const paperNum = isPaper1c ? "1C" : (isPaper1b ? "1B" : (isPaper1p ? "1P" : "2P"));
+      const paperMins = (isPaper1c || isPaper1b || isPaper1p) ? 120 : 75;
+      let slugPrefix: string;
+      if (subjectSlug === "edexcel-chemistry-4ch1") slugPrefix = "edexcel-chemistry-";
+      else if (subjectSlug === "edexcel-physics-4ph1") slugPrefix = "edexcel-physics-";
+      else slugPrefix = "edexcel-biology-";
       const paperSlug = `${slugPrefix}${q.set}-${q.paper}`;
       const existingPaper = setMap[setKey].papers.find((p) => p.slug === paperSlug);
       if (!existingPaper) {
@@ -204,7 +211,7 @@ export default async function MockExamsPage({
         <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">
           {subject.icon} {subject.name} Mock Exams
         </h1>
-        <p className="text-gray-500 mt-1">Edexcel IGCSE Biology — 3 complete mock exam sets</p>
+        <p className="text-gray-500 mt-1">{subject.name} — 3 complete mock exam sets</p>
         <div className="mt-8 space-y-8">
           {Object.entries(setMap)
             .sort(([a], [b]) => a.localeCompare(b))

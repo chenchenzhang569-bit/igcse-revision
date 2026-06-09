@@ -10,6 +10,7 @@ const supabase = getSupabaseClient();
 const R2_SUBJECTS: Record<string, { key: string; slug: string }> = {
   "edexcel-biology-4bi1": { key: "edexcel-biology-4bi1", slug: "edexcel-biology-4bi1" },
   "edexcel-chemistry-4ch1": { key: "edexcel-chemistry-4ch1", slug: "edexcel-chemistry-4ch1" },
+  "edexcel-physics-4ph1": { key: "edexcel-physics-4ph1", slug: "edexcel-physics-4ph1" },
 };
 
 const TIER_COLORS: Record<string, string> = {
@@ -75,7 +76,7 @@ export function MockExamsTab({
           if (res.ok) {
             const allQuestions = await res.json();
             // Determine subject-specific slug prefix and paper patterns
-            const subjPrefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : "edexcel-biology-";
+            const subjPrefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : subjectSlug === "edexcel-physics-4ph1" ? "edexcel-physics-" : "edexcel-biology-";
             const hasPaper1c = allQuestions.some((q: any) => q.paper === "paper-1c");
             // Group into sets and papers
             const setMap: Record<string, any> = {};
@@ -100,8 +101,9 @@ export function MockExamsTab({
                 if (pk.startsWith(s.slug)) {
                   const isPaper1c = pk.includes("paper-1c");
                   const isPaper1b = pk.includes("paper-1b");
-                  const paperNum = isPaper1c ? "1C" : (isPaper1b ? "1B" : "2B");
-                  const paperMins = (isPaper1c || isPaper1b) ? 120 : 75;
+                  const isPaper1p = pk.includes("paper-1p");
+                  const paperNum = isPaper1c ? "1C" : (isPaper1b ? "1B" : (isPaper1p ? "1P" : "2P"));
+                  const paperMins = (isPaper1c || isPaper1b || isPaper1p) ? 120 : 75;
                   papers.push({
                     id: pk,
                     paper_type: "Theory",

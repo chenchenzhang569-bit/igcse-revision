@@ -144,6 +144,7 @@ const SUBJECT_MAP: Record<string, string> = {
   "caie-mathematics-0580": "Mathematics",
   "edexcel-biology-4bi1": "Biology (Edexcel)",
   "edexcel-chemistry-4ch1": "Chemistry (Edexcel)",
+  "edexcel-physics-4ph1": "Physics (Edexcel)",
 };
 
 type Question = {
@@ -228,7 +229,7 @@ export default function MockExamPaperPage() {
 
   useEffect(() => {
     async function load() {
-      const R2_SUBJECTS = ["edexcel-biology-4bi1", "edexcel-chemistry-4ch1"];
+      const R2_SUBJECTS = ["edexcel-biology-4bi1", "edexcel-chemistry-4ch1", "edexcel-physics-4ph1"];
       const isR2 = R2_SUBJECTS.includes(subjectSlug);
 
       if (isR2) {
@@ -239,7 +240,7 @@ export default function MockExamPaperPage() {
           const allQuestions = await res.json();
 
           // Filter questions matching this paper slug
-          const prefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : "edexcel-biology-";
+          const prefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : subjectSlug === "edexcel-physics-4ph1" ? "edexcel-physics-" : "edexcel-biology-";
           const paperKey = paperSlug.replace(prefix, "");
           const parts = paperKey.split("-");
           const setSlug = parts.slice(0, 2).join("-"); // "set-1"
@@ -250,12 +251,14 @@ export default function MockExamPaperPage() {
             .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
 
           // Determine paper metadata
+          const isPaper1c = paperType === "paper-1c";
           const isPaper1b = paperType === "paper-1b";
+          const isPaper1p = paperType === "paper-1p";
           const paperMeta = {
             id: paperSlug,
             paper_type: "Theory",
-            paper_number: isPaper1b ? "1B" : "2B",
-            minutes: isPaper1b ? 120 : 75,
+            paper_number: isPaper1c ? "1C" : (isPaper1b ? "1B" : (isPaper1p ? "1P" : "2P")),
+            minutes: (isPaper1c || isPaper1b || isPaper1p) ? 120 : 75,
             total_marks: filtered.reduce((s: number, q: any) => s + (q.marks || 0), 0),
           };
 
