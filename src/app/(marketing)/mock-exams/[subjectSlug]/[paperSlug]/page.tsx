@@ -241,7 +241,7 @@ export default function MockExamPaperPage() {
           const paperKey = paperSlug.replace("edexcel-biology-", "");
           const parts = paperKey.split("-");
           const setSlug = parts.slice(0, 2).join("-"); // "set-1"
-          const paperType = parts[2]; // "paper-1b" or "paper-2b"
+          const paperType = parts.slice(2).join("-"); // "paper-1b" or "paper-2b"
 
           const filtered = allQuestions
             .filter((q: any) => q.set === setSlug && q.paper === paperType)

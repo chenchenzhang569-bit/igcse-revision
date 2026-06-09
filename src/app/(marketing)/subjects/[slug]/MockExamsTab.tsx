@@ -6,6 +6,11 @@ import { getSupabaseClient } from "@/lib/supabase-client";
 
 const supabase = getSupabaseClient();
 
+// R2 subject config: subjects whose mock data is stored in R2 JSON, not in DB
+const R2_SUBJECTS: Record<string, { key: string; slug: string }> = {
+  "edexcel-biology-4bi1": { key: "edexcel-biology-4bi1", slug: "edexcel-biology-4bi1" },
+};
+
 const TIER_COLORS: Record<string, string> = {
   Core: "bg-blue-50 border-blue-200 text-blue-700",
   Extended: "bg-purple-50 border-purple-200 text-purple-700",
@@ -61,7 +66,54 @@ export function MockExamsTab({
   useEffect(() => {
     (async () => {
       try {
-        // Fetch sets (filter by both subject AND exam board)
+        // Check if this is an R2-based subject (mock data stored in R2 JSON)
+        const r2Config = R2_SUBJECTS[subjectSlug];
+        if (r2Config) {
+          // Fetch from R2 JSON api route
+          const res = await fetch(`/api/r2/json/${r2Config.slug}`);
+          if (res.ok) {
+            const allQuestions = await res.json();
+            // Group into sets and papers
+            const setMap: Record<string, any> = {};
+            const paperMap: Record<string, any[]> = {};
+            for (const q of allQuestions) {
+              const setKey = q.set;
+              const paperKey = `${q.set}-${q.paper}`;
+              if (!setMap[setKey]) {
+                const setNum = parseInt(q.set.split("-")[1]);
+                setMap[setKey] = { id: setKey, set_number: setNum, tier: "Extended", slug: q.set, papers: [] };
+              }
+              if (!paperMap[paperKey]) {
+                paperMap[paperKey] = [];
+              }
+              paperMap[paperKey].push(q);
+            }
+            // Build set list with paper data
+            const setList: SetData[] = Object.values(setMap).map((s: any) => {
+              const papers: PaperData[] = [];
+              for (const [pk, qs] of Object.entries(paperMap)) {
+                if (pk.startsWith(s.slug)) {
+                  const isPaper1b = pk.includes("paper-1b");
+                  papers.push({
+                    id: pk,
+                    paper_type: "Theory",
+                    paper_number: isPaper1b ? "1B" : "2B",
+                    minutes: isPaper1b ? 120 : 75,
+                    total_marks: (qs as any[]).reduce((sum: number, q: any) => sum + (q.marks || 0), 0),
+                    slug: `edexcel-biology-${pk}`,
+                    questionCount: (qs as any[]).length,
+                  });
+                }
+              }
+              return { ...s, papers };
+            });
+            setSets(setList.sort((a: any, b: any) => a.set_number - b.set_number));
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fallback to DB-based fetch for CAIE subjects
         const { data: setRows, error: setErr } = await supabase
           .from("mock_exam_sets")
           .select("id, set_number, tier, slug")
