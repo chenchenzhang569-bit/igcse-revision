@@ -16,6 +16,7 @@ const s3 = new S3Client({
 
 const MOCK_FILES: Record<string, { bucket: string; key: string }> = {
   "edexcel-biology-4bi1": { bucket: "sme-images", key: "mock/edexcel_bio_mock_questions.json" },
+  "edexcel-chemistry-4ch1": { bucket: "sme-images", key: "mock/edexcel_chem_mock_questions.json" },
 };
 
 /**

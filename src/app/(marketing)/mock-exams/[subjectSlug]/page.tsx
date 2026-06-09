@@ -17,6 +17,7 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: strin
   "caie-economics-0455": { name: "Economics", icon: "📊", dbSubject: "economics" },
   "caie-additional-mathematics-0606": { name: "Additional Math", icon: "➕", dbSubject: "0606" },
   "edexcel-biology-4bi1": { name: "Biology (Edexcel)", icon: "🧬", dbSubject: "edexcel-biology" },
+  "edexcel-chemistry-4ch1": { name: "Chemistry (Edexcel)", icon: "🧪", dbSubject: "edexcel-chemistry" },
 };
 
 const TIER_COLORS: Record<string, string> = {
@@ -116,7 +117,7 @@ export default async function MockExamsPage({
   // --- End paywall ---
 
   // Fetch mock exam data
-  const R2_SUBJECTS = ["edexcel-biology"];
+  const R2_SUBJECTS = ["edexcel-biology", "edexcel-chemistry"];
   const isR2Subject = R2_SUBJECTS.includes(subject.dbSubject);
 
   if (isR2Subject) {
@@ -131,9 +132,12 @@ export default async function MockExamsPage({
     });
     let rawQuestions: any[];
     try {
+      const r2Filename = subject.dbSubject === "edexcel-chemistry"
+        ? "mock/edexcel_chem_mock_questions.json"
+        : "mock/edexcel_bio_mock_questions.json";
       const cmd = new GetObjectCommand({
         Bucket: "sme-images",
-        Key: "mock/edexcel_bio_mock_questions.json",
+        Key: r2Filename,
       });
       const resp = await r2s3.send(cmd);
       const body = await resp.Body!.transformToString("utf-8");
@@ -168,14 +172,19 @@ export default async function MockExamsPage({
         };
       }
       // Add paper if not yet in set
-      const paperSlug = `edexcel-biology-${q.set}-${q.paper}`;
+      const isPaper1c = q.paper === "paper-1c";
+      const isPaper1b = q.paper === "paper-1b";
+      const paperNum = isPaper1c ? "1C" : (isPaper1b ? "1B" : "2B");
+      const paperMins = (isPaper1c || isPaper1b) ? 120 : 75;
+      const slugPrefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : "edexcel-biology-";
+      const paperSlug = `${slugPrefix}${q.set}-${q.paper}`;
       const existingPaper = setMap[setKey].papers.find((p) => p.slug === paperSlug);
       if (!existingPaper) {
         setMap[setKey].papers.push({
           id: paperKey,
-          paper_type: q.paper === "paper-1b" ? "Theory" : "Theory",
-          paper_number: q.paper === "paper-1b" ? "1B" : "2B",
-          minutes: q.paper === "paper-1b" ? 120 : 75,
+          paper_type: "Theory",
+          paper_number: paperNum,
+          minutes: paperMins,
           total_marks: 0,
           slug: paperSlug,
         });

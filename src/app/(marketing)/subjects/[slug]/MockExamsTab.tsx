@@ -9,6 +9,7 @@ const supabase = getSupabaseClient();
 // R2 subject config: subjects whose mock data is stored in R2 JSON, not in DB
 const R2_SUBJECTS: Record<string, { key: string; slug: string }> = {
   "edexcel-biology-4bi1": { key: "edexcel-biology-4bi1", slug: "edexcel-biology-4bi1" },
+  "edexcel-chemistry-4ch1": { key: "edexcel-chemistry-4ch1", slug: "edexcel-chemistry-4ch1" },
 };
 
 const TIER_COLORS: Record<string, string> = {
@@ -73,6 +74,9 @@ export function MockExamsTab({
           const res = await fetch(`/api/r2/json/${r2Config.slug}`);
           if (res.ok) {
             const allQuestions = await res.json();
+            // Determine subject-specific slug prefix and paper patterns
+            const subjPrefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : "edexcel-biology-";
+            const hasPaper1c = allQuestions.some((q: any) => q.paper === "paper-1c");
             // Group into sets and papers
             const setMap: Record<string, any> = {};
             const paperMap: Record<string, any[]> = {};
@@ -93,14 +97,17 @@ export function MockExamsTab({
               const papers: PaperData[] = [];
               for (const [pk, qs] of Object.entries(paperMap)) {
                 if (pk.startsWith(s.slug)) {
+                  const isPaper1c = pk.includes("paper-1c");
                   const isPaper1b = pk.includes("paper-1b");
+                  const paperNum = isPaper1c ? "1C" : (isPaper1b ? "1B" : "2B");
+                  const paperMins = (isPaper1c || isPaper1b) ? 120 : 75;
                   papers.push({
                     id: pk,
                     paper_type: "Theory",
-                    paper_number: isPaper1b ? "1B" : "2B",
-                    minutes: isPaper1b ? 120 : 75,
+                    paper_number: paperNum,
+                    minutes: paperMins,
                     total_marks: (qs as any[]).reduce((sum: number, q: any) => sum + (q.marks || 0), 0),
-                    slug: `edexcel-biology-${pk}`,
+                    slug: `${subjPrefix}${pk}`,
                     questionCount: (qs as any[]).length,
                   });
                 }

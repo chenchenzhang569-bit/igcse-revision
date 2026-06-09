@@ -143,6 +143,7 @@ const SUBJECT_MAP: Record<string, string> = {
   "caie-biology-0610": "Biology",
   "caie-mathematics-0580": "Mathematics",
   "edexcel-biology-4bi1": "Biology (Edexcel)",
+  "edexcel-chemistry-4ch1": "Chemistry (Edexcel)",
 };
 
 type Question = {
@@ -227,7 +228,7 @@ export default function MockExamPaperPage() {
 
   useEffect(() => {
     async function load() {
-      const R2_SUBJECTS = ["edexcel-biology-4bi1"];
+      const R2_SUBJECTS = ["edexcel-biology-4bi1", "edexcel-chemistry-4ch1"];
       const isR2 = R2_SUBJECTS.includes(subjectSlug);
 
       if (isR2) {
@@ -238,7 +239,8 @@ export default function MockExamPaperPage() {
           const allQuestions = await res.json();
 
           // Filter questions matching this paper slug
-          const paperKey = paperSlug.replace("edexcel-biology-", "");
+          const prefix = subjectSlug === "edexcel-chemistry-4ch1" ? "edexcel-chemistry-" : "edexcel-biology-";
+          const paperKey = paperSlug.replace(prefix, "");
           const parts = paperKey.split("-");
           const setSlug = parts.slice(0, 2).join("-"); // "set-1"
           const paperType = parts.slice(2).join("-"); // "paper-1b" or "paper-2b"

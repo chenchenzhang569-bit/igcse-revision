@@ -1,0 +1,178 @@
+/**
+ * SME Edexcel Chemistry 4CH1 Mock Exam Scraper
+ * 
+ * 用法：
+ * 1. 在浏览器打开 https://www.savemyexams.com/igcse/chemistry/edexcel/19/mock-exams/
+ * 2. F12 → Console → 粘贴下面代码 → Enter
+ * 3. 等待完成后自动下载 edexcel_chem_mock_questions.json
+ */
+
+(async function() {
+  const PAPER_IDS = {
+    "set-a": { "paper-1c": "meppr_zyk6rsTFpN23VvCn", "paper-2c": "meppr_GhzgdczJHthKq386" },
+    "set-b": { "paper-1c": "meppr_BFj9yZWbjGtwtvvm", "paper-2c": "meppr_wS8jq757vTtMN8JB" },
+  };
+
+  // ProseMirror → markdown converter (preserves images, tables, equations)
+  function pm(nd) {
+    if (typeof nd === "string") return nd;
+    if (Array.isArray(nd)) return nd.map(function(n) { return pm(n) || ""; }).join("");
+    if (!nd || typeof nd !== "object") return "";
+    var t = nd.type || "";
+    var c = nd.content || [];
+    var txt = nd.text || "";
+    var ms = nd.marks || [];
+    if (txt) {
+      for (var i = 0; i < ms.length; i++) {
+        if (ms[i].type === "bold") txt = "**" + txt + "**";
+        else if (ms[i].type === "italic") txt = "*" + txt + "*";
+        else if (ms[i].type === "subscript") txt = "_" + txt + "_";
+        else if (ms[i].type === "superscript") txt = "^" + txt + "^";
+      }
+      return txt;
+    }
+    if (t === "hardBreak") return "\n";
+    if (t === "paragraph") return pm(c) + "\n";
+    if (t === "equation") {
+      var alt = nd.attrs && nd.attrs.alt ? nd.attrs.alt : "";
+      return alt ? "$" + alt + "$" : "";
+    }
+    if (t === "bulletList") {
+      var items = [];
+      for (var i = 0; i < c.length; i++) items.push("• " + pm(c[i]));
+      return items.join("\n") + "\n";
+    }
+    if (t === "orderedList") {
+      var oItems = [];
+      for (var i = 0; i < c.length; i++) oItems.push((i+1) + ". " + pm(c[i]));
+      return oItems.join("\n") + "\n";
+    }
+    if (t === "listItem") return pm(c);
+    if (t === "figure") {
+      var src = nd.attrs && nd.attrs.src ? nd.attrs.src : "";
+      var alt = nd.attrs && nd.attrs.alt ? nd.attrs.alt : "diagram";
+      return src ? "\n![" + alt + "](" + src + ")\n" : "";
+    }
+    if (t === "table") {
+      var rows = [];
+      for (var ri = 0; ri < c.length; ri++) {
+        var rn = c[ri];
+        if (rn.type !== "tableRow") continue;
+        var cells = [];
+        for (var ci = 0; ci < (rn.content || []).length; ci++) {
+          cells.push(pm(rn.content[ci]).trim().replace(/\n/g, " "));
+        }
+        rows.push(cells);
+      }
+      if (!rows.length) return "";
+      var md = "| " + rows[0].join(" | ") + " |\n";
+      md += "|" + rows[0].map(function() { return "---"; }).join("|") + "|\n";
+      for (var i = 1; i < rows.length; i++) {
+        md += "| " + rows[i].join(" | ") + " |\n";
+      }
+      return md + "\n";
+    }
+    if (t === "tableRow") return pm(c);
+    if (t === "tableCell" || t === "tableHeader") return pm(c);
+    if (c && c.length) return pm(c);
+    return "";
+  }
+
+  var allQuestions = [];
+  var totalPapers = 0;
+  var donePapers = 0;
+
+  for (var setSlug in PAPER_IDS) {
+    var papers = PAPER_IDS[setSlug];
+    totalPapers += Object.keys(papers).length;
+  }
+
+  for (var setSlug in PAPER_IDS) {
+    var papers = PAPER_IDS[setSlug];
+    for (var paperSlug in papers) {
+      var paperId = papers[paperSlug];
+      var url = "/api/site/content/question-set-solutions/?mockExamPaperId=" + paperId;
+      console.log("[" + (donePapers+1) + "/" + totalPapers + "] Fetching " + setSlug + " " + paperSlug + "...");
+
+      try {
+        var res = await fetch(url, { credentials: "include" });
+        if (!res.ok) {
+          console.error("  FAIL HTTP " + res.status);
+          donePapers++;
+          continue;
+        }
+        var data = await res.json();
+        var qs = data.questions || [];
+        console.log("  Got " + qs.length + " questions");
+
+        for (var qi = 0; qi < qs.length; qi++) {
+          var q = qs[qi];
+          var attrs = q.attributes || {};
+          var order = attrs.order || 0;
+          var difficulty = attrs.difficulty || "medium";
+          var parts = attrs.parts || [];
+
+          // Build stem from all parts
+          var stems = [];
+          var solutions = [];
+          var totalMarks = 0;
+          var qType = "structured";
+          var opts = null;
+          var correctAnswer = "";
+
+          for (var pi = 0; pi < parts.length; pi++) {
+            var p = parts[pi];
+            var label = parts.length > 1 ? "(" + String.fromCharCode(97 + pi) + ") " : "";
+            var problem = pm(p.problem || []).trim();
+            stems.push(label + problem);
+
+            var sol = pm(p.solution || []).trim();
+            solutions.push(label + sol);
+
+            totalMarks += p.marks || 0;
+
+            // Check for MCQ
+            if (p.choices && p.choices.length > 0) {
+              qType = "mcq";
+              opts = [];
+              for (var ci = 0; ci < p.choices.length; ci++) {
+                var ch = p.choices[ci];
+                var charLabel = String.fromCharCode(65 + (ch.order || ci));
+                var chContent = ch.content ? pm(ch.content).trim() : "";
+                opts.push(charLabel + ". " + chContent);
+                if (ch.is_correct) correctAnswer = charLabel;
+              }
+            }
+          }
+
+          allQuestions.push({
+            set: setSlug,
+            paper: paperSlug,
+            order: order,
+            type: qType,
+            diff: difficulty,
+            marks: totalMarks,
+            stem: stems.join("\n\n"),
+            sol: solutions.join("\n\n"),
+            opts: opts,
+            ca: correctAnswer,
+          });
+        }
+      } catch (e) {
+        console.error("  Error: " + (e.message || e));
+      }
+      donePapers++;
+    }
+  }
+
+  console.log("Done! Total questions: " + allQuestions.length);
+  console.log("Sets:", [...new Set(allQuestions.map(function(q) { return q.set; }))]);
+
+  // Download as JSON
+  var blob = new Blob([JSON.stringify(allQuestions, null, 2)], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "edexcel_chem_mock_questions.json";
+  a.click();
+  console.log("Downloaded edexcel_chem_mock_questions.json");
+})();

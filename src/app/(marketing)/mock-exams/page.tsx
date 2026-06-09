@@ -14,6 +14,7 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; slug: string }> 
   economics: { name: "Economics (0455)", icon: "📊", slug: "caie-economics-0455" },
   "0606": { name: "Additional Mathematics (0606)", icon: "➕", slug: "caie-additional-mathematics-0606" },
   "edexcel-biology": { name: "Biology (Edexcel 4BI1)", icon: "🧬", slug: "edexcel-biology-4bi1" },
+  "edexcel-chemistry": { name: "Chemistry (Edexcel 4CH1)", icon: "🧪", slug: "edexcel-chemistry-4ch1" },
 };
 
 export default async function MockExamsIndexPage() {
@@ -41,6 +42,7 @@ export default async function MockExamsIndexPage() {
   // Add R2-based subjects (not in DB) with fake set count
   const R2_SUBJECTS = [
     { dbSubject: "edexcel-biology", name: "Biology (Edexcel 4BI1)", icon: "🧬", slug: "edexcel-biology-4bi1" },
+    { dbSubject: "edexcel-chemistry", name: "Chemistry (Edexcel 4CH1)", icon: "🧪", slug: "edexcel-chemistry-4ch1" },
   ];
   for (const rs of R2_SUBJECTS) {
     if (!availableSubjects.find((s) => s.slug === rs.slug)) {
