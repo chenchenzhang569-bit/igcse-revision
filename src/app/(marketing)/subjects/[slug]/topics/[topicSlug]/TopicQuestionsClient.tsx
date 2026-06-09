@@ -11,6 +11,31 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
+// ─── Chemical Formula Fixer ───
+// Converts plain text chemical formulas (H2O, CO2, CaCO3) to Unicode subscript (H₂O, CO₂, CaCO₃)
+// Handles common Chemistry patterns: element symbols followed by digit counts
+function fixChemicalFormulas(text: string): string {
+  const SUB: Record<string, string> = {
+    "0": "₀","1": "₁","2": "₂","3": "₃","4": "₄",
+    "5": "₅","6": "₆","7": "₇","8": "₈","9": "₉",
+  };
+  const SUP: Record<string, string> = {
+    "+": "⁺", "-": "⁻",
+  };
+  return text
+    // Element + digit subscripts: H2O, CO2, CaCO3, Fe2O3, H2SO4 etc.
+    .replace(/(?<![a-zA-Z])([A-Z][a-z]?)(\d+)(?![a-zA-Z0-9]|\s*\.\s*\d)/g, (_, el, digits) => {
+      return el + digits.split("").map((d: string) => SUB[d] || d).join("");
+    })
+    // Ion charges: H+ → H⁺, OH- → OH⁻ (after element symbols)
+    .replace(/(?<=[a-zA-Z0-9₀₁₂₃₄₅₆₇₈₉])([\+\-])(?=\s|$|[),.])/g, (_, charge) => SUP[charge] || charge)
+    // Fix state symbols like (aq) that might have gotten mangled - keep as-is
+    .replace(/\(ₐq\)/g, "(aq)")
+    .replace(/\(ₛ\)/g, "(s)")
+    .replace(/\(ₗ\)/g, "(l)")
+    .replace(/\(g\)/g, "(g)");
+}
+
 const markdownComponents = {
   img: (props: any) => (
     <img {...props} style={{ maxWidth: "100%", height: "auto" }} />
@@ -782,7 +807,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
               return introText ? (
                 <div className="prose prose-sm max-w-none text-gray-800 mb-4"
-                  dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(introText)) }} />
+                  dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(fixChemicalFormulas(introText))) }} />
               ) : null;
             })()}
             <div className="space-y-4">
@@ -798,7 +823,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                       </p>
                       {sp.text && (
                         <div className="prose prose-sm max-w-none text-gray-700"
-                          dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
+                          dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(fixChemicalFormulas(sp.text))) }} />
                       )}
                     </div>
                   );
@@ -818,7 +843,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                     </p>
                     {sp.text && !hasCheckboxOptions && (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
-                        dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
+                        dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(fixChemicalFormulas(sp.text))) }} />
                     )}
                     {hasCheckboxOptions ? (
                       <div className="space-y-2">
@@ -861,7 +886,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         ) : !isMcq ? (
           <>
             <div className="prose prose-sm max-w-none text-gray-800 mb-5"
-              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
+              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(fixChemicalFormulas(stem)))) }} />
             <MathInput
               value={userAns}
               onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
@@ -874,7 +899,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         {isMcq ? (
           <>
             <div className="prose prose-sm max-w-none text-gray-800 mb-4"
-              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
+              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(fixChemicalFormulas(stem)))) }} />
             <div className="space-y-2.5">
               {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
@@ -921,7 +946,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               </button>
               {markSchemeVisible[q.id] && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{(bugContext?.board === "Edexcel" ? (q.clean_answer_text || q.answer_text || "") : (typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')))}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} urlTransform={allowDataUrls} components={markdownComponents}>{fixChemicalFormulas(bugContext?.board === "Edexcel" ? (q.clean_answer_text || q.answer_text || "") : (typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')))}</ReactMarkdown>
                 </div>
               )}
             </div>
