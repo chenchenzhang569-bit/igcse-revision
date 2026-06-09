@@ -119,8 +119,9 @@ export default async function MockExamsPage({
   const isR2Subject = R2_SUBJECTS.includes(subject.dbSubject);
 
   if (isR2Subject) {
-    // Fetch from R2 JSON — use relative URL (same origin)
-    const r2Res = await fetch(`/api/r2/json/${subjectSlug}`, { cache: "no-store" });
+    // Fetch from R2 JSON — use absolute URL (Server Component needs full URL)
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `https://igcse-revision-cdgy.vercel.app`);
+    const r2Res = await fetch(`${baseUrl}/api/r2/json/${subjectSlug}`, { cache: "no-store" });
     if (!r2Res.ok) {
       return (
         <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
