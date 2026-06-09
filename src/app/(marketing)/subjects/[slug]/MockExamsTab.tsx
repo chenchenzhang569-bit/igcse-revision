@@ -84,7 +84,8 @@ export function MockExamsTab({
               const setKey = q.set;
               const paperKey = `${q.set}-${q.paper}`;
               if (!setMap[setKey]) {
-                const setNum = parseInt(q.set.split("-")[1]);
+                const slugPart = q.set.split("-")[1];
+                const setNum = parseInt(slugPart) || (slugPart ? slugPart.charCodeAt(0) - 96 : 1);
                 setMap[setKey] = { id: setKey, set_number: setNum, tier: "Extended", slug: q.set, papers: [] };
               }
               if (!paperMap[paperKey]) {

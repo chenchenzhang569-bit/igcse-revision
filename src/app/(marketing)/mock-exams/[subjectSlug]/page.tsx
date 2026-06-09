@@ -162,11 +162,13 @@ export default async function MockExamsPage({
     const paperQuestionCount: Record<string, number> = {};
 
     for (const q of rawQuestions) {
-      const setKey = q.set; // "set-1"
-      const paperKey = `${q.set}-${q.paper}`; // "set-1-paper-1b"
+      const setKey = q.set; // "set-1" or "set-a"
+      const paperKey = `${q.set}-${q.paper}`; // "set-1-paper-1b" or "set-a-paper-1c"
       if (!setMap[setKey]) {
+        const slugPart = q.set.split("-")[1];
+        const setNum = parseInt(slugPart) || (slugPart ? slugPart.charCodeAt(0) - 96 : 1);
         setMap[setKey] = {
-          setNumber: parseInt(q.set.split("-")[1]),
+          setNumber: setNum,
           slug: q.set,
           papers: [],
         };
