@@ -469,6 +469,7 @@ export default async function SubjectPage({
           topics={topics}
           slug={slug}
           isMath={key === "maths"}
+          subjectId={subjectId}
         />
       )}
 

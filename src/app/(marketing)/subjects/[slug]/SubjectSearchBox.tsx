@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { SUBTOPIC_DATA, type SubtopicDef } from "@/lib/subtopic-data";
+import { createClient } from "@/lib/supabase/client";
 
 interface Topic {
   name: string;
@@ -16,6 +17,12 @@ interface TopicSection {
   section: string;
   topics: Topic[];
   subtopicCount?: number;
+}
+
+interface SearchResult {
+  label: string;
+  href: string;
+  subtitle?: string;
 }
 
 const SLUG_TO_KEY: Record<string, string> = {
@@ -39,34 +46,54 @@ const SLUG_TO_KEY: Record<string, string> = {
   "caie-computer-science-0478": "computer-science",
 };
 
-interface SearchResult {
-  label: string;
-  href: string;
-  subtitle?: string;
-}
-
 export function SubjectSearchBox({
   topicSections,
   topics,
   slug,
   isMath,
+  subjectId,
 }: {
   topicSections: TopicSection[];
   topics: Topic[];
   slug: string;
   isMath: boolean;
+  subjectId: string | null;
 }) {
   const [query, setQuery] = useState("");
+  const [edexcelSubtopics, setEdexcelSubtopics] = useState<{ slug: string; displayName: string; topicSlug: string; pmtCode: string }[]>([]);
+  
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   const isEdexcel = slug.startsWith("edexcel");
   const subtopicData = isEdexcel ? {} : (SUBTOPIC_DATA[subjectKey] || {});
+
+  // Fetch Edexcel subtopics from DB
+  useEffect(() => {
+    if (!isEdexcel || !subjectId) return;
+    const supabase = createClient();
+    (async () => {
+      const { data: subs } = await supabase
+        .from("subtopics")
+        .select("slug, display_name, topic_id, sort_order, topics!inner(slug, sort_order)")
+        .eq("topics.subject_id", subjectId)
+        .order("topic_id", { ascending: true })
+        .order("sort_order", { ascending: true });
+      
+      if (subs) {
+        setEdexcelSubtopics(subs.map((s: any) => ({
+          slug: s.slug,
+          displayName: s.display_name || s.slug,
+          topicSlug: s.topics?.slug || "",
+          pmtCode: `${s.topics?.sort_order || 1}.${s.sort_order || 1}`,
+        })));
+      }
+    })();
+  }, [isEdexcel, subjectId]);
 
   const matchedResults = useMemo((): SearchResult[] => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
 
     if (isMath) {
-      // Math: search SME topics across all sections
       const results: SearchResult[] = [];
       for (const sec of topicSections) {
         for (const t of sec.topics) {
@@ -86,18 +113,15 @@ export function SubjectSearchBox({
       return results.slice(0, 8);
     }
 
-    // Edexcel: search topic-level names only (subtopic data is DB-driven, not in SUBTOPIC_DATA)
+    // Edexcel: search DB subtopics
     if (isEdexcel) {
       const results: SearchResult[] = [];
-      for (const t of topics) {
-        if (
-          t.name.toLowerCase().includes(q) ||
-          t.displayName.toLowerCase().includes(q) ||
-          t.slug.toLowerCase().includes(q)
-        ) {
+      for (const st of edexcelSubtopics) {
+        if (st.displayName.toLowerCase().includes(q) || st.slug.toLowerCase().includes(q)) {
           results.push({
-            label: t.displayName,
-            href: `/subjects/${slug}/topics/${t.slug}`,
+            label: st.displayName,
+            href: `/subjects/${slug}/topics/${st.topicSlug}/${st.slug}`,
+            subtitle: st.pmtCode,
           });
         }
       }
@@ -121,7 +145,7 @@ export function SubjectSearchBox({
       }
     }
     return results.slice(0, 8);
-  }, [query, topicSections, subtopicData, isMath, slug, topics, isEdexcel]);
+  }, [query, topicSections, subtopicData, isMath, slug, isEdexcel, edexcelSubtopics]);
 
   const filteredSections = useMemo(() => {
     if (!query.trim()) return topicSections;
@@ -198,7 +222,6 @@ export function SubjectSearchBox({
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")
               .replace(/-+$/, "");
-            // 0606: section link → topic page (no separate /sections route)
             const href = subjectKey === "additional-maths"
               ? `/subjects/${slug}/topics/${sec.topics[0]?.slug || sectionSlug}`
               : `/subjects/${slug}/sections/${sectionSlug}`;
