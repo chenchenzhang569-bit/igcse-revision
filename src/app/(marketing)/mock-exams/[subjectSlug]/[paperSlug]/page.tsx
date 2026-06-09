@@ -182,6 +182,7 @@ export default function MockExamPaperPage() {
   const [bugModalOpen, setBugModalOpen] = useState(false);
   const [hasAccess, setHasAccess] = useState(true); // default true, will be set false by check
   const [accessChecked, setAccessChecked] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("");
 
   // Paywall: check auth + purchase before loading paper data
   useEffect(() => {
@@ -234,7 +235,7 @@ export default function MockExamPaperPage() {
       if (isR2) {
         // Fetch from R2 JSON for Edexcel subjects
         try {
-          const res = await fetch(`/api/r2/json/${subjectSlug}`);
+          const res = await fetch(`/api/r2/json/${subjectSlug}?t=${Date.now()}`);
           if (!res.ok) throw new Error("Failed to fetch");
           const allQuestions = await res.json();
 
@@ -275,6 +276,7 @@ export default function MockExamPaperPage() {
             marks: q.marks || 1,
           }));
           setQuestions(parsed);
+          setDebugInfo(`R2: ${allQuestions.length} total, ${filtered.length} for paper, ${parsed.filter((x:any) => x.question_type==='mcq').length} MCQs`);
           setLoading(false);
           return;
         } catch (e) {
@@ -445,7 +447,12 @@ function toProxyUrl(src: string): string {
             <h1 className="text-xl sm:text-2xl font-bold text-primary-900">
               {paper.paper_number} — {paper.paper_type}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            {debugInfo && (
+            <div className="text-xs text-gray-300 bg-gray-800 rounded p-1 mt-2 font-mono">
+              {debugInfo}
+            </div>
+          )}
+          <p className="text-sm text-gray-500 mt-1">
               {paper.minutes} minutes · {paper.total_marks} marks · {questions.length} questions
             </p>
           </div>
