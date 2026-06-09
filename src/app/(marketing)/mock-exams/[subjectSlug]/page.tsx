@@ -15,6 +15,7 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: strin
   "caie-computer-science-0478": { name: "Computer Science", icon: "💻", dbSubject: "computer-science" },
   "caie-economics-0455": { name: "Economics", icon: "📊", dbSubject: "economics" },
   "caie-additional-mathematics-0606": { name: "Additional Math", icon: "➕", dbSubject: "0606" },
+  "edexcel-biology-4bi1": { name: "Biology (Edexcel)", icon: "🧬", dbSubject: "edexcel-biology" },
 };
 
 const TIER_COLORS: Record<string, string> = {
@@ -113,7 +114,121 @@ export default async function MockExamsPage({
   }
   // --- End paywall ---
 
-  // Fetch mock exam sets
+  // Fetch mock exam data
+  const R2_SUBJECTS = ["edexcel-biology"];
+  const isR2Subject = R2_SUBJECTS.includes(subject.dbSubject);
+
+  if (isR2Subject) {
+    // Fetch from R2 JSON instead of DB
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://igmaster.org";
+    const r2Res = await fetch(`${baseUrl}/api/r2/json/${subjectSlug}`, { cache: "no-store" });
+    if (!r2Res.ok) {
+      return (
+        <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+          <Link href="/" className="text-sm text-gray-400 hover:text-primary-600">← Home</Link>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">
+            {subject.icon} {subject.name} Mock Exams
+          </h1>
+          <div className="mt-8 bg-gray-50 border rounded-xl p-8 text-center text-gray-600">
+            <p className="font-medium">Mock exams coming soon</p>
+          </div>
+        </div>
+      );
+    }
+    const rawQuestions = await r2Res.json();
+
+    // Group by set/paper
+    const setMap: Record<string, { setNumber: number; slug: string; papers: any[] }> = {};
+    const paperQuestionCount: Record<string, number> = {};
+
+    for (const q of rawQuestions) {
+      const setKey = q.set; // "set-1"
+      const paperKey = `${q.set}-${q.paper}`; // "set-1-paper-1b"
+      if (!setMap[setKey]) {
+        setMap[setKey] = {
+          setNumber: parseInt(q.set.split("-")[1]),
+          slug: q.set,
+          papers: [],
+        };
+      }
+      // Add paper if not yet in set
+      const paperSlug = `edexcel-biology-${q.set}-${q.paper}`;
+      const existingPaper = setMap[setKey].papers.find((p) => p.slug === paperSlug);
+      if (!existingPaper) {
+        setMap[setKey].papers.push({
+          id: paperKey,
+          paper_type: q.paper === "paper-1b" ? "Theory" : "Theory",
+          paper_number: q.paper === "paper-1b" ? "1B" : "2B",
+          minutes: q.paper === "paper-1b" ? 120 : 75,
+          total_marks: 0,
+          slug: paperSlug,
+        });
+        paperQuestionCount[paperKey] = 0;
+      }
+      paperQuestionCount[paperKey] = (paperQuestionCount[paperKey] || 0) + 1;
+      // Sum marks
+      const p = setMap[setKey].papers.find((p) => p.slug === paperSlug);
+      if (p) p.total_marks += (q.marks || 0);
+    }
+
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+        <Link href="/" className="text-sm text-gray-400 hover:text-primary-600">← Home</Link>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">
+          {subject.icon} {subject.name} Mock Exams
+        </h1>
+        <p className="text-gray-500 mt-1">Edexcel IGCSE Biology — 3 complete mock exam sets</p>
+        <div className="mt-8 space-y-8">
+          {Object.entries(setMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([setKey, setData]) => (
+              <div key={setKey} className="bg-white border rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-gray-800">Set {setData.setNumber}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-50 border-purple-200 text-purple-700">
+                      Extended
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-400">
+                    {setData.papers.reduce((sum, p) => sum + (paperQuestionCount[p.id] || 0), 0)} questions
+                  </span>
+                </div>
+                <div className="divide-y">
+                  {setData.papers.map((paper: any) => {
+                    const qCount = paperQuestionCount[paper.id] || 0;
+                    return (
+                      <Link
+                        key={paper.id}
+                        href={`/mock-exams/${subjectSlug}/${paper.slug}`}
+                        className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">📝</span>
+                          <div>
+                            <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
+                              {paper.paper_number} — Theory
+                            </span>
+                            <div className="text-xs text-gray-400 mt-0.5">
+                              {paper.minutes} min · {paper.total_marks} marks · {qCount} questions
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
+                          Start →
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Original DB-based fetch for CAIE subjects
   const { data: sets } = await supabase
     .from("mock_exam_sets")
     .select("id, set_number, tier, slug")

@@ -13,6 +13,7 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; slug: string }> 
   "computer-science": { name: "Computer Science (0478)", icon: "💻", slug: "caie-computer-science-0478" },
   economics: { name: "Economics (0455)", icon: "📊", slug: "caie-economics-0455" },
   "0606": { name: "Additional Mathematics (0606)", icon: "➕", slug: "caie-additional-mathematics-0606" },
+  "edexcel-biology": { name: "Biology (Edexcel 4BI1)", icon: "🧬", slug: "edexcel-biology-4bi1" },
 };
 
 export default async function MockExamsIndexPage() {

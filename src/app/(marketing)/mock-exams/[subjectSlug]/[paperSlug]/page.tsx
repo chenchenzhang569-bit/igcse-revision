@@ -142,6 +142,7 @@ const SUBJECT_MAP: Record<string, string> = {
   "caie-chemistry-0620": "Chemistry",
   "caie-biology-0610": "Biology",
   "caie-mathematics-0580": "Mathematics",
+  "edexcel-biology-4bi1": "Biology (Edexcel)",
 };
 
 type Question = {
@@ -226,6 +227,60 @@ export default function MockExamPaperPage() {
 
   useEffect(() => {
     async function load() {
+      const R2_SUBJECTS = ["edexcel-biology-4bi1"];
+      const isR2 = R2_SUBJECTS.includes(subjectSlug);
+
+      if (isR2) {
+        // Fetch from R2 JSON for Edexcel subjects
+        try {
+          const res = await fetch(`/api/r2/json/${subjectSlug}`);
+          if (!res.ok) throw new Error("Failed to fetch");
+          const allQuestions = await res.json();
+
+          // Filter questions matching this paper slug
+          const paperKey = paperSlug.replace("edexcel-biology-", "");
+          const parts = paperKey.split("-");
+          const setSlug = parts.slice(0, 2).join("-"); // "set-1"
+          const paperType = parts[2]; // "paper-1b" or "paper-2b"
+
+          const filtered = allQuestions
+            .filter((q: any) => q.set === setSlug && q.paper === paperType)
+            .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+
+          // Determine paper metadata
+          const isPaper1b = paperType === "paper-1b";
+          const paperMeta = {
+            id: paperSlug,
+            paper_type: "Theory",
+            paper_number: isPaper1b ? "1B" : "2B",
+            minutes: isPaper1b ? 120 : 75,
+            total_marks: filtered.reduce((s: number, q: any) => s + (q.marks || 0), 0),
+          };
+
+          setPaper(paperMeta);
+          const parsed = filtered.map((q: any) => ({
+            id: `r2-${setSlug}-${paperType}-${q.order}`,
+            paper_id: paperSlug,
+            question_order: q.order,
+            question_type: q.type === "mcq" ? "mcq" : "structured",
+            difficulty: q.diff || "medium",
+            stem: fixMathNotationUnicode(q.stem || ""),
+            options: q.opts || null,
+            correct_answer: q.ca || "",
+            explanation: q.sol ? fixMathNotationUnicode(q.sol) : "",
+            marks: q.marks || 1,
+          }));
+          setQuestions(parsed);
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error("R2 load failed:", e);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Original DB-based fetch for CAIE subjects
       const { data: papers } = await supabase
         .from("mock_exam_papers")
         .select("id, paper_type, paper_number, minutes, total_marks")
