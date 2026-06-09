@@ -537,7 +537,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
     const explanationText = q.clean_explanation || q.explanation || undefined;
     let correct: boolean;
     if (isMcq) {
-      correct = userAns === answerText.trim().charAt(0);
+      correct = userAns === (q.correct_answer || answerText.match(/[Tt]he\s+(?:correct\s+)?answer\s+is\s+([A-D])\b/)?.[1] || answerText.trim().charAt(0));
     } else {
       // Normalize delimiters: treat ; ； , all as same
       const userNorm = normalizeAlgebraic(userAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim());

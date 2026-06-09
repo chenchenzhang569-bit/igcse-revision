@@ -415,7 +415,7 @@ export function TopicQuestionsTab({ topicId, preloadedQuestions }: { topicId: st
     const isMcq = q.question_type === "multiple_choice" || q.question_type === "mcq" || /\n[A-D][.)]\s/.test(q.question_text);
     let correct: boolean;
     if (isMcq) {
-      correct = userAns === q.answer_text?.trim().charAt(0);
+      correct = userAns === (q.correct_answer || (q.clean_answer_text || q.answer_text || '').match(/[Tt]he\s+(?:correct\s+)?answer\s+is\s+([A-D])\b/)?.[1] || '');
     } else {
       // Use clean_answer_text if available, fall back to answer_text
       const cleanAnswer = q.clean_answer_text || q.answer_text;
