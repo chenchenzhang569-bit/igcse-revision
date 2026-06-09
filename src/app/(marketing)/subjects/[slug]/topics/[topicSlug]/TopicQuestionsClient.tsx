@@ -965,9 +965,9 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                   ❌ Incorrect. The answer is:
                   <div className="mt-1 space-y-1 font-normal">
                     {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
-                      const m = p.trim().match(/^(\\([^)]+\\))\\s*(.*)/);
+                      const m = p.trim().match(/^(\\([^)]+\\))\s*(.*)/);
                       const renderPart = (content: string) => {
-                        const t = content.trim();
+                        const t = fixChemicalFormulas(content.trim());
                         const hasDollar = t.includes("$");
                         return hasDollar
                           ? <span dangerouslySetInnerHTML={{ __html: renderMath(t) }} />
@@ -1007,8 +1007,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                           {(q.clean_answer_text || q.answer_text || q.explanation || "").split("||").map((p: string, i: number) => {
                             const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                             const renderPart = (content: string) => {
-                              const t = content.trim();
-const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
+                              const t = fixChemicalFormulas(content.trim());
+                              const hasMath = /[=\\^\\<>]/.test(t) && !/^[A-Z][a-z]?\d*[\+\-]/.test(t);
                               return hasMath
                                 ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
                                 : <span>{t}</span>;
@@ -1035,8 +1035,8 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
                       {(q.clean_answer_text || q.answer_text || q.explanation || "").split("||").map((p: string, i: number) => {
                         const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                         const renderPart = (content: string) => {
-                          const t = content.trim();
-const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
+                          const t = fixChemicalFormulas(content.trim());
+                          const hasMath = /[=\\^\\<>]/.test(t) && !/^[A-Z][a-z]?\d*[\+\-]/.test(t);
                           return hasMath
                             ? <span dangerouslySetInnerHTML={{ __html: renderMath(`$${t}$`) }} />
                             : <span>{t}</span>;
