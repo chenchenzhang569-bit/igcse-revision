@@ -157,7 +157,6 @@ type Question = {
   correct_answer: string;
   explanation: string;
   marks: number;
-  opts_by_part?: Record<string, { opts: string[]; ca: string }>;
 };
 
 type Paper = {
@@ -274,7 +273,6 @@ export default function MockExamPaperPage() {
             correct_answer: q.ca || "",
             explanation: q.sol ? fixMathNotationUnicode(q.sol) : "",
             marks: q.marks || 1,
-            opts_by_part: q.opts_by_part || undefined,
           }));
           setQuestions(parsed);
           setLoading(false);
@@ -501,52 +499,7 @@ function toProxyUrl(src: string): string {
                   </div>
                 </div>
 
-                {q.opts_by_part ? (
-                  // Multi-part MCQ: render each sub-part with its own options
-                  <div className="px-5 pb-5 space-y-4">
-                    {Object.entries(q.opts_by_part).map(([partLabel, partData]) => {
-                      const partAnswered = userAnswers[q.id + "_" + partLabel];
-                      return (
-                        <div key={partLabel}>
-                          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">({partLabel})</p>
-                          <div className="space-y-2">
-                            {partData.opts.map((opt: string, oi: number) => {
-                              const label = String.fromCharCode(65 + oi);
-                              const selected = userAnswers[q.id + "_" + partLabel] === label;
-                              let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
-                              if (partAnswered) {
-                                if (label === partData.ca) cls = "bg-green-50 border-green-400";
-                                else if (selected) cls = "bg-red-50 border-red-400";
-                                else cls = "border-gray-200 opacity-60";
-                              } else if (selected) cls = "bg-primary-50 border-primary-400";
-                              return (
-                                <button
-                                  key={oi}
-                                  onClick={() => setUserAnswers((prev) => ({ ...prev, [q.id + "_" + partLabel]: label }))}
-                                  disabled={!!partAnswered}
-                                  className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${cls}`}
-                                >
-                                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                                    partAnswered && label === partData.ca
-                                      ? "bg-green-500 text-white"
-                                      : partAnswered && selected
-                                      ? "bg-red-500 text-white"
-                                      : selected
-                                      ? "bg-primary-600 text-white"
-                                      : "bg-gray-100 text-gray-600"
-                                  }`}>{label}</span>
-                                  <span className="text-sm">{(() => { const stripped = opt.replace(/^[A-D][.)]?\s*/, ""); return stripped || opt; })()}</span>
-                                  {partAnswered && label === partData.ca && <span className="ml-auto text-green-600 text-xs">✓ Correct</span>}
-                                  {partAnswered && selected && label !== partData.ca && <span className="ml-auto text-red-600 text-xs">✗</span>}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : q.options && q.options.length >= 2 ? (
+                {q.options && q.options.length >= 2 && (
                   <div className="px-5 pb-5 space-y-2">
                     {q.options.map((opt: string, oi: number) => {
                       const label = String.fromCharCode(65 + oi);
@@ -589,21 +542,14 @@ function toProxyUrl(src: string): string {
                       );
                     })}
                   </div>
-                ) : null}
+                )}
 
-                {q.opts_by_part
-                  ? Object.keys(q.opts_by_part).every(k => userAnswers[q.id + "_" + k]) && q.explanation && (
-                      <div className="px-5 pb-4 mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
-                        <p className="text-xs font-medium text-blue-700 mb-1">Explanation</p>
-                        <p className="text-sm text-blue-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMath(q.explanation) }} />
-                      </div>
-                    )
-                  : userAnswer && q.explanation && (
-                      <div className="px-5 pb-4 mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
-                        <p className="text-xs font-medium text-blue-700 mb-1">Explanation</p>
-                        <p className="text-sm text-blue-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMath(q.explanation) }} />
-                      </div>
-                    )}
+                {userAnswer && q.explanation && (
+                  <div className="px-5 pb-4 mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <p className="text-xs font-medium text-blue-700 mb-1">Explanation</p>
+                    <p className="text-sm text-blue-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMath(q.explanation) }} />
+                  </div>
+                )}
               </div>
             );
           })}
