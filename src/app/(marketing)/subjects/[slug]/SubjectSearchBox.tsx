@@ -58,7 +58,8 @@ export function SubjectSearchBox({
 }) {
   const [query, setQuery] = useState("");
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
-  const subtopicData = SUBTOPIC_DATA[subjectKey] || {};
+  const isEdexcel = slug.startsWith("edexcel");
+  const subtopicData = isEdexcel ? {} : (SUBTOPIC_DATA[subjectKey] || {});
 
   const matchedResults = useMemo((): SearchResult[] => {
     if (!query.trim()) return [];
@@ -85,7 +86,25 @@ export function SubjectSearchBox({
       return results.slice(0, 8);
     }
 
-    // Non-math: search subtopics
+    // Edexcel: search topic-level names only (subtopic data is DB-driven, not in SUBTOPIC_DATA)
+    if (isEdexcel) {
+      const results: SearchResult[] = [];
+      for (const t of topics) {
+        if (
+          t.name.toLowerCase().includes(q) ||
+          t.displayName.toLowerCase().includes(q) ||
+          t.slug.toLowerCase().includes(q)
+        ) {
+          results.push({
+            label: t.displayName,
+            href: `/subjects/${slug}/topics/${t.slug}`,
+          });
+        }
+      }
+      return results.slice(0, 8);
+    }
+
+    // Non-math, non-Edexcel: search subtopics from hardcoded data
     const results: SearchResult[] = [];
     for (const [topicSlug, subs] of Object.entries(subtopicData)) {
       for (const st of subs) {
@@ -102,7 +121,7 @@ export function SubjectSearchBox({
       }
     }
     return results.slice(0, 8);
-  }, [query, topicSections, subtopicData, isMath, slug]);
+  }, [query, topicSections, subtopicData, isMath, slug, topics, isEdexcel]);
 
   const filteredSections = useMemo(() => {
     if (!query.trim()) return topicSections;
