@@ -176,7 +176,6 @@ export default function MockExamPaperPage() {
   const [paper, setPaper] = useState<Paper | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -342,17 +341,11 @@ export default function MockExamPaperPage() {
   }
 
   function selectAnswer(qId: string, answer: string) {
-    if (submitted) return;
     setUserAnswers((prev) => ({ ...prev, [qId]: answer }));
-  }
-
-  function handleSubmit() {
-    setSubmitted(true);
   }
 
   function handleReset() {
     setUserAnswers({});
-    setSubmitted(false);
     setTimerStarted(false);
     setTimeLeft(0);
   }
@@ -399,9 +392,7 @@ export default function MockExamPaperPage() {
     );
   }
 
-  const score = questions.filter((q) => userAnswers[q.id] === q.correct_answer).length;
   const totalAnswered = Object.keys(userAnswers).length;
-  const allAnswered = totalAnswered === questions.length;
   const mcqQuestions = questions.filter((q) => q.question_type === "mcq");
   const structQuestions = questions.filter((q) => q.question_type !== "mcq");
 
@@ -459,27 +450,16 @@ function toProxyUrl(src: string): string {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {timerStarted && !submitted && (
+            {timerStarted && (
               <span className={`text-lg font-mono font-bold ${timeLeft < 300 ? "text-red-600" : "text-gray-700"}`}>
                 {formatTime(timeLeft)}
               </span>
             )}
-            {!timerStarted && !submitted && (
+            {!timerStarted && (
               <button onClick={startTimer}
                 className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700">
                 Start Timer
               </button>
-            )}
-            {submitted && (
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-gray-700">
-                  Score: {score}/{mcqQuestions.length}
-                  {mcqQuestions.length > 0 && ` (${Math.round((score / mcqQuestions.length) * 100)}%)`}
-                </span>
-                <button onClick={handleReset} className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200">
-                  Retry
-                </button>
-              </div>
             )}
           </div>
         </div>
@@ -525,7 +505,7 @@ function toProxyUrl(src: string): string {
                       const label = String.fromCharCode(65 + oi);
                       const selected = userAnswer === label;
                       let cls = "border-gray-200 hover:bg-gray-50 cursor-pointer";
-                      if (submitted) {
+                      if (userAnswer) {
                         if (label === q.correct_answer) cls = "bg-green-50 border-green-400";
                         else if (selected) cls = "bg-red-50 border-red-400";
                         else cls = "border-gray-200 opacity-60";
@@ -535,14 +515,14 @@ function toProxyUrl(src: string): string {
                         <button
                           key={oi}
                           onClick={() => selectAnswer(q.id, label)}
-                          disabled={submitted}
+                          disabled={!!userAnswer}
                           className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${cls}`}
                         >
                           <span
                             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                              submitted && label === q.correct_answer
+                              userAnswer && label === q.correct_answer
                                 ? "bg-green-500 text-white"
-                                : submitted && selected
+                                : userAnswer && selected
                                 ? "bg-red-500 text-white"
                                 : selected
                                 ? "bg-primary-600 text-white"
@@ -552,10 +532,10 @@ function toProxyUrl(src: string): string {
                             {label}
                           </span>
                           <span className="text-sm">{(() => { const stripped = opt.replace(/^[A-D][.)]?\s*/, ""); return stripped || opt; })()}</span>
-                          {submitted && label === q.correct_answer && (
+                          {userAnswer && label === q.correct_answer && (
                             <span className="ml-auto text-green-600 text-xs">✓ Correct</span>
                           )}
-                          {submitted && selected && !isCorrect && (
+                          {userAnswer && selected && !isCorrect && (
                             <span className="ml-auto text-red-600 text-xs">✗</span>
                           )}
                         </button>
@@ -564,7 +544,7 @@ function toProxyUrl(src: string): string {
                   </div>
                 )}
 
-                {submitted && q.explanation && (
+                {userAnswer && q.explanation && (
                   <div className="px-5 pb-4 mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
                     <p className="text-xs font-medium text-blue-700 mb-1">Explanation</p>
                     <p className="text-sm text-blue-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMath(q.explanation) }} />
@@ -595,27 +575,12 @@ function toProxyUrl(src: string): string {
         </div>
       )}
 
-      {/* Submit / Score bar at bottom */}
-      {mcqQuestions.length > 0 && (
+      {/* Retry button at bottom */}
+      {mcqQuestions.length > 0 && totalAnswered > 0 && (
         <div className="mt-8 flex justify-center">
-          {!submitted ? (
-            <button
-              onClick={handleSubmit}
-              disabled={!allAnswered}
-              className="bg-primary-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Submit Answers ({totalAnswered}/{mcqQuestions.length})
-            </button>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg font-bold text-gray-800 mb-2">
-                Score: {score}/{mcqQuestions.length} ({Math.round((score / mcqQuestions.length) * 100)}%)
-              </p>
-              <button onClick={handleReset} className="text-sm bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200">
-                Retry All
-              </button>
-            </div>
-          )}
+          <button onClick={handleReset} className="text-sm bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200">
+            Retry All
+          </button>
         </div>
       )}
     </div>
