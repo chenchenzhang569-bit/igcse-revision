@@ -276,7 +276,7 @@ export default function MockExamPaperPage() {
             marks: q.marks || 1,
           }));
           setQuestions(parsed);
-          setDebugInfo(`R2: ${allQuestions.length} total, ${filtered.length} for paper, ${parsed.filter((x:any) => x.question_type==='mcq').length} MCQs`);
+          setDebugInfo(`R2: ${allQuestions.length} total, ${filtered.length} for paper, ${parsed.filter((x:any) => x.question_type==='mcq').length} MCQs, first MCQ: ${parsed.find((x:any) => x.question_type==='mcq')?.stem?.slice(0,30) || 'none'}`);
           setLoading(false);
           return;
         } catch (e) {
