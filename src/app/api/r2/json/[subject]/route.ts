@@ -24,9 +24,9 @@ const MOCK_FILES: Record<string, { bucket: string; key: string }> = {
  */
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ subject: string }> }
+  { params }: { params: { subject: string } }
 ) {
-  const { subject } = await params;
+  const subject = params.subject;
   const file = MOCK_FILES[subject];
   if (!file) {
     return NextResponse.json({ error: "Subject not found" }, { status: 404 });
@@ -44,6 +44,7 @@ export async function GET(
       },
     });
   } catch (e) {
+    console.error("R2 JSON fetch error:", e);
     return NextResponse.json({ error: "Failed to fetch from R2" }, { status: 500 });
   }
 }

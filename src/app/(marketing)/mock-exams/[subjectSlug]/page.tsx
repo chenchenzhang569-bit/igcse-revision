@@ -32,9 +32,9 @@ const PAPER_ICONS: Record<string, string> = {
 export default async function MockExamsPage({
   params,
 }: {
-  params: Promise<{ subjectSlug: string }>;
+  params: { subjectSlug: string };
 }) {
-  const { subjectSlug } = await params;
+  const { subjectSlug } = params;
   const subject = SUBJECT_MAP[subjectSlug];
   if (!subject) {
     return (
