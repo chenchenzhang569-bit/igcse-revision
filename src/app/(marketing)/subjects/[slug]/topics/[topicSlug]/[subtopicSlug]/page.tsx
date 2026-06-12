@@ -336,11 +336,12 @@ export default async function SubtopicPage({
                     secretAccessKey: "a53c8d8f542bdcf7049f9281ce987680208387ad0d56a20ddbba57881b144b80",
                   },
                 });
-                // Strip subject slug prefix to get R2 key (DB slugs have prefix, R2 files don't)
-                // e.g. "edexcel-economics-4ec1-the-economic-problem" → "the-economic-problem"
-                const r2Key = subtopicSlug.startsWith(slug + "-")
-                  ? subtopicSlug.slice(slug.length + 1)
-                  : subtopicSlug;
+                // 4MA1 F+H: R2 files already have full prefix, don't strip
+                const r2Key = (slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1")
+                  ? subtopicSlug
+                  : subtopicSlug.startsWith(slug + "-")
+                    ? subtopicSlug.slice(slug.length + 1)
+                    : subtopicSlug;
                 const key = `${basePath}/${encodeURIComponent(r2Key)}.json`;
                 const cmd = new GetObjectCommand({ Bucket: "past-papers", Key: key });
                 const obj = await r2.send(cmd);
