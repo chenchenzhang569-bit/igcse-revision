@@ -270,6 +270,24 @@ export default async function SubtopicPage({
     );
     topicRow = tResults.find(r => r !== null) || null;
 
+    // Fallback: Edexcel subjects where topic slug doesn't match DB topic
+    if (!topicRow && slug.startsWith("edexcel") && !(subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1")) {
+      try {
+        const subRes = await fetch(`${API}/subtopics?select=topic_id,id,sort_order,display_name&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: H, cache: "no-store" });
+        const subData = await subRes.json();
+        if (Array.isArray(subData) && subData[0]?.topic_id) {
+          topicRow = { id: subData[0].topic_id, sort_order: 1 };
+          subtopicId = subData[0].id;
+          subtopic.pmtCode = `1.${subData[0].sort_order || 1}`;
+          if (subData[0].display_name) {
+            const fn = subData[0].display_name;
+            const m = fn.match(/^(\d+\.\d+)\s+(.*)/);
+            subtopic.displayName = m ? m[2] : fn;
+          }
+        }
+      } catch {}
+    }
+
     if (topicRow && pmtCode) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id&topic_id=eq.${topicRow.id}&pmt_code=eq.${encodeURIComponent(pmtCode)}&limit=1`, { headers: H, cache: "force-cache" });

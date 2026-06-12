@@ -279,6 +279,15 @@ export default async function TopicPage({
       const qRes = await fetch(qUrl, { headers: baseHeaders, cache: "no-store" });
       questions = await qRes.json();
     }
+    // Fallback: Edexcel subjects where topic slug doesn't match DB topic
+    // → try topicSlug as a subtopic slug to get parent topic_id
+    if (!topicId && slug.startsWith("edexcel")) {
+      try {
+        const subRes = await fetch(`${API}/subtopics?select=topic_id&slug=eq.${encodeURIComponent(topicSlug)}&limit=1`, { headers: baseHeaders, cache: "no-store" });
+        const subData = await subRes.json();
+        if (subData?.[0]?.topic_id) topicId = subData[0].topic_id;
+      } catch {}
+    }
   } catch (e) {
     console.error("DB fetch failed:", e);
   }
