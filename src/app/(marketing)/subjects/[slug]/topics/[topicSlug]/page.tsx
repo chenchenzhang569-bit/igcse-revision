@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import Link from "next/link";
 import TopicQuestionsClient from "./TopicQuestionsClient";
 import { getSubtopics } from "@/lib/subtopic-data";
@@ -272,12 +273,61 @@ export default async function TopicPage({
         );
         subtopicNotes = await snRes.json();
       }
+      // Also fetch subtopics for R2 subjects (need slugs to read R2 files)
+      const useR2Questions = slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1";
+      if (useR2Questions && !isSimpleSubject) {
+        const stRes = await fetch(
+          `${API}/subtopics?select=slug&topic_id=eq.${topicId}&order=sort_order.asc`,
+          { headers: baseHeaders, cache: "no-store" }
+        );
+        const stData = await stRes.json();
+        if (Array.isArray(stData)) {
+          subtopics = stData.map((s: any) => ({ slug: s.slug, displayName: s.slug, pmtCode: "" }));
+        }
+      }
+
       // Fetch questions
       const qUrl = sub
         ? `${API}/questions?select=*&subtopic_id=eq.${sub}&order=sort_order`
         : `${API}/questions?select=*&topic_id=eq.${topicId}&order=sort_order`;
       const qRes = await fetch(qUrl, { headers: baseHeaders, cache: "no-store" });
       questions = await qRes.json();
+
+      // For R2 subjects, merge per-subtopic questions from R2 into questions array
+      if (useR2Questions && !sub && subtopics.length > 0) {
+        const R2_PATHS: Record<string, string> = {
+          "edexcel-mathematics-4ma1": "igcse/maths/edexcel/sme-questions/foundation",
+          "edexcel-mathematics-higher-4ma1": "igcse/maths/edexcel/sme-questions/higher",
+          "edexcel-further-maths-4pm1": "igcse/maths/edexcel/sme-questions",
+          "edexcel-economics-4ec1": "igcse/economics/edexcel/sme-questions",
+          "edexcel-geography-4ge1": "igcse/geography/edexcel/sme-questions",
+        };
+        const basePath = R2_PATHS[slug];
+        if (basePath) {
+          const r2 = new S3Client({
+            region: "auto",
+            endpoint: `https://7524670a3d7d50fd979765dedb5b378d.r2.cloudflarestorage.com`,
+            credentials: {
+              accessKeyId: "baf9fd99dfe0501ceb0f8da65bccfbfc",
+              secretAccessKey: "a53c8d8f542bdcf7049f9281ce987680208387ad0d56a20ddbba57881b144b80",
+            },
+          });
+          const allR2Qs: any[] = [];
+          for (const st of subtopics) {
+            try {
+              const key = `${basePath}/${encodeURIComponent(st.slug)}.json`;
+              const cmd = new GetObjectCommand({ Bucket: "past-papers", Key: key });
+              const obj = await r2.send(cmd);
+              const body = await obj.Body?.transformToString();
+              if (body) {
+                const parsed = JSON.parse(body);
+                if (Array.isArray(parsed)) allR2Qs.push(...parsed);
+              }
+            } catch {}
+          }
+          if (allR2Qs.length > 0) questions = allR2Qs;
+        }
+      }
     }
   } catch (e) {
     console.error("DB fetch failed:", e);
