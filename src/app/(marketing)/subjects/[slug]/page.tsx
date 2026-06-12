@@ -503,7 +503,7 @@ export default async function SubjectPage({
           topicSections={topicSections}
           topics={topics}
           slug={slug}
-          isMath={key === "maths"}
+          isMath={key === "maths" && !slug.startsWith("edexcel")}
         />
       )}
 
