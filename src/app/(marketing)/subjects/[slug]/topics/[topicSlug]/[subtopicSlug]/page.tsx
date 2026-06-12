@@ -1,5 +1,6 @@
 // fix: anon-key subtopic filtering + all subjects — force-redeploy 2026-05-27
 import { createClient } from "@/lib/supabase/server";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
@@ -304,9 +305,28 @@ export default async function SubtopicPage({
         useR2Questions
           ? (async () => {
               try {
-                const res = await fetch(`/api/r2/questions/${slug}?subtopic_slug=${encodeURIComponent(subtopicSlug)}`);
-                if (!res.ok) return [];
-                return await res.json();
+                const R2_PATHS: Record<string, string> = {
+                  "edexcel-mathematics-4ma1": "igcse/maths/edexcel/sme-questions/foundation",
+                  "edexcel-mathematics-higher-4ma1": "igcse/maths/edexcel/sme-questions/higher",
+                  "edexcel-further-maths-4pm1": "igcse/maths/edexcel/sme-questions",
+                  "edexcel-economics-4ec1": "igcse/economics/edexcel/sme-questions",
+                  "edexcel-geography-4ge1": "igcse/geography/edexcel/sme-questions",
+                };
+                const basePath = R2_PATHS[slug];
+                if (!basePath) return [];
+                const r2 = new S3Client({
+                  region: "auto",
+                  endpoint: `https://7524670a3d7d50fd979765dedb5b378d.r2.cloudflarestorage.com`,
+                  credentials: {
+                    accessKeyId: "baf9fd99dfe0501ceb0f8da65bccfbfc",
+                    secretAccessKey: "a53c8d8f542bdcf7049f9281ce987680208387ad0d56a20ddbba57881b144b80",
+                  },
+                });
+                const key = `${basePath}/${encodeURIComponent(subtopicSlug)}.json`;
+                const cmd = new GetObjectCommand({ Bucket: "past-papers", Key: key });
+                const obj = await r2.send(cmd);
+                const body = await obj.Body?.transformToString();
+                return body ? JSON.parse(body) : [];
               } catch { return []; }
             })()
           : fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
