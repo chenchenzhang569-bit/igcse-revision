@@ -902,12 +902,12 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </>
         ) : null}
 
-        {isMcq && stem && (
+        {isMcq && !hasSubParts && stem && (
           <div className="prose prose-sm max-w-none text-gray-800 mb-5"
             dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
         )}
 
-        {isMcq ? (
+        {isMcq && !hasSubParts ? (
           <div className="space-y-2.5">
             {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
