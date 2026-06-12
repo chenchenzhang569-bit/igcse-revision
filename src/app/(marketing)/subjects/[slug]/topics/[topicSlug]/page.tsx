@@ -185,7 +185,7 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography";
+  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1";
   const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
   let subtopics: any[] = isDbDriven ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
@@ -236,7 +236,7 @@ export default async function TopicPage({
             return {
               slug: s.slug,
               displayName: match ? match[2] : fullName,
-              pmtCode: subjectKey === "additional-maths"
+              pmtCode: subjectKey === "additional-maths" || slug === "edexcel-further-maths-4pm1"
                 ? `${topicSortOrder}.${s.sort_order}`
                 : (match ? match[1] : undefined),
             };
@@ -295,7 +295,7 @@ export default async function TopicPage({
 
       <div className="flex flex-wrap items-center gap-4 mt-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary-900">{displayName}</h1>
-        {isMaths && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
+        {isMaths && slug !== "edexcel-further-maths-4pm1" && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
       </div>
 
       {/* For additional-maths/economics: show subtopics directly, no tabs */}
@@ -323,7 +323,7 @@ export default async function TopicPage({
       )}
 
       {/* Tabs: only for 0580 Math (not additional-maths) */}
-      {isMaths && subjectKey !== "additional-maths" && (
+      {isMaths && subjectKey !== "additional-maths" && slug !== "edexcel-further-maths-4pm1" && (
       <div className="flex gap-1 mt-8 border-b">
         <Link
           href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("notes")}`}
@@ -452,7 +452,7 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
       )}
 
       {/* Subtopics tab — ONLY for non-additional-maths, non-economics (those show subtopics directly above) */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && (
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && slug !== "edexcel-further-maths-4pm1" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
