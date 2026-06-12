@@ -142,6 +142,24 @@ const SUBJECT_MAP: Record<string, string> = {
   "caie-chemistry-0620": "Chemistry",
   "caie-biology-0610": "Biology",
   "caie-mathematics-0580": "Mathematics",
+  "edexcel-physics-4ph1": "Physics",
+  "edexcel-chemistry-4ch1": "Chemistry",
+  "edexcel-biology-4bi1": "Biology",
+  "edexcel-mathematics-4ma1": "Mathematics (F)",
+  "edexcel-mathematics-higher-4ma1": "Mathematics (H)",
+  "edexcel-business-4bs1": "Business",
+  "edexcel-economics-4ec1": "Economics",
+  "edexcel-geography-4ge1": "Geography",
+  "edexcel-further-maths-4pm1": "Further Maths",
+};
+
+const R2_MOCK_FILES: Record<string, string> = {
+  "edexcel-chemistry-4ch1": "mock/edexcel_chem_mock_questions.json",
+  "edexcel-physics-4ph1": "mock/edexcel_phys_mock_questions.json",
+  "edexcel-biology-4bi1": "mock/edexcel_bio_mock_questions.json",
+  "edexcel-mathematics-4ma1": "mock/edexcel_4ma1_foundation_mock_questions.json",
+  "edexcel-mathematics-higher-4ma1": "mock/edexcel_4ma1_higher_mock_questions.json",
+  "edexcel-business-4bs1": "mock/edexcel_business_4bs1_mock_questions.json",
 };
 
 type Question = {
@@ -226,6 +244,65 @@ export default function MockExamPaperPage() {
 
   useEffect(() => {
     async function load() {
+      const r2File = R2_MOCK_FILES[subjectSlug];
+      if (r2File) {
+        // R2-based mock exam (Edexcel)
+        try {
+          const apiRes = await fetch(`/api/r2/mock?slug=${encodeURIComponent(subjectSlug)}`, { cache: "no-store" });
+          if (!apiRes.ok) throw new Error("API fetch failed");
+          const rawQuestions = await apiRes.json();
+          if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) throw new Error("No questions");
+
+          // Extract set + paper from paperSlug: "{subjectSlug}-{set}-{paper}"
+          const slugPrefix = subjectSlug + "-";
+          const rest = paperSlug.startsWith(slugPrefix) ? paperSlug.slice(slugPrefix.length) : paperSlug;
+          const parts = rest.split("-");
+          // parts[0] = set (e.g. "set-a"), parts[1] = set number, parts[2..] = paper (e.g. "paper-1f")
+          const setKey = parts.slice(0, 2).join("-"); // e.g. "set-a"
+          const paperKey = parts.slice(2).join("-"); // e.g. "paper-1f"
+
+          const filtered = rawQuestions.filter((q: any) =>
+            q.set === setKey && q.paper === paperKey
+          );
+
+          if (filtered.length === 0) throw new Error("No questions for this paper");
+
+          const paperNumMap: Record<string, string> = {
+            "paper-1c": "1C", "paper-1b": "1B", "paper-1p": "1P",
+            "paper1f": "1F", "paper2f": "2F", "paper1h": "1H", "paper2h": "2H",
+          };
+          const paperNum = paperNumMap[paperKey] || "1";
+          const paperMins = ["paper-1c","paper-1b","paper-1p","paper1f","paper2f","paper1h","paper2h"].includes(paperKey) ? 120 : 75;
+          const totalMarks = filtered.reduce((sum: number, q: any) => sum + (q.marks || 0), 0);
+
+          setPaper({
+            id: paperSlug,
+            paper_type: "Theory",
+            paper_number: paperNum,
+            minutes: paperMins,
+            total_marks: totalMarks,
+          });
+
+          const parsed = filtered.map((q: any, i: number) => ({
+            id: q._id || q.id || `q-${i}`,
+            question_order: i + 1,
+            question_type: q.question_type || (q.options ? "mcq" : "structured"),
+            difficulty: q.difficulty || "medium",
+            stem: fixMathNotationUnicode(q.stem || q.question_text || ""),
+            options: q.options || null,
+            correct_answer: q.correct_answer || q.answer_text || "",
+            explanation: q.explanation ? fixMathNotationUnicode(q.explanation) : "",
+            marks: q.marks || 0,
+          }));
+          setQuestions(parsed);
+        } catch (e) {
+          console.error("R2 mock load failed:", e);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // DB-based (CAIE)
       const { data: papers } = await supabase
         .from("mock_exam_papers")
         .select("id, paper_type, paper_number, minutes, total_marks")

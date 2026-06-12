@@ -1,13 +1,32 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 // force-redeploy-v3-paywall
 export const revalidate = 3600;
 
 const supabase = getSupabaseClient();
 
-const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: string }> = {
+const R2 = new S3Client({
+  region: "auto",
+  endpoint: "https://7524670a3d7d50fd979765dedb5b378d.r2.cloudflarestorage.com",
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY || "baf9fd99dfe0501ceb0f8da65bccfbfc",
+    secretAccessKey: process.env.R2_SECRET_KEY || "a53c8d8f542bdcf7049f9281ce987680208387ad0d56a20ddbba57881b144b80",
+  },
+});
+
+const R2_MOCK_FILES: Record<string, string> = {
+  "edexcel-chemistry-4ch1": "mock/edexcel_chem_mock_questions.json",
+  "edexcel-physics-4ph1": "mock/edexcel_phys_mock_questions.json",
+  "edexcel-biology-4bi1": "mock/edexcel_bio_mock_questions.json",
+  "edexcel-mathematics-4ma1": "mock/edexcel_4ma1_foundation_mock_questions.json",
+  "edexcel-mathematics-higher-4ma1": "mock/edexcel_4ma1_higher_mock_questions.json",
+  "edexcel-business-4bs1": "mock/edexcel_business_4bs1_mock_questions.json",
+};
+
+const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: string; prefix?: string }> = {
   "caie-physics-0625": { name: "Physics", icon: "⚛️", dbSubject: "physics" },
   "caie-chemistry-0620": { name: "Chemistry", icon: "🧪", dbSubject: "chemistry" },
   "caie-biology-0610": { name: "Biology", icon: "🧬", dbSubject: "biology" },
@@ -15,6 +34,16 @@ const SUBJECT_MAP: Record<string, { name: string; icon: string; dbSubject: strin
   "caie-computer-science-0478": { name: "Computer Science", icon: "💻", dbSubject: "computer-science" },
   "caie-economics-0455": { name: "Economics", icon: "📊", dbSubject: "economics" },
   "caie-additional-mathematics-0606": { name: "Additional Math", icon: "➕", dbSubject: "0606" },
+  // Edexcel shared-static subjects (CAIE topic arrays, no DB mock data)
+  "edexcel-physics-4ph1": { name: "Physics", icon: "⚛️", dbSubject: "physics", prefix: "edexcel-" },
+  "edexcel-chemistry-4ch1": { name: "Chemistry", icon: "🧪", dbSubject: "chemistry", prefix: "edexcel-" },
+  "edexcel-biology-4bi1": { name: "Biology", icon: "🧬", dbSubject: "biology", prefix: "edexcel-" },
+  "edexcel-mathematics-4ma1": { name: "Mathematics (F)", icon: "📐", dbSubject: "maths", prefix: "edexcel-" },
+  "edexcel-mathematics-higher-4ma1": { name: "Mathematics (H)", icon: "📐", dbSubject: "maths", prefix: "edexcel-" },
+  "edexcel-business-4bs1": { name: "Business", icon: "📊", dbSubject: "business", prefix: "edexcel-" },
+  "edexcel-economics-4ec1": { name: "Economics", icon: "📈", dbSubject: "economics", prefix: "edexcel-" },
+  "edexcel-geography-4ge1": { name: "Geography", icon: "🌍", dbSubject: "geography", prefix: "edexcel-" },
+  "edexcel-further-maths-4pm1": { name: "Further Maths", icon: "🔢", dbSubject: "mathematics", prefix: "edexcel-" },
 };
 
 const TIER_COLORS: Record<string, string> = {
@@ -112,6 +141,76 @@ export default async function MockExamsPage({
     );
   }
   // --- End paywall ---
+
+  // R2-based mock exams (Edexcel)
+  const r2File = R2_MOCK_FILES[subjectSlug];
+  if (r2File) {
+    try {
+      const cmd = new GetObjectCommand({ Bucket: "sme-images", Key: r2File });
+      const obj = await R2.send(cmd);
+      const body = await obj.Body?.transformToString();
+      const rawQuestions = body ? JSON.parse(body) : [];
+
+      if (Array.isArray(rawQuestions) && rawQuestions.length > 0) {
+        // Group by set
+        const setMap: Record<string, any> = {};
+        for (const q of rawQuestions) {
+          if (!setMap[q.set]) {
+            const slugPart = q.set.split("-")[1];
+            const setNum = parseInt(slugPart) || (slugPart ? slugPart.charCodeAt(0) - 96 : 1);
+            setMap[q.set] = { slug: q.set, set_number: setNum, papers: new Set<string>() };
+          }
+          setMap[q.set].papers.add(q.paper);
+        }
+
+        const paperNumMap: Record<string, string> = {
+          "paper-1c": "1C", "paper-1b": "1B", "paper-1p": "1P",
+          "paper1f": "1F", "paper2f": "2F", "paper1h": "1H", "paper2h": "2H",
+        };
+        const paperMinsDefault = ["paper-1c","paper-1b","paper-1p","paper1f","paper2f","paper1h","paper2h"];
+
+        // Count questions per paper
+        const qCounts: Record<string, number> = {};
+        const marksSum: Record<string, number> = {};
+        for (const q of rawQuestions) {
+          const pk = `${q.set}-${q.paper}`;
+          qCounts[pk] = (qCounts[pk] || 0) + 1;
+          marksSum[pk] = (marksSum[pk] || 0) + (q.marks || 0);
+        }
+
+        const setsList = Object.values(setMap).map((s: any) => ({
+          id: s.slug,
+          set_number: s.set_number,
+          tier: "Extended",
+          slug: s.slug,
+          papers: Array.from(s.papers).map((p: string) => {
+            const paperSlug = `${subjectSlug}-${s.slug}-${p}`;
+            return {
+              id: paperSlug,
+              paper_type: "Theory",
+              paper_number: paperNumMap[p] || "1",
+              minutes: paperMinsDefault.includes(p) ? 120 : 75,
+              total_marks: marksSum[`${s.slug}-${p}`] || 0,
+              slug: paperSlug,
+              questionCount: qCounts[`${s.slug}-${p}`] || 0,
+            };
+          }),
+        }));
+
+        return (
+          <R2MockExamsList
+            subjectIcon={subject.icon}
+            subjectName={subject.name}
+            slugPrefix={subject.prefix || ""}
+            sets={setsList}
+            subjectSlug={subjectSlug}
+          />
+        );
+      }
+    } catch (e) {
+      console.error("R2 mock load failed:", e);
+    }
+  }
 
   // Fetch mock exam sets
   const { data: sets } = await supabase
@@ -243,6 +342,72 @@ export default async function MockExamsPage({
             </div>
           ));
         })()}
+      </div>
+    </div>
+  );
+}
+
+// R2-based mock exam list component (Edexcel)
+function R2MockExamsList({
+  subjectIcon,
+  subjectName,
+  slugPrefix,
+  sets,
+  subjectSlug,
+}: {
+  subjectIcon: string;
+  subjectName: string;
+  slugPrefix: string;
+  sets: any[];
+  subjectSlug: string;
+}) {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <Link href="/" className="text-sm text-gray-400 hover:text-primary-600">← Home</Link>
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary-900 mt-4">
+        {subjectIcon} {subjectName} Mock Exams
+      </h1>
+
+      <div className="mt-8 space-y-6">
+        {sets.map((set: any) => (
+          <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-bold text-gray-800">Set {set.set_number}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-50 border-purple-200 text-purple-700">
+                  {set.tier}
+                </span>
+              </div>
+              <span className="text-sm text-gray-400">
+                {set.papers.reduce((sum: number, p: any) => sum + (p.questionCount || 0), 0)} questions
+              </span>
+            </div>
+            <div className="divide-y">
+              {set.papers.map((paper: any) => (
+                <Link
+                  key={paper.slug}
+                  href={`/mock-exams/${subjectSlug}/${paper.slug}`}
+                  className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📝</span>
+                    <div>
+                      <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
+                        {paper.paper_number} — {paper.paper_type}
+                      </span>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        {paper.minutes} min · {paper.total_marks} marks · {paper.questionCount} questions
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
+                    Start →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
