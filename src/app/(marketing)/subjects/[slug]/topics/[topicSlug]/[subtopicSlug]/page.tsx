@@ -250,7 +250,7 @@ export default async function SubtopicPage({
     const tResults = await Promise.all(
       topicPatterns.map(pattern =>
         fetch(`${API}/topics?select=id,sort_order&slug=ilike.${encodeURIComponent(pattern)}&limit=1`,
-          { headers: H, cache: "force-cache" })
+          { headers: H, cache: "no-store" })
           .then(r => r.json())
           .then(d => Array.isArray(d) && d.length > 0 ? d[0] : null)
           .catch(() => null)
@@ -286,11 +286,11 @@ export default async function SubtopicPage({
     if (filterVal) {
       // Fetch notes, questions, and past_papers in parallel
       const [notesArr, allQs, papers] = await Promise.all([
-        fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "force-cache" })
+        fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
-        fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "force-cache" })
+        fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
-        fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "force-cache" })
+        fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
       ]);
       notes = notesArr;

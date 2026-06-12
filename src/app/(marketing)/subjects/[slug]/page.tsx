@@ -378,7 +378,7 @@ export default async function SubjectPage({
           const topicIds = Array.from(topicIdToSection.keys());
           const subRes = await fetch(
             `${API}/subtopics?select=topic_id&topic_id=in.(${topicIds.join(",")})`,
-            { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "force-cache" }
+            { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
           );
           if (subRes.ok) {
             const subData = await subRes.json();
