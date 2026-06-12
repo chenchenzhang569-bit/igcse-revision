@@ -380,6 +380,33 @@ export default async function SubjectPage({
         .eq("subject_id", subjectId)
         .order("sort_order");
       if (dbTopics && dbTopics.length > 0) {
+        // Edexcel subjects: flat topic list from DB, no SME section grouping
+        if (data.board === "Edexcel") {
+          const topicSubCounts = new Map<string, number>();
+          try {
+            const topicIds = dbTopics.map(t => t.id);
+            const subRes = await fetch(
+              `${API}/subtopics?select=topic_id&topic_id=in.(${topicIds.join(",")})`,
+              { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store" }
+            );
+            if (subRes.ok) {
+              const subData = await subRes.json();
+              if (Array.isArray(subData)) {
+                for (const sub of subData) {
+                  topicSubCounts.set(sub.topic_id, (topicSubCounts.get(sub.topic_id) || 0) + 1);
+                }
+              }
+            }
+          } catch (_) { /* keep zeros */ }
+          topics = dbTopics.map(t => ({
+            name: t.name.replace(/^\d+\.\s+/, ''),
+            displayName: t.name.replace(/^\d+\.\s+/, ''),
+            slug: t.slug,
+            sort: t.sort_order,
+            subtopicCount: topicSubCounts.get(t.id) || 0,
+          }));
+          topicSections = [];
+        } else {
         const slugSplitIndex = key === "0606" || key === "computer-science" ? 4 : 3;
         // Build parent topic id → section name map
         const topicIdToSection = new Map<string, string>();
@@ -440,8 +467,9 @@ export default async function SubjectPage({
             return ai - bi;
           });
         }
-        // Also provide flat topics for non-section rendering; attach subtopicCount for non-math subjects
-        topics = topicSections.flatMap(s => s.topics.map(t => ({...t, subtopicCount: s.subtopicCount})));
+          // Also provide flat topics for non-section rendering; attach subtopicCount for non-math subjects
+          topics = topicSections.flatMap(s => s.topics.map(t => ({...t, subtopicCount: s.subtopicCount})));
+        } // end if (data.board !== "Edexcel")
       }
     } catch (e) {
       console.error("Topic DB fetch failed:", e);

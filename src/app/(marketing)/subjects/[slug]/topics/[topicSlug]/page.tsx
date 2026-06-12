@@ -185,8 +185,9 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science";
-  let subtopics: any[] = isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
+  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography";
+  const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
+  let subtopics: any[] = isDbDriven ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
   // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
   const activeTab = tab || (isSimpleSubject ? "subtopics" : isMaths ? "notes" : "subtopics");
@@ -206,9 +207,9 @@ export default async function TopicPage({
   let subtopicNotes: any[] = [];
   let subtopicDisplay: string | null = null;
   try {
-    const topicSearchPattern = isSimpleSubject
-      ? `*${subjectKey === "additional-maths" ? "0606" : subjectKey === "computer-science" ? "0478" : "0455"}-${encodeURIComponent(topicSlug)}`
-      : `*${encodeURIComponent(topicSlug)}`;
+    const topicSearchPattern = slug.startsWith("edexcel") || (!isSimpleSubject)
+      ? `*${encodeURIComponent(topicSlug)}`
+      : `*${subjectKey === "additional-maths" ? "0606" : subjectKey === "computer-science" ? "0478" : "0455"}-${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(
       `${API}/topics?slug=ilike.${topicSearchPattern}&select=id,name,sort_order&limit=1`,
       { headers: baseHeaders, cache: "no-store" }

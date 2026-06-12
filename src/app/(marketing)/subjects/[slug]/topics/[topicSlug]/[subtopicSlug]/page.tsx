@@ -25,7 +25,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-mathematics-higher-4ma1": "mathematics",
   "edexcel-further-maths-4pm1": "mathematics",
   "edexcel-business-4bs1": "mathematics",
-  "edexcel-economics-4ec1": "mathematics",
+  "edexcel-economics-4ec1": "economics",
   "edexcel-geography-4ge1": "mathematics",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
@@ -200,7 +200,7 @@ export default async function SubtopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
-  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science") {
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || slug.startsWith("edexcel")) {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -238,10 +238,12 @@ export default async function SubtopicPage({
     
     // Extract board-specific code from URL slug to scope topic search
     const subjectCode = slug.startsWith("edexcel")
-      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1"
+      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : "4ma1"
       : slug.includes("physics") ? "0625" : slug.includes("chemistry") ? "0620" : slug.includes("biology") ? "0610" : "0580";
     const useBoardScope = subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science";
-    const topicSearchPat = useBoardScope
+    const topicSearchPat = slug.startsWith("edexcel")
+      ? `${encodeURIComponent(topicSlug)}`
+      : useBoardScope
       ? `*${subjectCode}*${encodeURIComponent(topicSlug)}`
       : subjectKey === "additional-maths"
       ? `*0606-${encodeURIComponent(topicSlug)}`
@@ -275,7 +277,7 @@ export default async function SubtopicPage({
       } catch {}
     }
     // Fallback for additional-maths/economics: lookup by subtopic slug
-    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science")) {
+    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || slug.startsWith("edexcel"))) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "force-cache" });
         const subData = await subRes.json();
@@ -293,17 +295,31 @@ export default async function SubtopicPage({
     const filterVal = subtopicId || topicRow?.id;
 
     if (filterVal) {
+      // Determine if this subject should fetch questions from R2 instead of DB
+      const useR2Questions = slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1";
       // Fetch notes, questions, and past_papers in parallel
       const [notesArr, allQs, papers] = await Promise.all([
         fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
-        fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
-          .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
+        useR2Questions
+          ? (async () => {
+              try {
+                const res = await fetch(`/api/r2/questions/${slug}?subtopic_slug=${encodeURIComponent(subtopicSlug)}`);
+                if (!res.ok) return [];
+                return await res.json();
+              } catch { return []; }
+            })()
+          : fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
+              .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
         fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
       ]);
       notes = notesArr;
       if (Array.isArray(allQs)) {
+        // Edexcel: keep all questions in structured tab (no separate MCQ tab)
+        if (slug.startsWith("edexcel")) {
+          structuredQs = allQs;
+        } else {
         for (const q of allQs) {
           const txt = q.question_text || "";
           const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
@@ -313,6 +329,7 @@ export default async function SubtopicPage({
           } else {
             structuredQs.push(q);
           }
+        }
         }
       }
       if (Array.isArray(papers) && papers.length > 0) {
