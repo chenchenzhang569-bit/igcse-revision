@@ -8,6 +8,14 @@ const subjects = [
   { name: "CAIE Additional Mathematics 0606", slug: "caie-additional-mathematics-0606", icon: "📊" },
   { name: "CAIE Economics 0455", slug: "caie-economics-0455", icon: "📈" },
   { name: "CAIE Computer Science 0478", slug: "caie-computer-science-0478", icon: "💻" },
+  { name: "Edexcel Physics 4PH1", slug: "edexcel-physics-4ph1", icon: "⚛️" },
+  { name: "Edexcel Chemistry 4CH1", slug: "edexcel-chemistry-4ch1", icon: "🧪" },
+  { name: "Edexcel Biology 4BI1", slug: "edexcel-biology-4bi1", icon: "🧬" },
+  { name: "Edexcel Mathematics 4MA1", slug: "edexcel-mathematics-4ma1", icon: "📐" },
+  { name: "Edexcel Further Maths 4PM1", slug: "edexcel-further-maths-4pm1", icon: "🔢" },
+  { name: "Edexcel Business 4BS1", slug: "edexcel-business-4bs1", icon: "📊" },
+  { name: "Edexcel Economics 4EC1", slug: "edexcel-economics-4ec1", icon: "📈" },
+  { name: "Edexcel Geography 4GE1", slug: "edexcel-geography-4ge1", icon: "🌍" },
 ];
 
 export default function PastPapersPage() {

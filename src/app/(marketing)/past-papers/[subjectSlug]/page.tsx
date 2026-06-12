@@ -105,6 +105,11 @@ const INFO: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry" },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology" },
   "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "mathematics" },
+  "edexcel-mathematics-higher-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics (Higher)", icon: "📐", key: "mathematics" },
+  "edexcel-further-maths-4pm1": { board: "Edexcel", code: "4PM1", name: "Further Pure Mathematics", icon: "🔢", key: "mathematics" },
+  "edexcel-business-4bs1": { board: "Edexcel", code: "4BS1", name: "Business Studies", icon: "📊", key: "mathematics" },
+  "edexcel-economics-4ec1": { board: "Edexcel", code: "4EC1", name: "Economics", icon: "📈", key: "mathematics" },
+  "edexcel-geography-4ge1": { board: "Edexcel", code: "4GE1", name: "Geography", icon: "🌍", key: "mathematics" },
 };
 
 export default function PastPapersPage({ params }: { params: { subjectSlug: string } }) {
