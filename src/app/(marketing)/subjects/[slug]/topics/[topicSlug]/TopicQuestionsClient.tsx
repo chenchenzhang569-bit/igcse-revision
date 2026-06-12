@@ -795,13 +795,14 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                   );
                 }
                 // Leaf → show label + text + input + grading
-                // MCQ if sub-part answer is a single letter A-D
+                // MCQ buttons only for non-math subjects with letter answers
+                const isMathSubject = bugContext?.code === "0580" || bugContext?.code === "0606" || bugContext?.code === "4ma1" || bugContext?.code === "4pm1";
                 const answerText = q.clean_answer_text || q.answer_text || "";
                 const subAnswerParts = answerText.split('||').map(p => p.trim());
                 const subLabelRe = new RegExp(`^\\(${sp.label}\\)`, 'i');
                 const labeledPart = subAnswerParts.find(p => subLabelRe.test(p));
                 const subPartAnswer = labeledPart ? labeledPart.replace(/^\([a-z0-9]+\)\s*/i, '').trim() : '';
-                const isMcqSubPart = /^[A-D]$/i.test(subPartAnswer.replace(/\[[A-Z]\d+\]/g, '').trim().split(/[\s.]+/)[0]);
+                const isMcqSubPart = !isMathSubject && /^[A-D]$/i.test(subPartAnswer.replace(/\[[A-Z]\d+\]/g, '').trim().split(/[\s.]+/)[0]);
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">
