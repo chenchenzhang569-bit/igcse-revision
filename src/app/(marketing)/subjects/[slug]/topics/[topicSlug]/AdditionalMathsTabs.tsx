@@ -29,6 +29,7 @@ interface Question {
 
 export default function AdditionalMathsTabs({
   notes = [],
+  mcqs = [],
   structuredQuestions = [],
   subtopicId,
   subtopicName,
@@ -37,6 +38,7 @@ export default function AdditionalMathsTabs({
   bugContext,
 }: {
   notes: Note[];
+  mcqs?: Question[];
   structuredQuestions: Question[];
   subtopicId: string | null;
   subtopicName: string;
@@ -45,6 +47,12 @@ export default function AdditionalMathsTabs({
   bugContext?: { board: string; subject: string; code: string; topicName: string };
 }) {
   const [tab, setTab] = useState<"notes" | "questions">("notes");
+
+  // Merge MCQs (with corrected question_type) and structured questions
+  const allQuestions = [
+    ...mcqs.map(q => ({ ...q, question_type: "multiple_choice" })),
+    ...structuredQuestions,
+  ];
 
   return (
     <div className="mt-6">
@@ -68,7 +76,7 @@ export default function AdditionalMathsTabs({
               : "border-transparent text-gray-400 hover:text-gray-600"
           }`}
         >
-          ✏️ Questions {structuredQuestions.length > 0 && `(${structuredQuestions.length})`}
+          ✏️ Questions {allQuestions.length > 0 && `(${allQuestions.length})`}
         </button>
       </div>
 
@@ -124,7 +132,7 @@ export default function AdditionalMathsTabs({
       {tab === "questions" && subtopicId && (
         <TopicQuestionsClient
           topicId={subtopicId}
-          preloadedQuestions={structuredQuestions}
+          preloadedQuestions={allQuestions}
           bugContext={bugContext || {
             board: "CAIE",
             subject: "Additional Mathematics",

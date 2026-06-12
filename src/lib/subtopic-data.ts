@@ -450,6 +450,45 @@ const ADDITIONAL_MATHS_SUBTOPICS: Record<string, SubtopicDef[]> = {
   ],
 };
 
+// Edexcel Business Studies 4BS1
+const BUSINESS_SUBTOPICS: Record<string, SubtopicDef[]> = {
+  "edexcel-business-4bs1-business-activity": [
+    { slug: "edexcel-business-4bs1-business-objectives", name: "Business Objectives", displayName: "Business Objectives", pmtCode: "1.1" },
+    { slug: "edexcel-business-4bs1-types-of-organisations", name: "Types of Organisations", displayName: "Types of Organisations", pmtCode: "1.2" },
+    { slug: "edexcel-business-4bs1-classification-of-businesses", name: "Classification of Businesses", displayName: "Classification of Businesses", pmtCode: "1.3" },
+    { slug: "edexcel-business-4bs1-decisions-on-location", name: "Decisions on Location", displayName: "Decisions on Location", pmtCode: "1.4" },
+    { slug: "edexcel-business-4bs1-business-and-the-international-economy", name: "Business and the International Economy", displayName: "Business and the International Economy", pmtCode: "1.5" },
+    { slug: "edexcel-business-4bs1-government-objectives-and-policies", name: "Government Objectives and Policies", displayName: "Government Objectives and Policies", pmtCode: "1.6" },
+    { slug: "edexcel-business-4bs1-external-factors", name: "External Factors", displayName: "External Factors", pmtCode: "1.7" },
+    { slug: "edexcel-business-4bs1-what-makes-a-business-successful", name: "What Makes a Business Successful", displayName: "What Makes a Business Successful", pmtCode: "1.8" },
+  ],
+  "edexcel-business-4bs1-people": [
+    { slug: "edexcel-business-4bs1-internal-and-external-communication", name: "Internal and External Communication", displayName: "Internal and External Communication", pmtCode: "2.1" },
+    { slug: "edexcel-business-4bs1-recruitment-and-selection-process", name: "Recruitment and Selection Process", displayName: "Recruitment and Selection Process", pmtCode: "2.2" },
+    { slug: "edexcel-business-4bs1-training", name: "Training", displayName: "Training", pmtCode: "2.3" },
+    { slug: "edexcel-business-4bs1-motivation-and-rewards", name: "Motivation and Rewards", displayName: "Motivation and Rewards", pmtCode: "2.4" },
+    { slug: "edexcel-business-4bs1-organisation-structure-and-employees", name: "Organisation Structure and Employees", displayName: "Organisation Structure and Employees", pmtCode: "2.5" },
+  ],
+  "edexcel-business-4bs1-finance": [
+    { slug: "edexcel-business-4bs1-sources-of-finance", name: "Sources of Finance", displayName: "Sources of Finance", pmtCode: "3.1" },
+    { slug: "edexcel-business-4bs1-cash-flow-forecasting", name: "Cash Flow Forecasting", displayName: "Cash Flow Forecasting", pmtCode: "3.2" },
+    { slug: "edexcel-business-4bs1-costs-and-break-even-analysis", name: "Costs and Break Even Analysis", displayName: "Costs and Break Even Analysis", pmtCode: "3.3" },
+    { slug: "edexcel-business-4bs1-financial-documents", name: "Financial Documents", displayName: "Financial Documents", pmtCode: "3.4" },
+    { slug: "edexcel-business-4bs1-analysis-of-accounts", name: "Analysis of Accounts", displayName: "Analysis of Accounts", pmtCode: "3.5" },
+  ],
+  "edexcel-business-4bs1-marketing": [
+    { slug: "edexcel-business-4bs1-market-research", name: "Market Research", displayName: "Market Research", pmtCode: "4.1" },
+    { slug: "edexcel-business-4bs1-the-market", name: "The Market", displayName: "The Market", pmtCode: "4.2" },
+    { slug: "edexcel-business-4bs1-the-marketing-mix", name: "The Marketing Mix", displayName: "The Marketing Mix", pmtCode: "4.3" },
+    { slug: "edexcel-business-4bs1-quality", name: "Quality", displayName: "Quality", pmtCode: "4.4" },
+  ],
+  "edexcel-business-4bs1-operations": [
+    { slug: "edexcel-business-4bs1-economies-and-diseconomies-of-scale", name: "Economies and Diseconomies of Scale", displayName: "Economies and Diseconomies of Scale", pmtCode: "5.1" },
+    { slug: "edexcel-business-4bs1-production", name: "Production", displayName: "Production", pmtCode: "5.2" },
+    { slug: "edexcel-business-4bs1-factors-of-production", name: "Factors of Production", displayName: "Factors of Production", pmtCode: "5.3" },
+  ],
+};
+
 export const SUBTOPIC_DATA: Record<string, Record<string, SubtopicDef[]>> = {
   physics: PHYSICS_SUBTOPICS,
   chemistry: CHEMISTRY_SUBTOPICS,
@@ -458,6 +497,7 @@ export const SUBTOPIC_DATA: Record<string, Record<string, SubtopicDef[]>> = {
   "computer-science": CS_SUBTOPICS,
   economics: ECONOMICS_SUBTOPICS,
   "additional-maths": ADDITIONAL_MATHS_SUBTOPICS,
+  business: BUSINESS_SUBTOPICS,
 };
 
 export function getSubtopics(subjectKey: string, topicSlug: string): SubtopicDef[] {

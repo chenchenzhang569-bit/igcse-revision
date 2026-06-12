@@ -336,10 +336,6 @@ export default async function SubtopicPage({
       ]);
       notes = notesArr;
       if (Array.isArray(allQs)) {
-        // Edexcel: keep all questions in structured tab (no separate MCQ tab)
-        if (slug.startsWith("edexcel")) {
-          structuredQs = allQs;
-        } else {
         for (const q of allQs) {
           const txt = q.question_text || "";
           const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
@@ -349,7 +345,6 @@ export default async function SubtopicPage({
           } else {
             structuredQs.push(q);
           }
-        }
         }
       }
       if (Array.isArray(papers) && papers.length > 0) {
@@ -396,6 +391,7 @@ export default async function SubtopicPage({
       {(subjectKey === "additional-maths" || subjectKey === "mathematics") ? (
         <AdditionalMathsTabs
           notes={notes}
+          mcqs={mcqs}
           structuredQuestions={structuredQs}
           subtopicId={subtopicId}
           subtopicName={subtopic.displayName}
@@ -430,6 +426,7 @@ export default async function SubtopicPage({
       ) : slug.startsWith("edexcel") ? (
         <AdditionalMathsTabs
           notes={notes}
+          mcqs={mcqs}
           structuredQuestions={structuredQs}
           subtopicId={subtopicId}
           subtopicName={subtopic.displayName}
