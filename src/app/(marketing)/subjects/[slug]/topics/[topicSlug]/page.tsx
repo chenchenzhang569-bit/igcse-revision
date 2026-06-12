@@ -187,7 +187,7 @@ export default async function TopicPage({
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
   const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1";
   const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
-  let subtopics: any[] = isDbDriven ? [] : getSubtopics(subjectKey, topicSlug);
+  let subtopics: any[] = isDbDriven && isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
   // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
   const activeTab = tab || (isSimpleSubject ? "subtopics" : isMaths ? "notes" : "subtopics");
