@@ -366,7 +366,7 @@ export default async function SubjectPage({
         .eq("subject_id", subjectId)
         .order("sort_order");
       if (dbTopics && dbTopics.length > 0) {
-        const slugSplitIndex = key === "0606" || key === "computer-science" || key === "geography" ? 4 : 3;
+        const slugSplitIndex = key === "0606" || key === "computer-science" ? 4 : 3;
         // Build parent topic id → section name map
         const topicIdToSection = new Map<string, string>();
         for (const t of dbTopics) {
