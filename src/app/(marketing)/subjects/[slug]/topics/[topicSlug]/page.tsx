@@ -185,7 +185,7 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1";
+  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1" || (slug.startsWith("edexcel") && (subjectKey === "chemistry" || subjectKey === "biology"));
   const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
   let subtopics: any[] = isDbDriven ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
