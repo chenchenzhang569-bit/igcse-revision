@@ -200,8 +200,9 @@ export default async function SubtopicPage({
   }
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
-  // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
-  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || slug.startsWith("edexcel")) {
+  // For DB-driven subjects: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
+  // Shared-static (chemistry/biology/physics) keep hardcoded data
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -278,12 +279,7 @@ export default async function SubtopicPage({
         if (Array.isArray(subData) && subData[0]?.topic_id) {
           topicRow = { id: subData[0].topic_id, sort_order: 1 };
           subtopicId = subData[0].id;
-          subtopic.pmtCode = `1.${subData[0].sort_order || 1}`;
-          if (subData[0].display_name) {
-            const fn = subData[0].display_name;
-            const m = fn.match(/^(\d+\.\d+)\s+(.*)/);
-            subtopic.displayName = m ? m[2] : fn;
-          }
+          // Don't overwrite pmtCode/displayName — shared-static subjects keep hardcoded values
         }
       } catch {}
     }
