@@ -815,8 +815,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 );
               })}
             </div>
-            {/* Economics: Show Mark Scheme below subparts */}
-            {!isMcq && bugContext?.code === "4ec1" && (
+            {/* Non-math (Economics/Business): Show Mark Scheme below subparts */}
+            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1") && (
               <div className="mt-3">
                 <button
                   onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -842,8 +842,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               disabled={isGraded}
               hideSymbols={!/\$/.test(stem)}
             />
-            {/* Economics: Show Mark Scheme below MathInput */}
-            {!isMcq && bugContext?.code === "4ec1" && (
+            {/* Non-math (Economics/Business): Show Mark Scheme below MathInput */}
+            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1") && (
               <div className="mt-3">
                 <button
                   onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -1029,8 +1029,8 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
             ← Prev
           </button>
 
-          {/* Submit & Finish — hidden for Economics (code=4ec1) */}
-          {bugContext?.code !== "4ec1" && (
+          {/* Submit & Finish — hidden for non-math subjects (Economics/Business) */}
+          {bugContext?.code !== "4ec1" && bugContext?.code !== "4bs1" && (
           <div className="flex gap-2">
             {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
               <button onClick={handleSubmitGroup}
