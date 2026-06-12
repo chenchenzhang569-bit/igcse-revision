@@ -74,12 +74,11 @@ export function MockExamsTab({
         // Check if this subject has R2 mock data
         const r2Config = R2_MOCK_FILES[subjectSlug];
         if (r2Config) {
-          // Fetch from R2
+          // Fetch from R2 via API route (auth-guarded)
           try {
-            const r2Url = `https://7524670a3d7d50fd979765dedb5b378d.r2.cloudflarestorage.com/sme-images/${r2Config.file}`;
-            const r2Res = await fetch(r2Url, { cache: "no-store" });
-            if (!r2Res.ok) throw new Error("R2 fetch failed");
-            const rawQuestions = await r2Res.json();
+            const apiRes = await fetch(`/api/r2/mock?slug=${encodeURIComponent(subjectSlug)}`, { cache: "no-store" });
+            if (!apiRes.ok) throw new Error("API fetch failed");
+            const rawQuestions = await apiRes.json();
             renderR2MockExams(rawQuestions, r2Config.label);
             return;
           } catch {
