@@ -45,6 +45,16 @@ type PaperData = {
   pdf_url?: string;
 };
 
+// R2 mock exam config for Edexcel subjects
+const R2_MOCK_FILES: Record<string, { file: string; label: string }> = {
+  "edexcel-chemistry-4ch1": { file: "mock/edexcel_chem_mock_questions.json", label: "4CH1" },
+  "edexcel-physics-4ph1": { file: "mock/edexcel_phys_mock_questions.json", label: "4PH1" },
+  "edexcel-biology-4bi1": { file: "mock/edexcel_bio_mock_questions.json", label: "4BI1" },
+  "edexcel-mathematics-4ma1": { file: "mock/edexcel_4ma1_foundation_mock_questions.json", label: "4MA1 (F)" },
+  "edexcel-mathematics-higher-4ma1": { file: "mock/edexcel_4ma1_higher_mock_questions.json", label: "4MA1 (H)" },
+  "edexcel-business-4bs1": { file: "mock/edexcel_business_4bs1_mock_questions.json", label: "4BS1" },
+};
+
 export function MockExamsTab({
   subjectKey,
   subjectSlug,
@@ -61,7 +71,23 @@ export function MockExamsTab({
   useEffect(() => {
     (async () => {
       try {
-        // Fetch sets (filter by both subject AND exam board)
+        // Check if this subject has R2 mock data
+        const r2Config = R2_MOCK_FILES[subjectSlug];
+        if (r2Config) {
+          // Fetch from R2
+          try {
+            const r2Url = `https://7524670a3d7d50fd979765dedb5b378d.r2.cloudflarestorage.com/sme-images/${r2Config.file}`;
+            const r2Res = await fetch(r2Url, { cache: "no-store" });
+            if (!r2Res.ok) throw new Error("R2 fetch failed");
+            const rawQuestions = await r2Res.json();
+            renderR2MockExams(rawQuestions, r2Config.label);
+            return;
+          } catch {
+            // R2 failed, fall through to DB
+          }
+        }
+
+        // DB-based fetch
         const { data: setRows, error: setErr } = await supabase
           .from("mock_exam_sets")
           .select("id, set_number, tier, slug")
@@ -72,7 +98,6 @@ export function MockExamsTab({
         if (setErr) { setError(setErr.message); setLoading(false); return; }
         if (!setRows || setRows.length === 0) { setLoading(false); return; }
 
-        // Fetch papers
         const setIds = setRows.map((s: any) => s.id);
         const { data: paperRows, error: paperErr } = await supabase
           .from("mock_exam_papers")
@@ -82,7 +107,6 @@ export function MockExamsTab({
 
         if (paperErr) { setError(paperErr.message); setLoading(false); return; }
 
-        // Count questions
         const paperIds = paperRows?.map((p: any) => p.id) || [];
         const { data: qRows } = await supabase
           .from("mock_exam_questions")
@@ -96,7 +120,6 @@ export function MockExamsTab({
           }
         }
 
-        // Group papers by set
         const papersBySet: Record<string, PaperData[]> = {};
         if (paperRows) {
           for (const p of paperRows as any[]) {
@@ -119,7 +142,72 @@ export function MockExamsTab({
       }
       setLoading(false);
     })();
-  }, [subjectKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjectKey, subjectSlug]);
+
+  function renderR2MockExams(rawQuestions: any[], label: string) {
+    const setMap: Record<string, { setNumber: number; slug: string; papers: any[] }> = {};
+    const paperQuestionCount: Record<string, number> = {};
+
+    for (const q of rawQuestions) {
+      const setKey = q.set;
+      const paperKey = `${q.set}-${q.paper}`;
+      if (!setMap[setKey]) {
+        const slugPart = q.set.split("-")[1];
+        const setNum = parseInt(slugPart) || (slugPart ? slugPart.charCodeAt(0) - 96 : 1);
+        setMap[setKey] = {
+          setNumber: setNum,
+          slug: q.set,
+          papers: [],
+        };
+      }
+
+      // Determine paper info
+      const paperNumMap: Record<string, string> = {
+        "paper-1c": "1C", "paper-1b": "1B", "paper-1p": "1P",
+        "paper1f": "1F", "paper2f": "2F", "paper1h": "1H", "paper2h": "2H",
+      };
+      const paperNum = paperNumMap[q.paper] ||
+        (q.paper.includes("investigating-small") ? "1" :
+         q.paper.includes("investigating-large") ? "2" : "2P");
+      const paperMins = ["paper-1c","paper-1b","paper-1p","paper1f","paper2f","paper1h","paper2h"].includes(q.paper) ? 120 :
+        (q.paper.includes("investigating") ? 90 : 75);
+
+      const slugPrefix = subjectSlug + "-";
+      const paperSlug = `${slugPrefix}${q.set}-${q.paper}`;
+
+      if (!setMap[setKey].papers.find((p: any) => p.slug === paperSlug)) {
+        setMap[setKey].papers.push({
+          id: paperKey,
+          paper_type: "Theory",
+          paper_number: paperNum,
+          minutes: paperMins,
+          total_marks: 0,
+          slug: paperSlug,
+        });
+        paperQuestionCount[paperKey] = 0;
+      }
+      paperQuestionCount[paperKey] = (paperQuestionCount[paperKey] || 0) + 1;
+      const p = setMap[setKey].papers.find((p: any) => p.slug === paperSlug);
+      if (p) p.total_marks += (q.marks || 0);
+    }
+
+    setSets(
+      Object.entries(setMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([setKey, setData]) => ({
+          id: setKey,
+          set_number: setData.setNumber,
+          tier: "Extended",
+          slug: setData.slug,
+          papers: setData.papers.map((p: any) => ({
+            ...p,
+            questionCount: paperQuestionCount[p.id] || 0,
+          })),
+        }))
+    );
+    setLoading(false);
+  }
 
   return (
     <section className="mt-6">
@@ -145,7 +233,6 @@ export function MockExamsTab({
           const isCS = subjectKey === "computer-science";
 
           if (isCS) {
-            // Group CS sets by tens digit: 11,12→A | 21,22→B | 31,32→C
             const csGroups: Record<number, SetData[]> = {};
             for (const s of sets) {
               const g = Math.floor(s.set_number / 10);
@@ -202,7 +289,6 @@ export function MockExamsTab({
             );
           }
 
-          // Non-CS: original rendering (maths grouping, clickable paper links)
           const syllabusNames: Record<string, string> = {
             "0580": "CIE Math 0580",
             "0607": "International Math 0607",
@@ -230,47 +316,47 @@ export function MockExamsTab({
                   )}
                   <div className="space-y-5">
                     {group.sets.map((set) => (
-            <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-800">Set {set.set_number}</span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      TIER_COLORS[set.tier] || "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {set.tier}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-400">
-                  {set.papers.reduce((sum, p) => sum + p.questionCount, 0)} questions
-                </span>
-              </div>
-              <div className="divide-y">
-                {set.papers.map((paper) => (
-                  <Link
-                    key={paper.id}
-                    href={`/mock-exams/${subjectSlug}/${paper.slug}`}
-                    className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{PAPER_ICONS[paper.paper_type] || "📄"}</span>
-                      <div>
-                        <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
-                          {paper.paper_number} — {paper.paper_type}
-                        </span>
-                        <div className="text-xs text-gray-400 mt-0.5">
-                          {paper.minutes} min · {paper.total_marks} marks · {paper.questionCount} questions
+                    <div key={set.id} className="bg-white border rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-800">Set {set.set_number}</span>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              TIER_COLORS[set.tier] || "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {set.tier}
+                          </span>
                         </div>
+                        <span className="text-sm text-gray-400">
+                          {set.papers.reduce((sum, p) => sum + p.questionCount, 0)} questions
+                        </span>
+                      </div>
+                      <div className="divide-y">
+                        {set.papers.map((paper) => (
+                          <Link
+                            key={paper.id}
+                            href={`/mock-exams/${subjectSlug}/${paper.slug}`}
+                            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">{PAPER_ICONS[paper.paper_type] || "📄"}</span>
+                              <div>
+                                <span className="font-medium text-gray-800 group-hover:text-primary-600 transition">
+                                  {paper.paper_number} — {paper.paper_type}
+                                </span>
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                  {paper.minutes} min · {paper.total_marks} marks · {paper.questionCount} questions
+                                </div>
+                              </div>
+                            </div>
+                            <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
+                              Start →
+                            </span>
+                          </Link>
+                        ))}
                       </div>
                     </div>
-                    <span className="text-primary-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
-                      Start →
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
                     ))}
                   </div>
                 </div>
