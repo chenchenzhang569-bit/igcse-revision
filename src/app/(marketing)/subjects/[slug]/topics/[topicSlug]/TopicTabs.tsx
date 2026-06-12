@@ -556,7 +556,7 @@ export function TopicTabs({
                     </span>
                   )}
                 </div>
-                {note.content && (
+                {!note.file_url && note.content && (
                   <MixedContent text={note.content} className="prose prose-sm max-w-none text-gray-700 mb-4" />
                 )}
                 {note.file_name && (

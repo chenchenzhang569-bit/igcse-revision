@@ -398,7 +398,7 @@ export default function EconomicsTabs({
                     </span>
                   )}
                 </div>
-                {note.content && (
+                {!note.file_url && note.content && (
                   <div className="prose prose-sm max-w-none text-gray-700 mb-4">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
                   </div>
