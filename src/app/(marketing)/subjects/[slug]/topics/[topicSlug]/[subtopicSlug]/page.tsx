@@ -202,7 +202,7 @@ export default async function SubtopicPage({
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For DB-driven subjects: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
   // Shared-static (chemistry/biology/physics) keep hardcoded data
-  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1") {
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
