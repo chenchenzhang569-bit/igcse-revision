@@ -420,7 +420,7 @@ export default async function SubtopicPage({
           bugContext={{
             board: params.slug?.startsWith("edexcel") ? "Edexcel" : "CAIE",
             subject: subjectKey === "additional-maths" ? "Additional Mathematics" : subjectKey === "business" ? "Business" : "Mathematics",
-            code: slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : subjectKey === "additional-maths" ? "0606" : "0580",
+            code: slug.includes("further-maths") ? "4pm1" : slug.includes("mathematics") && slug.startsWith("edexcel") ? "4ma1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : subjectKey === "additional-maths" ? "0606" : "0580",
             topicName: topicDisplay,
           }}
         />
