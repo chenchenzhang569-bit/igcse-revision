@@ -190,8 +190,7 @@ export default async function TopicPage({
   let subtopics: any[] = isDbDriven && isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
   // For additional-maths/economics, fetch subtopics from DB
   // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
-  const isEdexcelMaths = slug.startsWith("edexcel-mathematics") && isMaths;
-  const activeTab = tab || (isSimpleSubject || isEdexcelMaths ? "subtopics" : isMaths ? "notes" : "subtopics");
+  const activeTab = tab || (isSimpleSubject ? "subtopics" : isMaths ? "notes" : "subtopics");
 
   // Build tab URL preserving ?sub= param
   const tabUrl = (tabName: string) => {
@@ -222,8 +221,8 @@ export default async function TopicPage({
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
       }
-      // For additional-maths/economics and edexcel maths: fetch subtopics from DB
-      if (isSimpleSubject || isEdexcelMaths) {
+      // For additional-maths/economics: fetch subtopics from DB
+      if (isSimpleSubject) {
         const stRes = await fetch(
           `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
           { headers: baseHeaders, cache: "no-store" }
