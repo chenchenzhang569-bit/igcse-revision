@@ -197,7 +197,12 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "edexcel-chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
   "edexcel-biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
-  "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "edexcel-mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics A (F)", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "edexcel-mathematics-higher-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics (H)", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "edexcel-further-maths-4pm1":  { board: "Edexcel", code: "4PM1", name: "Further Pure Mathematics 4PM1", icon: "🔢", key: "further-maths", topics: [] },
+  "edexcel-business-4bs1":       { board: "Edexcel", code: "4BS1", name: "Business Studies 4BS1", icon: "📊", key: "business", topics: [] },
+  "edexcel-economics-4ec1":      { board: "Edexcel", code: "4EC1", name: "Economics 4EC1", icon: "📈", key: "economics", topics: [] },
+  "edexcel-geography-4ge1":      { board: "Edexcel", code: "4GE1", name: "Geography 4GE1", icon: "🌍", key: "geography", topics: [] },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "0606", topics: ADDITIONAL_MATHEMATICS },
   "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📊", key: "economics", topics: ECONOMICS },
   "caie-computer-science-0478":     { board: "CAIE", code: "0478", name: "Computer Science",   icon: "💻", key: "computer-science", topics: COMPUTER_SCIENCE },
@@ -209,7 +214,12 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "physics-4ph1":     { board: "Edexcel", code: "4PH1", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "chemistry-4ch1":   { board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
   "biology-4bi1":     { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
-  "mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "mathematics-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics A (F)", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "mathematics-higher-4ma1": { board: "Edexcel", code: "4MA1", name: "Mathematics (H)", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "further-maths-4pm1": { board: "Edexcel", code: "4PM1", name: "Further Pure Mathematics", icon: "🔢", key: "further-maths", topics: [] },
+  "business-4bs1":     { board: "Edexcel", code: "4BS1", name: "Business Studies", icon: "📊", key: "business", topics: [] },
+  "economics-4ec1":    { board: "Edexcel", code: "4EC1", name: "Economics", icon: "📈", key: "economics", topics: [] },
+  "geography-4ge1":    { board: "Edexcel", code: "4GE1", name: "Geography", icon: "🌍", key: "geography", topics: [] },
   // Short aliases (board-only, no code) — used by Subjects list page
   "caie-physics":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "caie-chemistry":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -219,6 +229,11 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-chemistry":{ board: "Edexcel", code: "4CH1", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
   "edexcel-biology":  { board: "Edexcel", code: "4BI1", name: "Biology",     icon: "🧬", key: "biology", topics: BIOLOGY },
   "edexcel-mathematics":{ board: "Edexcel", code: "4MA1", name: "Mathematics", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "edexcel-mathematics-higher":{ board: "Edexcel", code: "4MA1", name: "Mathematics (H)", icon: "📐", key: "maths", topics: MATHEMATICS },
+  "edexcel-further-maths":{ board: "Edexcel", code: "4PM1", name: "Further Pure Mathematics", icon: "🔢", key: "further-maths", topics: [] },
+  "edexcel-business":   { board: "Edexcel", code: "4BS1", name: "Business Studies", icon: "📊", key: "business", topics: [] },
+  "edexcel-economics":  { board: "Edexcel", code: "4EC1", name: "Economics", icon: "📈", key: "economics", topics: [] },
+  "edexcel-geography":  { board: "Edexcel", code: "4GE1", name: "Geography", icon: "🌍", key: "geography", topics: [] },
   "economics-0455":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
   "caie-economics":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
 };
@@ -355,7 +370,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science" || key === "further-maths" || key === "business" || key === "geography") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();

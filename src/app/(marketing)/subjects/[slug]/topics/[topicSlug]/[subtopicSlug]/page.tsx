@@ -22,6 +22,11 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-chemistry-4ch1": "chemistry", "chemistry-4ch1": "chemistry",
   "edexcel-biology-4bi1": "biology", "biology-4bi1": "biology",
   "edexcel-mathematics-4ma1": "mathematics", "mathematics-4ma1": "mathematics",
+  "edexcel-mathematics-higher-4ma1": "mathematics",
+  "edexcel-further-maths-4pm1": "mathematics",
+  "edexcel-business-4bs1": "mathematics",
+  "edexcel-economics-4ec1": "mathematics",
+  "edexcel-geography-4ge1": "mathematics",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
   "caie-computer-science-0478": "computer-science",
@@ -29,6 +34,11 @@ const SLUG_TO_KEY: Record<string, string> = {
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
+  "edexcel-mathematics-higher": "mathematics",
+  "edexcel-further-maths": "mathematics",
+  "edexcel-business": "mathematics",
+  "edexcel-economics": "mathematics",
+  "edexcel-geography": "mathematics",
 };
 
 const TOPIC_SLUG_TO_DB: Record<string, string> = {
