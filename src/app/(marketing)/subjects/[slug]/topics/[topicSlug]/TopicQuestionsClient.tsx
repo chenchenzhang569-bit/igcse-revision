@@ -763,7 +763,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
             </button>
           </div>
         </div>
-        {!isMcq && hasSubParts ? (
+        {hasSubParts ? (
           <>
             {/* Find first sub-question marker position (handles **(i)**, (i), i), i.) */}
             {(() => {
@@ -809,12 +809,49 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
                         dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
                     )}
-                    <MathInput
-                      value={subAns}
-                      onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
-                      disabled={isGraded}
-                      hideSymbols={!/\$/.test(sp.text)}
-                    />
+                    {isMcq ? (
+                      <div className="space-y-1.5 mt-2">
+                        {options.map((opt, i) => {
+                          const letter = String.fromCharCode(65 + i);
+                          const sel = subAns === letter;
+                          const isCorrectForSub = subCorrectMap[subKey] || false;
+                          return (
+                            <button
+                              key={letter}
+                              onClick={() => {
+                                if (!subGraded[subKey]) {
+                                  setAnswers((p) => ({ ...p, [subKey]: letter }));
+                                  // Auto-grade: mark correct if letter matches expected answer
+                                  const correctLetter = (q.clean_answer_text || q.answer_text || "").trim().charAt(0);
+                                  const isCorrect = letter === correctLetter;
+                                  setSubCorrectMap((prev) => ({ ...prev, [subKey]: isCorrect }));
+                                  setSubGraded((prev) => ({ ...prev, [subKey]: true }));
+                                }
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${
+                                subGraded[subKey] && sel && isCorrectForSub
+                                  ? "bg-green-50 border-green-400"
+                                  : subGraded[subKey] && sel && !isCorrectForSub
+                                  ? "bg-red-50 border-red-400"
+                                  : sel
+                                  ? "bg-primary-50 border-primary-300"
+                                  : "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50"
+                              }`}
+                            >
+                              <span className="font-semibold text-primary-600 mr-1.5">{letter}.</span>
+                              <span className="text-gray-700">{opt}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <MathInput
+                        value={subAns}
+                        onChange={(v) => setAnswers((p) => ({ ...p, [subKey]: v }))}
+                        disabled={isGraded}
+                        hideSymbols={!/\$/.test(sp.text)}
+                      />
+                    )}
                   </div>
                 );
               })}
@@ -885,7 +922,12 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               return (
                 <button
                   key={letter}
-                  onClick={() => { if (!isGraded) { setAnswers((p) => ({ ...p, [q.id]: letter })); } }}
+                  onClick={() => {
+                    if (!isGraded) {
+                      setAnswers((p) => ({ ...p, [q.id]: letter }));
+                      handleGradeOne(q.id, q, letter);
+                    }
+                  }}
                   disabled={isGraded}
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${bg} ${isGraded ? "cursor-default" : "cursor-pointer"}`}
                 >
