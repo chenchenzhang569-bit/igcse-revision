@@ -60,7 +60,7 @@ type PastPaper = { id: string; title: string; year: number; season: string; pape
 function getSeasonFromSlug(slug: string): string {
   const map: Record<string, string> = {
     march: "Mar", mar: "Mar", "feb-march": "Feb/Mar", "feb-mar": "Feb/Mar",
-    "may-june": "May/Jun", "may-jun": "May/Jun", jun: "Jun", summer: "Summer",
+    "may-june": "May/June", "may-jun": "May/June", jun: "Jun", summer: "Summer",
     "oct-nov": "Oct/Nov", nov: "Nov",
     "n-a": "N/A", topic: "Topic",
   };
