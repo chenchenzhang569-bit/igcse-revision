@@ -1294,14 +1294,37 @@ function parseQuestion(text: string): { stem: string; options: string[] } {
   const lines = text.split("\n");
   const optionLines: string[] = [];
   let stemEnd = lines.length;
+  // Try line-by-line: match A) or A. at start of line
   for (let i = lines.length - 1; i >= 0; i--) {
-    if (/^[A-D]\)\s+/.test(lines[i])) {
+    if (/^[A-D][).]\s+/.test(lines[i])) {
       optionLines.unshift(lines[i]);
       stemEnd = i;
     } else if (optionLines.length > 0) {
       break;
     }
   }
-  const stem = lines.slice(0, stemEnd).join("\n").trim();
-  return { stem, options: optionLines };
+  let stem = lines.slice(0, stemEnd).join("\n").trim();
+  let options = optionLines;
+
+  // Fallback: inline options like "A. xxx B. xxx C. xxx D. xxx" on last line(s)
+  if (options.length === 0) {
+    const inlineRe = /[A-D][.)]\s*.*?(?=\s[A-D][.)]\s|$)/g;
+    const allText = text;
+    // Find the last line that contains option-like patterns
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const found = [...lines[i].matchAll(/[A-D][.)]\s/g)];
+      if (found.length >= 2) {
+        // Extract options from this line
+        const opts = lines[i].split(/\s+(?=[A-D][.)]\s)/).filter(o => /^[A-D][.)]/.test(o.trim()));
+        if (opts.length >= 2) {
+          options = opts;
+          stemEnd = i;
+          break;
+        }
+      }
+    }
+    stem = lines.slice(0, stemEnd).join("\n").trim();
+  }
+
+  return { stem, options };
 }
