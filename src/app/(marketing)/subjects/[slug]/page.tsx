@@ -301,7 +301,7 @@ export default async function SubjectPage({
   try {
     const supabase = createClient();
     const [subjectRes, userRes] = await Promise.all([
-      supabase.from("subjects").select("id").eq("code", code).single(),
+      supabase.from("subjects").select("id").eq("slug", slug).maybeSingle(),
       supabase.auth.getUser(),
     ]);
     subjectId = subjectRes.data?.id || null;
