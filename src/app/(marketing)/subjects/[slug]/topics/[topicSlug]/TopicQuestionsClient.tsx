@@ -815,6 +815,22 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 );
               })}
             </div>
+            {/* Economics: Show Mark Scheme below subparts */}
+            {!isMcq && bugContext?.code === "4ec1" && (
+              <div className="mt-3">
+                <button
+                  onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
+                >
+                  📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
+                </button>
+                {markSchemeVisible[q.id] && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text || q.clean_answer_text || ""}</ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         ) : !isMcq ? (
           <>
@@ -826,6 +842,22 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               disabled={isGraded}
               hideSymbols={!/\$/.test(stem)}
             />
+            {/* Economics: Show Mark Scheme below MathInput */}
+            {!isMcq && bugContext?.code === "4ec1" && (
+              <div className="mt-3">
+                <button
+                  onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
+                >
+                  📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
+                </button>
+                {markSchemeVisible[q.id] && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text || q.clean_answer_text || ""}</ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         ) : null}
 
@@ -997,7 +1029,8 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
             ← Prev
           </button>
 
-          {/* Submit — only for groups with MCQ questions */}
+          {/* Submit & Finish — hidden for Economics (code=4ec1) */}
+          {bugContext?.code !== "4ec1" && (
           <div className="flex gap-2">
             {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
               <button onClick={handleSubmitGroup}
@@ -1012,6 +1045,7 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
               </button>
             )}
           </div>
+          )}
 
           <button
             onClick={() => goTo(currentIdx + 1)}
