@@ -10,6 +10,7 @@ import { MixedContent } from "@/components/MixedContent";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal from "@/components/ReportBugModal";
 import { createBrowserClient } from "@supabase/ssr";
+import { processMathContent } from "@/lib/math";
 
 const markdownComponents = {
   img: (props: any) => (
@@ -559,7 +560,24 @@ export function TopicTabs({
                 {!note.file_url && note.content && (
                   <MixedContent text={note.content} className="prose prose-sm max-w-none text-gray-700 mb-4" />
                 )}
-                {note.file_name && (
+                {note.file_url && (
+                  <>
+                    <iframe
+                      src={`/api/notes/download?id=${note.id}`}
+                      className="w-full h-[600px] border rounded-lg mb-3"
+                      title={note.title}
+                    />
+                    <a
+                      href={`/api/notes/download?id=${note.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
+                    >
+                      📥 {note.source ? `[${note.source}] ` : ""}{note.file_name || "Download"}
+                    </a>
+                  </>
+                )}
+                {note.file_name && !note.file_url && (
                   <button onClick={() => downloadContent(note)}
                     className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition">
                     📥 {note.title.includes("Summary") ? fmtPmt("Summary") : fmtPmt("Definition")}

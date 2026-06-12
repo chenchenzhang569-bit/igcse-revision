@@ -236,7 +236,7 @@ export default async function TopicPage({
             return {
               slug: s.slug,
               displayName: match ? match[2] : fullName,
-              pmtCode: subjectKey === "additional-maths" || slug === "edexcel-further-maths-4pm1"
+              pmtCode: subjectKey === "additional-maths" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-business-4bs1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1"
                 ? `${topicSortOrder}.${s.sort_order}`
                 : (match ? match[1] : undefined),
             };
