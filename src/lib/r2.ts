@@ -26,9 +26,20 @@ function parseStorageUrl(url: string): { bucket: string; key: string } | null {
 }
 
 /**
- * Generate a presigned R2 URL (1 hour TTL) from a Supabase Storage URL.
+ * Generate a presigned R2 URL (1 hour TTL) from a Supabase Storage URL or r2:// URL.
  */
 export async function getR2PresignedUrl(supabaseUrl: string): Promise<string | null> {
+  // Handle r2://past-papers/igcse/... format
+  if (supabaseUrl.startsWith("r2://")) {
+    const path = supabaseUrl.slice(5); // Remove "r2://"
+    const slashIdx = path.indexOf("/");
+    if (slashIdx < 0) return null;
+    const bucket = path.slice(0, slashIdx);
+    const key = path.slice(slashIdx + 1);
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    return getSignedUrl(s3, command, { expiresIn: 3600 });
+  }
+
   const parsed = parseStorageUrl(supabaseUrl);
   if (!parsed) return null;
 
