@@ -308,8 +308,8 @@ export default async function TopicPage({
         {isMaths && slug !== "edexcel-further-maths-4pm1" && <TopicSearchBox subjectKey={subjectKey} topicSlug={topicSlug} />}
       </div>
 
-      {/* For additional-maths/economics: show subtopics directly, no tabs */}
-      {isSimpleSubject && subtopics.length > 0 && (
+      {/* For additional-maths/economics/edexcel-maths: show subtopics directly, no tabs */}
+      {(isSimpleSubject || isEdexcelMathsOnTopic) && subtopics.length > 0 && (
         <div className="mt-8">
           <p className="text-gray-500 mb-4">{subtopics.length} subtopics</p>
           <div className="space-y-3">
@@ -332,8 +332,8 @@ export default async function TopicPage({
         </div>
       )}
 
-      {/* Tabs: only for 0580 Math (not additional-maths) */}
-      {isMaths && subjectKey !== "additional-maths" && slug !== "edexcel-further-maths-4pm1" && (
+      {/* Tabs: only for 0580 Math (not additional-maths, not edexcel-maths) */}
+      {isMaths && subjectKey !== "additional-maths" && slug !== "edexcel-further-maths-4pm1" && slug !== "edexcel-mathematics-4ma1" && slug !== "edexcel-mathematics-higher-4ma1" && (
       <div className="flex gap-1 mt-8 border-b">
         <Link
           href={`/subjects/${slug}/topics/${topicSlug}${tabUrl("notes")}`}
@@ -461,8 +461,8 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
         </div>
       )}
 
-      {/* Subtopics tab — ONLY for non-additional-maths, non-economics (those show subtopics directly above) */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && subjectKey !== "business" && subjectKey !== "geography" && slug !== "edexcel-further-maths-4pm1" && (
+      {/* Subtopics tab — ONLY for non-additional-maths, non-economics, non-edexcel-maths (those show subtopics directly above) */}
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && subjectKey !== "business" && subjectKey !== "geography" && slug !== "edexcel-further-maths-4pm1" && slug !== "edexcel-mathematics-4ma1" && slug !== "edexcel-mathematics-higher-4ma1" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
