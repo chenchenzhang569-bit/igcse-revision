@@ -141,7 +141,7 @@ function parseSubParts(stem: string): SubPart[] {
 
   // Find all markers
   const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
-  const re = /([ \t]*)(\([a-z]+\)|[ivx]+\))\s*/gim;
+  const re = /([ \t]*)(\([a-z]+\)|[ivxIVX]+\))\s*/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
@@ -155,7 +155,7 @@ function parseSubParts(stem: string): SubPart[] {
   // Fallback to old flat matching (bold markers etc.)
   if (allMarkers.length === 0) {
     const parts: SubPart[] = [];
-    const regex = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])\s*/gim;
+    const regex = /(?:\*\*\(([a-z]+|[ivxIVX]+)\)\*\*|\(([a-z]+|[ivxIVX]+)\)|^([a-z]+|[ivxIVX]+)[.)])\s*/gm;
     let lastIdx = 0;
     let mm: RegExpExecArray | null;
     while ((mm = regex.exec(stem)) !== null) {
@@ -767,7 +767,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           <>
             {/* Find first sub-question marker position (handles **(i)**, (i), i), i.) */}
             {(() => {
-              const markerRe = /(?:\*\*\(([a-z]+|[ivx]+)\)\*\*|\(([a-z]+|[ivx]+)\)|^([a-z]+|[ivx]+)[.)])/gim;
+              const markerRe = /(?:\*\*\(([a-z]+|[ivxIVX]+)\)\*\*|\(([a-z]+|[ivxIVX]+)\)|^([a-z]+|[ivxIVX]+)[.)])/gm;
               const firstMatch = markerRe.exec(stem);
               const firstMarkerIdx = firstMatch ? firstMatch.index : -1;
               const introText = firstMarkerIdx > 0 ? stem.slice(0, firstMarkerIdx).trim() : "";
