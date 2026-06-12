@@ -815,8 +815,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 );
               })}
             </div>
-            {/* Non-math (Economics/Business): Show Mark Scheme below subparts */}
-            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1") && (
+            {/* Non-math (Economics/Business/Geography): Show Mark Scheme below subparts */}
+            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1" || bugContext?.code === "4ge1") && (
               <div className="mt-3">
                 <button
                   onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -842,8 +842,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               disabled={isGraded}
               hideSymbols={!/\$/.test(stem)}
             />
-            {/* Non-math (Economics/Business): Show Mark Scheme below MathInput */}
-            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1") && (
+            {/* Non-math (Economics/Business/Geography): Show Mark Scheme below MathInput */}
+            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1" || bugContext?.code === "4ge1") && (
               <div className="mt-3">
                 <button
                   onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -1030,7 +1030,7 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
           </button>
 
           {/* Submit & Finish — hidden for non-math subjects (Economics/Business) */}
-          {bugContext?.code !== "4ec1" && bugContext?.code !== "4bs1" && (
+          {bugContext?.code !== "4ec1" && bugContext?.code !== "4bs1" && bugContext?.code !== "4ge1" && (
           <div className="flex gap-2">
             {currentIdx === currentQs.length - 1 && !allGradedInGroup && (
               <button onClick={handleSubmitGroup}
