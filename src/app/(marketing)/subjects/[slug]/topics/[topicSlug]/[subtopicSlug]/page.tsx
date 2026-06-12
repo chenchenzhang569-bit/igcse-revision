@@ -345,7 +345,12 @@ export default async function SubtopicPage({
           const txt = q.question_text || "";
           const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
           const ansIsLetter = /^[A-D]$/i.test((q.answer_text || "").trim());
-          if (hasAbcd || ansIsLetter) {
+          // Non-math subjects (Geography, Economics, Business): don't use ansIsLetter
+          // since short letter answers could be structured sub-part responses, not MCQs
+          const isMcq = hasAbcd || (ansIsLetter && !(
+            slug === "edexcel-geography-4ge1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-business-4bs1"
+          ));
+          if (isMcq) {
             mcqs.push({ ...q, correct_answer: q.correct_answer || q.answer_text });
           } else {
             structuredQs.push(q);
