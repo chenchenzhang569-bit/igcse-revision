@@ -201,7 +201,6 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "0606", topics: ADDITIONAL_MATHEMATICS },
   "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📊", key: "economics", topics: ECONOMICS },
   "caie-computer-science-0478":     { board: "CAIE", code: "0478", name: "Computer Science",   icon: "💻", key: "computer-science", topics: COMPUTER_SCIENCE },
-  "edexcel-geography-4ge1":         { board: "Edexcel", code: "4GE1", name: "Geography",       icon: "🌍", key: "geography", topics: [] },
   // Old format aliases (without board prefix)
   "physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -356,7 +355,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science" || key === "geography") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();
