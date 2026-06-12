@@ -876,7 +876,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         )}
 
         {/* Auto-grade result for math (0580/0606) structured questions */}
-        {!isMcq && (bugContext?.code === "0580" || bugContext?.code === "0606") && isGraded && (
+        {!isMcq && (bugContext?.code === "0580" || bugContext?.code === "0606" || bugContext?.code === "4bs1") && isGraded && (
           <div className={`mt-4 p-4 rounded-lg border text-sm ${
             isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
           }`}>

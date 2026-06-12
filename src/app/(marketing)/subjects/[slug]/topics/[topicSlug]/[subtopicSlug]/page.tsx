@@ -393,7 +393,7 @@ export default async function SubtopicPage({
         <span className="text-primary-600 mr-2">{subtopic.pmtCode}</span>
         {subtopic.displayName}
       </h1>
-      {(subjectKey === "additional-maths" || subjectKey === "mathematics") ? (
+      {(subjectKey === "additional-maths" || subjectKey === "mathematics" || subjectKey === "business") ? (
         <AdditionalMathsTabs
           notes={notes}
           structuredQuestions={structuredQs}
@@ -403,8 +403,8 @@ export default async function SubtopicPage({
           topicSlug={topicSlug}
           bugContext={{
             board: params.slug?.startsWith("edexcel") ? "Edexcel" : "CAIE",
-            subject: subjectKey === "additional-maths" ? "Additional Mathematics" : "Mathematics",
-            code: subjectKey === "additional-maths" ? "0606" : "0580",
+            subject: subjectKey === "additional-maths" ? "Additional Mathematics" : subjectKey === "business" ? "Business" : "Mathematics",
+            code: slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : subjectKey === "additional-maths" ? "0606" : "0580",
             topicName: topicDisplay,
           }}
         />
