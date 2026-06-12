@@ -186,11 +186,12 @@ export default async function TopicPage({
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
   const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1";
+  const isEdexcelMathsOnTopic = slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1";
   const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
-  let subtopics: any[] = isDbDriven && isSimpleSubject ? [] : getSubtopics(subjectKey, topicSlug);
-  // For additional-maths/economics, fetch subtopics from DB
+  let subtopics: any[] = isDbDriven && (isSimpleSubject || isEdexcelMathsOnTopic) ? [] : getSubtopics(subjectKey, topicSlug);
+  // For additional-maths/economics and edexcel maths, fetch subtopics from DB
   // Math: default to notes tab; simple subjects default to subtopics; others: default to subtopics
-  const activeTab = tab || (isSimpleSubject ? "subtopics" : isMaths ? "notes" : "subtopics");
+  const activeTab = tab || (isSimpleSubject || isEdexcelMathsOnTopic ? "subtopics" : isMaths ? "notes" : "subtopics");
 
   // Build tab URL preserving ?sub= param
   const tabUrl = (tabName: string) => {
@@ -221,8 +222,8 @@ export default async function TopicPage({
       if (!displayName || displayName === topicSlug.replace(/-/g, " ")) {
         displayName = topics[0].name || displayName;
       }
-      // For additional-maths/economics: fetch subtopics from DB
-      if (isSimpleSubject) {
+      // For additional-maths/economics and edexcel maths: fetch subtopics from DB
+      if (isSimpleSubject || isEdexcelMathsOnTopic) {
         const stRes = await fetch(
           `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
           { headers: baseHeaders, cache: "no-store" }
@@ -236,7 +237,7 @@ export default async function TopicPage({
             return {
               slug: s.slug,
               displayName: match ? match[2] : fullName,
-              pmtCode: subjectKey === "additional-maths" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-business-4bs1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1"
+              pmtCode: subjectKey === "additional-maths" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-business-4bs1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1" || slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1"
                 ? `${topicSortOrder}.${s.sort_order}`
                 : (match ? match[1] : undefined),
             };
