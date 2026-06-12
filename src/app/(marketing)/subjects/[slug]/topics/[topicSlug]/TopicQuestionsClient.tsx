@@ -632,7 +632,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
   }
 
   const isMcq = q.question_type === "multiple_choice" || q.question_text.includes("\nA) ");
-  const { stem, options } = parseQuestion(q.question_text);
+  const { stem, options: parsedOptions } = parseQuestion(q.question_text);
+  // Use q.options (R2/DB field) if available, fallback to text-parsed options
+  const options = q.options && Array.isArray(q.options) && q.options.length >= 2
+    ? q.options
+    : parsedOptions;
   const subParts = parseSubParts(stem);
   const hasSubParts = subParts.length > 1;
   // For multi-part: combine sub-answers; for single: use direct answer
