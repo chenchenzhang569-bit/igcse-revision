@@ -795,6 +795,13 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                   );
                 }
                 // Leaf → show label + text + input + grading
+                // MCQ if sub-part answer is a single letter A-D
+                const answerText = q.clean_answer_text || q.answer_text || "";
+                const subAnswerParts = answerText.split('||').map(p => p.trim());
+                const subLabelRe = new RegExp(`^\\(${sp.label}\\)`, 'i');
+                const labeledPart = subAnswerParts.find(p => subLabelRe.test(p));
+                const subPartAnswer = labeledPart ? labeledPart.replace(/^\([a-z0-9]+\)\s*/i, '').trim() : '';
+                const isMcqSubPart = /^[A-D]$/i.test(subPartAnswer.replace(/\[[A-Z]\d+\]/g, '').trim().split(/[\s.]+/)[0]);
                 return (
                   <div key={sp.label} className="border border-gray-200 rounded-lg p-3">
                     <p className="text-sm font-semibold text-primary-700 mb-2">
@@ -809,7 +816,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
                         dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
                     )}
-                    {isMcq ? (
+                    {isMcqSubPart ? (
                       <div className="space-y-1.5 mt-2">
                         {options.map((opt, i) => {
                           const letter = String.fromCharCode(65 + i);

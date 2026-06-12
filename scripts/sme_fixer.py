@@ -32,7 +32,7 @@ except ImportError:
 
 # --- Config ---
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-SUPABASE_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"  # read-only
+SUPABASE_KEY = ""  # read-only
 # For writes, paste your service_role key here (from .env.local)
 SUPABASE_SERVICE_KEY = "PASTE_YOUR_SERVICE_ROLE_KEY_HERE"
 

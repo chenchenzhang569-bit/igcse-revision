@@ -17,7 +17,7 @@ import shutil
 
 # ===== CONFIG =====
 URL = "https://aondldqwwvttwpervrfq.supabase.co"
-KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
+KEY = ""
 HEADERS = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
 
 # SME Physics topic question base URLs

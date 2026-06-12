@@ -3,7 +3,7 @@
 import requests, base64, re, sys, os
 
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-ANON_KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL"
+ANON_KEY = ""
 HEADERS = {"apikey": ANON_KEY, "Authorization": f"Bearer {ANON_KEY}"}
 PATCH_HEADERS = {**HEADERS, "Content-Type": "application/json", "Prefer": "return=minimal"}
 
