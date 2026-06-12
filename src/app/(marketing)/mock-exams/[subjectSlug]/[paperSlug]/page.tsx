@@ -210,15 +210,12 @@ export default function MockExamPaperPage() {
         const { data: { session } } = await browserSupabase.auth.getSession();
         if (!session) { setHasAccess(false); setAccessChecked(true); return; }
 
-        const parts = subjectSlug.split("-");
-        const code = parts[parts.length - 1]?.toUpperCase();
-
-        // Get subject_id
+        // Get subject_id by slug (not code — codes can be shared by F/H tiers)
         const { data: subjectRow } = await supabase
           .from("subjects")
           .select("id")
-          .eq("code", code)
-          .single();
+          .eq("slug", subjectSlug)
+          .maybeSingle();
 
         const subjectId = subjectRow?.id;
         if (!subjectId) { setHasAccess(false); setAccessChecked(true); return; }

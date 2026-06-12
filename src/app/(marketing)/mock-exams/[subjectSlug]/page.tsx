@@ -79,14 +79,12 @@ export default async function MockExamsPage({
   let subjectBoard: string | null = null;
   try {
     const serverClient = createClient();
-    // Get subject_id and board from DB
-    const parts = subjectSlug.split("-");
-    const code = parts[parts.length - 1]?.toUpperCase();
+    // Get subject_id and board from DB (by slug — codes can be shared by F/H tiers)
     const { data: subjectRow } = await serverClient
       .from("subjects")
       .select("id, exam_boards(slug)")
-      .eq("code", code)
-      .single();
+      .eq("slug", subjectSlug)
+      .maybeSingle();
     subjectId = subjectRow?.id || null;
     subjectBoard = (subjectRow as any)?.exam_boards?.slug || null;
 
