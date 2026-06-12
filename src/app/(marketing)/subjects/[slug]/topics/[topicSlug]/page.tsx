@@ -200,7 +200,7 @@ export default async function TopicPage({
       : `*${encodeURIComponent(topicSlug)}`;
     const tRes = await fetch(
       `${API}/topics?slug=ilike.${topicSearchPattern}&select=id,name,sort_order&limit=1`,
-      { headers: baseHeaders, cache: "force-cache" }
+      { headers: baseHeaders, cache: "no-store" }
     );
     const topics = await tRes.json();
     if (topics?.[0]?.id) {
@@ -213,7 +213,7 @@ export default async function TopicPage({
       if (isSimpleSubject) {
         const stRes = await fetch(
           `${API}/subtopics?select=id,name,display_name,slug,sort_order&topic_id=eq.${topicId}&order=sort_order.asc`,
-          { headers: baseHeaders, cache: "force-cache" }
+          { headers: baseHeaders, cache: "no-store" }
         );
         const stData = await stRes.json();
         if (Array.isArray(stData)) {
