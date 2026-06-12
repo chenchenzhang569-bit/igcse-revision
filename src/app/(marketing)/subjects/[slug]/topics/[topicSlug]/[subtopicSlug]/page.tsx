@@ -7,6 +7,8 @@ import AdditionalMathsTabs from "../AdditionalMathsTabs";
 import EconomicsTabs from "../EconomicsTabs";
 import ComputerScienceTabs from "../ComputerScienceTabs";
 
+export const dynamic = "force-dynamic";
+
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
 const KEY = "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL";
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };

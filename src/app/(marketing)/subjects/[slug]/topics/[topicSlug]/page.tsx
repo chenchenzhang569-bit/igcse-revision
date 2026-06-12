@@ -6,6 +6,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { TopicSearchBox } from "./TopicSearchBox";
 
+export const dynamic = "force-dynamic";
+
 // Paywall component
 function PaywallBanner({ subjectSlug }: { subjectSlug: string }) {
   return (
