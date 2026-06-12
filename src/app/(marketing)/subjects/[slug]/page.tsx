@@ -131,6 +131,24 @@ const SME_SECTION_MAP: Record<string, string> = {
   "programming":"8. Programming",
   "databases":"9. Databases",
   "boolean-logic":"10. Boolean Logic",
+  // 4GE1 Geography sections
+  "1-river-environments":"River Environments",
+  "2-coastal-environments":"Coastal Environments",
+  "3-hazardous-environments":"Hazardous Environments",
+  "4-economic-activity-and-energy":"Economic Activity & Energy",
+  "5-rural-environments":"Rural Environments",
+  "6-urban-environments":"Urban Environments",
+  "7-fragile-environments-and-climate-change":"Fragile Environments & Climate Change",
+  "8-globalisation-and-migration":"Globalisation & Migration",
+  "9-development-and-human-welfare":"Development & Human Welfare",
+  "10-river-fieldwork":"River Fieldwork",
+  "11-coastal-fieldwork":"Coastal Fieldwork",
+  "12-hazardous-fieldwork":"Hazardous Fieldwork",
+  "13-economic-activity-and-energy-fieldwork":"Economic Activity & Energy Fieldwork",
+  "14-rural-fieldwork":"Rural Fieldwork",
+  "15-urban-fieldwork":"Urban Fieldwork",
+  "16-general-fieldwork-skills":"General Fieldwork Skills",
+  "17-extended-response-questions":"Extended Response Questions",
   // slice(3) partials for 3+ word names
   "and-graphs":"Coordinate Geometry & Graphs","and-volumes":"Lengths, Areas & Volumes",
   // Legacy subtopic slugs (backward compat)
@@ -181,6 +199,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "0606", topics: ADDITIONAL_MATHEMATICS },
   "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📊", key: "economics", topics: ECONOMICS },
   "caie-computer-science-0478":     { board: "CAIE", code: "0478", name: "Computer Science",   icon: "💻", key: "computer-science", topics: COMPUTER_SCIENCE },
+  "edexcel-geography-4ge1":         { board: "Edexcel", code: "4GE1", name: "Geography",       icon: "🌍", key: "geography", topics: [] },
   // Old format aliases (without board prefix)
   "physics-0625":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "chemistry-0620":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -335,7 +354,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science" || key === "geography") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();
@@ -345,7 +364,7 @@ export default async function SubjectPage({
         .eq("subject_id", subjectId)
         .order("sort_order");
       if (dbTopics && dbTopics.length > 0) {
-        const slugSplitIndex = key === "0606" || key === "computer-science" ? 4 : 3;
+        const slugSplitIndex = key === "0606" || key === "computer-science" || key === "geography" ? 4 : 3;
         // Build parent topic id → section name map
         const topicIdToSection = new Map<string, string>();
         for (const t of dbTopics) {

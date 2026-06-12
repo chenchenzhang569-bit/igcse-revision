@@ -23,6 +23,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
   "caie-computer-science-0478": "computer-science",
+  "edexcel-geography-4ge1": "geography",
   "caie-physics": "physics", "caie-chemistry": "chemistry",
   "caie-biology": "biology", "caie-mathematics": "mathematics",
   "edexcel-physics": "physics", "edexcel-chemistry": "chemistry",
@@ -188,7 +189,7 @@ export default async function SubtopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For additional-maths/economics: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
-  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science") {
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "geography") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -226,15 +227,17 @@ export default async function SubtopicPage({
     
     // Extract board-specific code from URL slug to scope topic search
     const subjectCode = slug.startsWith("edexcel")
-      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1"
+      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : slug.includes("geography") ? "4ge1" : "4ma1"
       : slug.includes("physics") ? "0625" : slug.includes("chemistry") ? "0620" : slug.includes("biology") ? "0610" : "0580";
-    const useBoardScope = subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science";
+    const useBoardScope = subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && subjectKey !== "geography";
     const topicSearchPat = useBoardScope
       ? `*${subjectCode}*${encodeURIComponent(topicSlug)}`
       : subjectKey === "additional-maths"
       ? `*0606-${encodeURIComponent(topicSlug)}`
       : subjectKey === "economics"
       ? `*0455-${encodeURIComponent(topicSlug)}`
+      : subjectKey === "geography"
+      ? `*4ge1-${encodeURIComponent(topicSlug)}`
       : `*0478-${encodeURIComponent(topicSlug)}`;
 
     // Try all topic search patterns in parallel, pick first match
@@ -263,7 +266,7 @@ export default async function SubtopicPage({
       } catch {}
     }
     // Fallback for additional-maths/economics: lookup by subtopic slug
-    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science")) {
+    if (!subtopicId && topicRow && (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "geography")) {
       try {
         const subRes = await fetch(`${API}/subtopics?select=id,sort_order,display_name&topic_id=eq.${topicRow.id}&slug=eq.${encodeURIComponent(subtopicSlug)}&limit=1`, { headers: H, cache: "force-cache" });
         const subData = await subRes.json();
