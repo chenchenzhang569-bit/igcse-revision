@@ -410,14 +410,21 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
                   </div>
                 )}
                 {note.file_url && (
-                  <a
-                    href={`/api/notes/download?id=${note.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
-                  >
-                    📥 {note.source ? `[${note.source}] ` : ""}{note.file_name || "Download"}
-                  </a>
+                  <>
+                    <iframe
+                      src={`/api/notes/download?id=${note.id}`}
+                      className="w-full h-[600px] border rounded-lg mb-3"
+                      title={note.title}
+                    />
+                    <a
+                      href={`/api/notes/download?id=${note.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition"
+                    >
+                      📥 {note.source ? `[${note.source}] ` : ""}{note.file_name || "Download"}
+                    </a>
+                  </>
                 )}
               </div>
             ))
