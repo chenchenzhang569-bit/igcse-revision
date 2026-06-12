@@ -37,9 +37,9 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
   "edexcel-mathematics-higher": "mathematics",
   "edexcel-further-maths": "mathematics",
-  "edexcel-business": "mathematics",
-  "edexcel-economics": "mathematics",
-  "edexcel-geography": "mathematics",
+  "edexcel-business": "business",
+  "edexcel-economics": "economics",
+  "edexcel-geography": "geography",
   "caie-economics-0455": "economics",
   "caie-computer-science-0478": "computer-science",
 };

@@ -37,9 +37,9 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-mathematics-4ma1": "mathematics",
   "edexcel-mathematics-higher-4ma1": "mathematics",
   "edexcel-further-maths-4pm1": "mathematics",
-  "edexcel-business-4bs1": "mathematics",
-  "edexcel-economics-4ec1": "mathematics",
-  "edexcel-geography-4ge1": "mathematics",
+  "edexcel-business-4bs1": "business",
+  "edexcel-economics-4ec1": "economics",
+  "edexcel-geography-4ge1": "geography",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
   "caie-computer-science-0478": "computer-science",
@@ -53,9 +53,9 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-biology": "biology", "edexcel-mathematics": "mathematics",
   "edexcel-mathematics-higher": "mathematics",
   "edexcel-further-maths": "mathematics",
-  "edexcel-business": "mathematics",
-  "edexcel-economics": "mathematics",
-  "edexcel-geography": "mathematics",
+  "edexcel-business": "business",
+  "edexcel-economics": "economics",
+  "edexcel-geography": "geography",
 };
 
 const TOPIC_DISPLAY: Record<string, string> = {
@@ -452,7 +452,7 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
       )}
 
       {/* Subtopics tab — ONLY for non-additional-maths, non-economics (those show subtopics directly above) */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && slug !== "edexcel-further-maths-4pm1" && (
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && subjectKey !== "business" && subjectKey !== "geography" && slug !== "edexcel-further-maths-4pm1" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
