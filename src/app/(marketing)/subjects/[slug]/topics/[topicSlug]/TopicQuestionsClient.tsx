@@ -631,6 +631,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
     );
   }
 
+  const isMathSubject = bugContext?.code === "0580" || bugContext?.code === "0606" || bugContext?.code === "4ma1" || bugContext?.code === "4pm1";
   const isMcq = q.question_type === "multiple_choice" || q.question_text.includes("\nA) ");
   const { stem, options: parsedOptions } = parseQuestion(q.question_text);
   // Use q.options (R2/DB field) if available, fallback to text-parsed options
@@ -910,12 +911,12 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </>
         ) : null}
 
-        {isMcq && !hasSubParts && stem && (
+        {isMcq && !hasSubParts && !isMathSubject && stem && (
           <div className="prose prose-sm max-w-none text-gray-800 mb-5"
             dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
         )}
 
-        {isMcq && !hasSubParts ? (
+        {isMcq && !hasSubParts && !isMathSubject ? (
           <div className="space-y-2.5">
             {options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i);
@@ -948,6 +949,20 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
             })}
           </div>
         ) : null}
+
+        {/* Math subjects: even if question is classified as MCQ, show MathInput */}
+        {isMcq && !hasSubParts && isMathSubject && (
+          <>
+            <div className="prose prose-sm max-w-none text-gray-800 mb-5"
+              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
+            <MathInput
+              value={userAns}
+              onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
+              disabled={isGraded}
+              hideSymbols={!/\$/.test(stem)}
+            />
+          </>
+        )}
 
         {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
         {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && q.explanation && (
