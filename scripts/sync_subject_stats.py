@@ -309,6 +309,71 @@ def main():
                 if row["stid"] == uuid and row["code"] == "0478":
                     if flags["qp"]: st_cov["topic_qp"].add(uuid)
                     if flags["ms"]: st_cov["topic_ms"].add(uuid)
+
+    # Edexcel science subjects: igcse/{subject}/edexcel/{QP|MS|NOTES}/{slug}/
+    edexcel_sci_config = [
+        {"r2_subj": "biology", "code": "4BI1"},
+        {"r2_subj": "chemistry", "code": "4CH1"},
+        {"r2_subj": "physics", "code": "4PH1"},
+    ]
+    # Get subtopic slugs by subject code
+    st_slugs = sql("""
+        SELECT s.code, st.id as stid, st.slug, t.slug as topic_slug
+        FROM subtopics st
+        JOIN topics t ON t.id = st.topic_id
+        JOIN subjects s ON s.id = t.subject_id
+        WHERE s.code IN ('4BI1','4CH1','4PH1')
+    """)
+    # Build: code → {slug: stid} and code → {topic_slug: [stid]}
+    st_by_code = {}
+    topic_sts = {}
+    for row in st_slugs:
+        code = row["code"]
+        if code not in st_by_code:
+            st_by_code[code] = {}
+            topic_sts[code] = {}
+        st_by_code[code][row["slug"]] = row["stid"]
+        ts = row["topic_slug"]
+        if ts not in topic_sts[code]:
+            topic_sts[code][ts] = []
+        topic_sts[code][ts].append(row["stid"])
+
+    for cfg in edexcel_sci_config:
+        subj = cfg["r2_subj"]
+        code = cfg["code"]
+        slug_map = st_by_code.get(code, {})
+        topic_map = topic_sts.get(code, {})
+
+        for r2_type, cov_dim in [("QP", "topic_qp"), ("MS", "topic_ms"), ("NOTES", "notes")]:
+            prefix = f"igcse/{subj}/edexcel/{r2_type}/"
+            resp = s3.list_objects_v2(Bucket="past-papers", Prefix=prefix)
+            if not resp.get("Contents"):
+                continue
+            # Collect unique slugs from subdirectories
+            dir_slugs = set()
+            for obj in resp["Contents"]:
+                key = obj["Key"]
+                if not key.endswith(".pdf"):
+                    continue
+                path = key.replace(prefix, "")
+                parts = path.split("/")
+                if len(parts) >= 1:
+                    dir_slugs.add(parts[0])  # the folder/slug name
+            if not dir_slugs:
+                continue
+            print(f"  R2 edexcel {subj}/{r2_type}: {len(dir_slugs)} slugs")
+            for slug in dir_slugs:
+                # Try exact subtopic slug match
+                if slug in slug_map:
+                    st_cov[cov_dim].add(slug_map[slug])
+                else:
+                    # Try topic slug match (mark all subtopics under that topic)
+                    # R2 slugs might be shorter (no numeric prefix like "1-")
+                    for topic_slug, stids in topic_map.items():
+                        if slug in topic_slug or topic_slug.endswith(slug):
+                            for stid in stids:
+                                st_cov[cov_dim].add(stid)
+
     
     print(f"  Coverage: notes={len(st_cov['notes'])}, topic_qp={len(st_cov['topic_qp'])}, mcq_qp={len(st_cov['mcq_qp'])}")
     
