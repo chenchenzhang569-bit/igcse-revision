@@ -139,7 +139,13 @@ def main():
     pp_raw = sql("SELECT subject_id, COUNT(*)::int as cnt FROM past_papers GROUP BY subject_id")
     pp_map = {r["subject_id"]: r["cnt"] for r in pp_raw}
     
-    notes_raw = sql("SELECT subject_id, COUNT(*)::int as cnt FROM notes GROUP BY subject_id")
+    notes_raw = sql("""
+        SELECT COALESCE(n.subject_id, t.subject_id) as subject_id, COUNT(*)::int as cnt
+        FROM notes n
+        LEFT JOIN subtopics st ON st.id = n.subtopic_id
+        LEFT JOIN topics t ON t.id = st.topic_id
+        GROUP BY COALESCE(n.subject_id, t.subject_id)
+    """)
     notes_map = {r["subject_id"]: r["cnt"] for r in notes_raw}
     
     q_raw = sql("SELECT subject_id, COUNT(*)::int as cnt FROM questions GROUP BY subject_id")
