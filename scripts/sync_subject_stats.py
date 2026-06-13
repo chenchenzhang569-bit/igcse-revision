@@ -147,8 +147,8 @@ def main():
     
     mcq_raw = sql("""
         SELECT subject_id,
-            COUNT(*) FILTER (WHERE question_type = 'multiple_choice')::int as mcq,
-            COUNT(*) FILTER (WHERE question_type IS DISTINCT FROM 'multiple_choice')::int as structured
+            COUNT(*) FILTER (WHERE question_type = 'mcq')::int as mcq,
+            COUNT(*) FILTER (WHERE question_type = 'structured')::int as structured
         FROM questions GROUP BY subject_id
     """)
     mcq_map = {r["subject_id"]: r["mcq"] for r in mcq_raw}
