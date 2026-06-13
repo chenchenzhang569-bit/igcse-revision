@@ -193,7 +193,7 @@ export const translations: Record<string, Record<string, string>> = {
   stats: {
     pastPapers: "真题试卷",
     topicNotes: "主题笔记",
-    onlineQuestions: "在线题库",
+    onlineQuestions: "主题题目",
     mockExams: "模拟考试",
   },
 };
@@ -393,7 +393,7 @@ export const en: Record<string, Record<string, string>> = {
   stats: {
     pastPapers: "Past Papers",
     topicNotes: "Topic Notes",
-    onlineQuestions: "Online Questions",
+    onlineQuestions: "Topic Questions",
     mockExams: "Mock Exams",
   },
 };
