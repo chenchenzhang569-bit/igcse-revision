@@ -82,14 +82,14 @@ export default function ActivityWidget({
               </div>
               <div className="space-y-2">
                 {data.anomalies.slice(0, MAX_DISPLAY).map((a, i) => (
-                  <div key={i} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 text-sm min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                       <span className="font-mono text-xs text-gray-400 truncate">{a.email}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      <span className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${
                         a.type === "高频下载" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"
                       }`}>{a.type}</span>
                     </div>
-                    <span className="text-xs font-semibold text-red-600 shrink-0">{a.reason}</span>
+                    <span className="text-xs font-semibold text-red-600 truncate ml-2">{a.reason}</span>
                   </div>
                 ))}
               </div>
