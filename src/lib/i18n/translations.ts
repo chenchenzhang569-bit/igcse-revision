@@ -190,6 +190,12 @@ export const translations: Record<string, Record<string, string>> = {
     viewAnswers: "查看答案",
     startNow: "立即开始",
   },
+  stats: {
+    pastPapers: "真题试卷",
+    topicNotes: "主题笔记",
+    onlineQuestions: "在线题库",
+    mockExams: "模拟考试",
+  },
 };
 
 // Reverse mapping for English
@@ -383,5 +389,11 @@ export const en: Record<string, Record<string, string>> = {
     preview: "Preview",
     viewAnswers: "View Answers",
     startNow: "Start Now",
+  },
+  stats: {
+    pastPapers: "Past Papers",
+    topicNotes: "Topic Notes",
+    onlineQuestions: "Online Questions",
+    mockExams: "Mock Exams",
   },
 };

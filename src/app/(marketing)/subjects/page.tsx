@@ -15,6 +15,15 @@ interface Subject {
   icon: string;
   price: string;
   originalPrice: string;
+  id: string;
+}
+
+interface SubjectStats {
+  past_papers: number;
+  notes: number;
+  questions_mcq: number;
+  questions_structured: number;
+  mock_exams: number;
 }
 
 export default function SubjectsPage() {
@@ -23,6 +32,7 @@ export default function SubjectsPage() {
   const boards: ("CAIE" | "Edexcel")[] = hideEdexcel ? ["CAIE"] : ["CAIE", "Edexcel"];
   const [activeBoard, setActiveBoard] = useState<"CAIE" | "Edexcel">("CAIE");
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [stats, setStats] = useState<Record<string, SubjectStats>>({});
 
   useEffect(() => {
     const supabase = createBrowserClient(
@@ -31,7 +41,7 @@ export default function SubjectsPage() {
     );
     supabase
       .from("subjects")
-      .select("slug, display_name, name, code, icon, price_cny")
+      .select("id, slug, display_name, name, code, icon, price_cny")
       .eq("is_published", true)
       .order("sort_order")
       .then(({ data, error }) => {
@@ -39,6 +49,7 @@ export default function SubjectsPage() {
         if (Array.isArray(data)) {
           setSubjects(
             data.map((s: any) => ({
+              id: s.id,
               slug: s.slug,
               display_name: s.display_name || s.name,
               name: s.name,
@@ -52,6 +63,12 @@ export default function SubjectsPage() {
         }
       })
       .catch((err) => { console.error("Subjects fetch exception:", err); });
+
+    // Fetch stats
+    fetch("/api/subjects/stats")
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch((err) => console.error("Stats fetch error:", err));
   }, []);
 
   const filtered = subjects.filter((s) => s.board === activeBoard);
@@ -94,22 +111,31 @@ export default function SubjectsPage() {
             >
               <div className="flex items-start gap-4">
                 <span className="text-3xl">{s.icon}</span>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded font-semibold">
                       {s.board}
                     </span>
                     <span className="text-xs text-gray-400">{s.code}</span>
                   </div>
-                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary-600 transition">
+                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary-600 transition truncate">
                     {s.display_name}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">{s.name}</p>
+                  <p className="text-sm text-gray-500 mt-1 truncate">{s.name}</p>
                   <div className="flex items-baseline gap-2 mt-3">
                     <span className="text-accent-500 font-bold text-lg">{s.price}</span>
                     <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
                   </div>
                 </div>
+                {/* Stats — right-aligned vertical stack */}
+                {stats[s.id] && (
+                  <div className="shrink-0 text-right leading-relaxed pt-0.5">
+                    <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "pastPapers")}</span></div>
+                    <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "topicNotes")}</span></div>
+                    <div><span className="text-sm font-semibold text-gray-700">{(stats[s.id].questions_mcq + stats[s.id].questions_structured).toLocaleString()}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "onlineQuestions")}</span></div>
+                    <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].mock_exams}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "mockExams")}</span></div>
+                  </div>
+                )}
               </div>
             </Link>
           ))}
