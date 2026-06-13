@@ -16,3 +16,4 @@ scripts/fix_econ_p2_difficulty.py
 scripts/scrape_econ_mock_pw.py
 src/snippets/
 .env
+.env.stats

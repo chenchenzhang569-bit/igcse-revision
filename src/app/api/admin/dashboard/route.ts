@@ -45,42 +45,6 @@ function get30dRange() {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-function subjectToMockText(displayName: string, code: string): string {
-  const d = displayName.toLowerCase();
-  if (d.includes("additional")) return code || "0606";
-  if (d.includes("mathematics")) return "maths";
-  if (d.includes("computer")) return "computer-science";
-  if (d.includes("biology")) return "biology";
-  if (d.includes("chemistry")) return "chemistry";
-  if (d.includes("physics")) return "physics";
-  if (d.includes("economics")) return "economics";
-  return d;
-}
-
-async function buildMockSubjectMap(admin: any, subjects: any[]) {
-  const map: Record<string, string> = {};
-  const { data: sets } = await admin.from("mock_exam_sets").select("id, subject");
-  if (!sets?.length) return map;
-  const textToSubj: Record<string, string> = {};
-  for (const sub of subjects) {
-    const key = subjectToMockText(sub.display_name, sub.code || "");
-    if (!(key in textToSubj)) textToSubj[key] = sub.id;
-  }
-  const setToSubj: Record<string, string> = {};
-  for (const s of sets) {
-    const sid = textToSubj[s.subject];
-    if (sid) setToSubj[s.id] = sid;
-  }
-  const { data: papers } = await admin.from("mock_exam_papers").select("id, set_id");
-  if (papers) {
-    for (const p of papers) {
-      const sid = setToSubj[p.set_id];
-      if (sid) map[p.id] = sid;
-    }
-  }
-  return map;
-}
-
 // GET /api/admin/dashboard
 export async function GET(request: NextRequest) {
   const admin = await checkAdmin(request);
@@ -109,8 +73,6 @@ export async function GET(request: NextRequest) {
         : `${s.display_name} ${s.code || ""}`.trim();
     }
   }
-
-  const mockPaperSubjectMap = await buildMockSubjectMap(admin, subjects || []);
 
   // --- TRAFFIC ---
   const { data: dauData } = await admin.from("login_events")
@@ -174,172 +136,46 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // --- QUESTIONS COUNTS + DISTRIBUTION (combined single-pass where possible) ---
+  // --- QUESTIONS COUNTS + DISTRIBUTION (from subject_stats pre-computed table) ---
   let totalQuestions = 0, totalMockQuestions = 0, missingAnswersCount = 0;
   let questionDistribution: { name: string; count: number }[] = [];
   let subjectsWithQuestions = 0;
 
-  if (filterSubjectId) {
-    // With subject filter — single scan for count + distribution (answer format + question_text pattern)
-    const subjName = subjectDisplay[filterSubjectId] || filterSubjectId;
-    const subj = filterSubjectId;
-    let mcqC = 0, pracC = 0, missingC = 0;
-    let offset = 0;
-    while (true) {
-      const { data: page } = await admin
-        .from("questions")
-        .select("answer_text, clean_answer_text, question_text")
-        .eq("subject_id", subj)
-        .range(offset, offset + 999);
-      if (!page?.length) break;
-      for (const q of page) {
-        const ans = (q.clean_answer_text || q.answer_text || "").trim();
-        const txt = q.question_text || "";
-        const hasAbcd = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
-        if (hasAbcd || /^[A-D]$/i.test(ans)) mcqC++;
-        else pracC++;
-        if (!q.clean_answer_text) missingC++;
-      }
-      if (page.length < 1000) break;
-      offset += 1000;
-    }
-    if (filterType === "all" || filterType === "mcq") totalQuestions = mcqC;
-    if (filterType === "questions") totalQuestions = pracC;
-    if (filterType === "all") missingAnswersCount = missingC;
+  let statsQuery = admin.from("subject_stats").select("*");
+  if (filterSubjectId) statsQuery = statsQuery.eq("subject_id", filterSubjectId);
+  const { data: statsRows } = await statsQuery;
 
-    // Distribution + mock count
-    subjectsWithQuestions = 1;
-    let mockC = 0;
-    const paperIds = Object.entries(mockPaperSubjectMap)
-      .filter(([, sid]) => sid === filterSubjectId).map(([pid]) => pid);
-    if (paperIds.length) {
-      const { count: mC } = await admin.from("mock_exam_questions").select("*", { count: "exact", head: true }).in("paper_id", paperIds);
-      mockC = mC || 0;
-    }
-    const wantMcq = filterType === "all" || filterType === "mcq";
-    const wantPrac = filterType === "all" || filterType === "questions";
-    questionDistribution = [
-      ...(wantMcq ? [{ name: `${subjName} MCQ`, count: mcqC || 0 }] : []),
-      ...(wantPrac ? [{ name: `${subjName} 练习`, count: pracC || 0 }] : []),
-      ...((filterType === "all" || filterType === "mock_exam") ? [{ name: `${subjName} 模拟考`, count: mockC || 0 }] : []),
-    ].filter(d => d.count > 0);
-  } else {
-    // No subject filter — single pass for all types
-    let skipDist = false;
+  if (statsRows) {
+    for (const row of statsRows) {
+      const sid = row.subject_id;
+      const subjName = subjectDisplay[sid] || sid;
+      let count = 0;
 
-    const overviewSciCodes = new Set(["0625","0620","0610","4PH1","4CH1","4BI1"]);
-    const overviewSciIds = (subjects||[]).filter(s => overviewSciCodes.has(s.code)).map(s => s.id);
-    const overviewNonSciIds = (subjects||[]).filter(s => !overviewSciCodes.has(s.code) && s.id).map(s => s.id);
-
-    const scanOverviewClassify = async (ids: string[], checkText: boolean, mcqC: {v:number}, pracC: {v:number}, missingC: {v:number}, subjCounts: Record<string, number>) => {
-      if (!ids.length) return;
-      // Step 1: fast pass — classify by answer_text only, no question_text
-      const unsure: {sid: string, qid: string}[] = [];
-      let offset = 0;
-      while (true) {
-        const { data: page } = await admin
-          .from("questions")
-          .select("id, subject_id, answer_text, clean_answer_text")
-          .in("subject_id", ids)
-          .range(offset, offset + 999);
-        if (!page?.length) break;
-        for (const q of page) {
-          const ans = (q.clean_answer_text || q.answer_text || "").trim();
-          if (/^[A-D]$/i.test(ans)) {
-            mcqC.v++;
-            if (filterType === "mcq") subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
-          } else {
-            pracC.v++;
-            if (checkText) unsure.push({sid: q.subject_id, qid: q.id});
-            if (filterType === "questions") subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
-          }
-          if (!q.clean_answer_text) missingC.v++;
-        }
-        if (page.length < 1000) break;
-        offset += 1000;
-      }
-      // Step 2: only for science subjects — check question_text of uncertain questions
-      if (!unsure.length) return;
-      const BATCH = 100;
-      for (let i = 0; i < unsure.length; i += BATCH) {
-        const batch = unsure.slice(i, i + BATCH);
-        const { data: pages } = await admin
-          .from("questions")
-          .select("id, subject_id, question_text")
-          .in("id", batch.map(x => x.qid));
-        if (!pages) continue;
-        for (const q of pages) {
-          const txt = q.question_text || "";
-          const isMcq = /\b[A-D]\b[.):]|\([A-D]\)|\[[A-D]\]/.test(txt);
-          if (isMcq) {
-            mcqC.v++; pracC.v--;
-            if (filterType === "mcq") subjCounts[q.subject_id] = (subjCounts[q.subject_id] || 0) + 1;
-            if (filterType === "questions") subjCounts[q.subject_id] = Math.max(0, (subjCounts[q.subject_id] || 0) - 1);
-          }
-        }
-      }
-    };
-
-    if (filterType === "all") {
-      // Fast: head:true count for total, mock exam count
-      const r1 = await admin.from("questions").select("*", { count: "exact", head: true });
-      totalQuestions = r1.count || 0;
-      const r2 = await admin.from("questions").select("id", { count: "exact", head: true }).is("clean_answer_text", null);
-      missingAnswersCount = r2.count || 0;
-    } else if (filterType === "mcq" || filterType === "questions") {
-      // Two-pass: science subjects with question_text, others by answer format only
-      let mcqC = {v:0}, pracC = {v:0}, missingC = {v:0};
-      const subjCounts: Record<string, number> = {};
-      await scanOverviewClassify(overviewNonSciIds, false, mcqC, pracC, missingC, subjCounts);
-      await scanOverviewClassify(overviewSciIds, true, mcqC, pracC, missingC, subjCounts);
-      totalQuestions = filterType === "mcq" ? mcqC.v : pracC.v;
-      missingAnswersCount = missingC.v;
-      for (const [sid, cnt] of Object.entries(subjCounts)) {
-        questionDistribution.push({ name: subjectDisplay[sid] || sid, count: cnt });
-        subjectsWithQuestions++;
-      }
-      skipDist = true;
-    }
-
-    // Distribution for "all" and/or mock exam questions
-    if (!skipDist) {
-      const subjectQCounts: Record<string, number> = {};
-
-      // "all" mode: count all questions per subject (no classification needed, fast)
       if (filterType === "all") {
-        let offset = 0;
-        while (true) {
-          const { data: page } = await admin
-            .from("questions")
-            .select("subject_id")
-            .range(offset, offset + 999);
-          if (!page?.length) break;
-          for (const r of page) subjectQCounts[r.subject_id] = (subjectQCounts[r.subject_id] || 0) + 1;
-          if (page.length < 1000) break;
-          offset += 1000;
-        }
+        count = (row.questions || 0) + (row.r2_questions || 0)
+              + (row.mock_exams || 0) + (row.r2_mock_exams || 0);
+        totalQuestions += (row.questions || 0) + (row.r2_questions || 0);
+        totalMockQuestions += (row.mock_exams || 0) + (row.r2_mock_exams || 0);
+      } else if (filterType === "mcq") {
+        count = row.questions_mcq || 0;
+        totalQuestions += count;
+      } else if (filterType === "questions") {
+        count = row.questions_structured || 0;
+        totalQuestions += count;
+      } else if (filterType === "mock_exam") {
+        count = (row.mock_exams || 0) + (row.r2_mock_exams || 0);
+        totalMockQuestions += count;
       }
 
-      // Mock exam questions (for "all" or "mock_exam" filter)
-      if (filterType === "all" || filterType === "mock_exam") {
-        let mOffset = 0;
-        while (true) {
-          const { data: page } = await admin.from("mock_exam_questions").select("paper_id").range(mOffset, mOffset + 999);
-          if (!page?.length) break;
-          for (const mq of page) {
-            const sid = mockPaperSubjectMap[mq.paper_id];
-            if (sid) subjectQCounts[sid] = (subjectQCounts[sid] || 0) + 1;
-          }
-          if (page.length < 1000) break;
-          mOffset += 1000;
-        }
+      if (count > 0) {
+        questionDistribution.push({ name: subjName, count });
       }
-
-      questionDistribution = Object.entries(subjectQCounts)
-        .map(([id, count]) => ({ name: subjectDisplay[id] || id, count }))
-        .sort((a, b) => b.count - a.count);
-      subjectsWithQuestions = Object.keys(subjectQCounts).filter(k => subjectDisplay[k]).length;
     }
+
+    subjectsWithQuestions = questionDistribution.length;
+
+    // Sort descending
+    questionDistribution.sort((a, b) => b.count - a.count);
   }
 
   return NextResponse.json({

@@ -21,9 +21,18 @@ interface Subject {
 interface SubjectStats {
   past_papers: number;
   notes: number;
-  questions_mcq: number;
-  questions_structured: number;
+  questions: number;
   mock_exams: number;
+}
+
+interface SubjectStatsRow {
+  subject_id: string;
+  past_papers: number;
+  notes: number;
+  questions: number;
+  r2_questions: number;
+  mock_exams: number;
+  r2_mock_exams: number;
 }
 
 export default function SubjectsPage() {
@@ -64,11 +73,27 @@ export default function SubjectsPage() {
       })
       .catch((err) => { console.error("Subjects fetch exception:", err); });
 
-    // Fetch stats
-    fetch("/api/subjects/stats")
-      .then((r) => r.json())
-      .then((data) => setStats(data))
-      .catch((err) => console.error("Stats fetch error:", err));
+    // Fetch stats from subject_stats table
+    supabase
+      .from("subject_stats")
+      .select("*")
+      .then(({ data, error }) => {
+        if (error) { console.error("Stats fetch error:", error); return; }
+        if (Array.isArray(data)) {
+          const statsMap: Record<string, SubjectStats> = {};
+          const rows = data as SubjectStatsRow[];
+          for (const row of rows) {
+            statsMap[row.subject_id] = {
+              past_papers: row.past_papers,
+              notes: row.notes,
+              questions: row.questions + (row.r2_questions || 0),
+              mock_exams: row.mock_exams + (row.r2_mock_exams || 0),
+            };
+          }
+          setStats(statsMap);
+        }
+      })
+      .catch((err) => { console.error("Stats fetch exception:", err); });
   }, []);
 
   const filtered = subjects.filter((s) => s.board === activeBoard);
@@ -132,7 +157,7 @@ export default function SubjectsPage() {
                   <div className="shrink-0 text-right leading-relaxed pt-0.5">
                     <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "pastPapers")}</span></div>
                     <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "topicNotes")}</span></div>
-                    <div><span className="text-sm font-semibold text-gray-700">{(stats[s.id].questions_mcq + stats[s.id].questions_structured).toLocaleString()}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "onlineQuestions")}</span></div>
+                    <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].questions.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "onlineQuestions")}</span></div>
                     <div><span className="text-sm font-semibold text-gray-700">{stats[s.id].mock_exams}</span><span className="text-xs text-gray-400 ml-1.5">{t("stats", "mockExams")}</span></div>
                   </div>
                 )}

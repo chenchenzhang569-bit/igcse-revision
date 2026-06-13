@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const filterSubjectId = searchParams.get("subject_id") || "";
 
-  // Fetch subjects
+  // 1. Subjects for display names
   const { data: subjects } = await admin.from("subjects").select("id, display_name, code, exam_board_id");
   const { data: examBoards } = await admin.from("exam_boards").select("id, name");
   const boardName: Record<string, string> = {};
@@ -42,149 +42,112 @@ export async function GET(request: NextRequest) {
     subjectDisplay[s.id] = b ? `${b} ${s.display_name} ${s.code || ""}`.trim() : `${s.display_name} ${s.code || ""}`.trim();
   }
 
-  // Fetch all topics (subtopics have no subject_id column)
-  let topicQ = admin.from("topics").select("id, display_name, subject_id");
-  if (filterSubjectId) topicQ = topicQ.eq("subject_id", filterSubjectId);
-  const { data: allTopics } = await topicQ;
-  const topicSubjectMap: Record<string, string> = {};
-  for (const t of allTopics || []) topicSubjectMap[t.id] = t.subject_id;
-  const topicIds = (allTopics || []).map(t => t.id);
+  // 2. Coverage from subject_coverage table (pre-computed per subtopic)
+  let covQuery = admin.from("subject_coverage").select("subject_id, subtopic_id, topic_name, subtopic_name, has_notes, has_topic_qp, has_topic_ms, has_mcq_qp, has_mcq_ms");
+  if (filterSubjectId) covQuery = covQuery.eq("subject_id", filterSubjectId);
+  const { data: coverageRows } = await covQuery;
 
-  // Get subtopics for those topics
-  let subtopicQ = admin.from("subtopics").select("id, display_name, topic_id");
-  if (topicIds.length) subtopicQ = subtopicQ.in("topic_id", topicIds);
-  const { data: rawSubtopics } = await subtopicQ;
-  const allSubtopics = (rawSubtopics || []).map(st => ({
-    ...st,
-    subject_id: topicSubjectMap[st.topic_id] || "",
-  }));
-
-  // Fetch all topics for display
-  const { data: topics } = await admin.from("topics").select("id, display_name");
-  const topicName: Record<string, string> = {};
-  if (topics) for (const t of topics) topicName[t.id] = t.display_name;
-
-  // Group subtopics by subject
-  const subjSubtopics: Record<string, typeof allSubtopics> = {};
-  for (const st of allSubtopics) {
-    if (!subjSubtopics[st.subject_id]) subjSubtopics[st.subject_id] = [];
-    subjSubtopics[st.subject_id].push(st);
+  // Group coverage by subject_id
+  const covBySubject: Record<string, typeof coverageRows> = {};
+  if (coverageRows) {
+    for (const row of coverageRows) {
+      if (!covBySubject[row.subject_id]) covBySubject[row.subject_id] = [];
+      covBySubject[row.subject_id].push(row);
+    }
   }
 
-  // Fetch notes with file_url — no subject_id filter (notesBySub is checked per-subtopic in the loop below)
-  let notesQ = admin.from("notes").select("id, subtopic_id, file_url").not("file_url", "is", null);
-  const { data: notes } = await notesQ;
-  const notesBySub: Record<string, number> = {};
-  for (const n of notes || []) {
-    if (n.subtopic_id) notesBySub[n.subtopic_id] = (notesBySub[n.subtopic_id] || 0) + 1;
+  // 3. Stats from subject_stats table (aggregate counts)
+  let statsQuery = admin.from("subject_stats").select("subject_id, past_paper_qp_count, past_paper_ms_count, total_subtopics");
+  if (filterSubjectId) statsQuery = statsQuery.eq("subject_id", filterSubjectId);
+  const { data: statsRows } = await statsQuery;
+  const statsBySubject: Record<string, any> = {};
+  if (statsRows) {
+    for (const row of statsRows) {
+      statsBySubject[row.subject_id] = row;
+    }
   }
 
-  // Past papers — fetch all for this subject
-  let ppQ = admin.from("past_papers").select("id, subject_id, subtopic_id, paper_type, year, season, paper_number");
-  if (filterSubjectId) ppQ = ppQ.eq("subject_id", filterSubjectId);
-  const { data: pastPapers } = await ppQ;
-  const allPps = pastPapers || [];
+  // 4. Past paper missing details — targeted lightweight query
+  // Find QP keys and MS keys per subject to identify unmatched pairs
+  let ppQuery = admin.from("past_papers").select("subject_id, year, season, paper_number, paper_type");
+  if (filterSubjectId) ppQuery = ppQuery.eq("subject_id", filterSubjectId);
+  const { data: pastPapers } = await ppQuery;
 
-  // Group past papers by subject for exam paper counts
-  const examQpBySub: Record<string, number> = {};
-  const examMsBySub: Record<string, number> = {};
-  const msKeysBySub: Record<string, Set<string>> = {};
+  // Group past papers by subject
   const qpKeysBySub: Record<string, Set<string>> = {};
+  const msKeysBySub: Record<string, Set<string>> = {};
   const qpPapersBySub: Record<string, { year: number; season: string; paper_number: string }[]> = {};
   const msPapersBySub: Record<string, { year: number; season: string; paper_number: string }[]> = {};
-  // Group by subtopic for topic/MCQ PDFs
-  const topicQpBySub: Record<string, Set<string>> = {};
-  const topicMsBySub: Record<string, Set<string>> = {};
-  const mcqQpBySub: Record<string, Set<string>> = {};
-  const mcqMsBySub: Record<string, Set<string>> = {};
 
-  for (const p of allPps) {
+  for (const p of pastPapers || []) {
     const sid = p.subject_id;
     if (!sid) continue;
     const pt = p.paper_type || "";
 
-    // Exam papers (total count)
     if (pt === "Question Paper" || pt === "QP") {
-      examQpBySub[sid] = (examQpBySub[sid] || 0) + 1;
       const key = `${p.year}|${p.season}|${p.paper_number}`;
       if (!qpKeysBySub[sid]) qpKeysBySub[sid] = new Set();
       qpKeysBySub[sid].add(key);
       if (!qpPapersBySub[sid]) qpPapersBySub[sid] = [];
       qpPapersBySub[sid].push({ year: p.year, season: p.season, paper_number: p.paper_number });
     } else if (pt === "Mark Scheme" || pt === "MS") {
-      examMsBySub[sid] = (examMsBySub[sid] || 0) + 1;
       const key = `${p.year}|${p.season}|${p.paper_number}`;
       if (!msKeysBySub[sid]) msKeysBySub[sid] = new Set();
       msKeysBySub[sid].add(key);
       if (!msPapersBySub[sid]) msPapersBySub[sid] = [];
       msPapersBySub[sid].push({ year: p.year, season: p.season, paper_number: p.paper_number });
     }
-
-    // Topic & MCQ PDFs (per subtopic)
-    if (!topicQpBySub[sid]) topicQpBySub[sid] = new Set();
-    if (!topicMsBySub[sid]) topicMsBySub[sid] = new Set();
-    if (!mcqQpBySub[sid]) mcqQpBySub[sid] = new Set();
-    if (!mcqMsBySub[sid]) mcqMsBySub[sid] = new Set();
-
-    if (p.subtopic_id) {
-      if (pt === "Topic QP") topicQpBySub[sid].add(p.subtopic_id);
-      else if (pt === "Topic MS") topicMsBySub[sid].add(p.subtopic_id);
-      else if (pt === "MCQ QP") mcqQpBySub[sid].add(p.subtopic_id);
-      else if (pt === "MCQ MS") mcqMsBySub[sid].add(p.subtopic_id);
-    }
   }
 
-  // Build response
+  // 5. Build response
   const coverage: Record<string, any> = {};
 
   for (const s of subjects || []) {
     const sid = s.id;
-    const sts = subjSubtopics[sid] || [];
+    const sts = covBySubject[sid];
+    if (!sts || sts.length === 0) {
+      if (!filterSubjectId) continue;
+      // Still add an entry with 0s
+      coverage[sid] = {
+        subject_name: subjectDisplay[sid] || sid,
+        total_subtopics: 0,
+        subtopics: [],
+        notes: { has: 0, total: 0, missing: [] },
+        practice: { has: 0, total: 0, missing: [] },
+        practice_answer: { has: 0, total: 0, missing: [] },
+        mcq: { has: 0, total: 0, missing: [] },
+        mcq_answer: { has: 0, total: 0, missing: [] },
+        past_paper_qp: statsBySubject[sid]?.past_paper_qp_count || 0,
+        past_paper_mcq_qp: 0,
+        past_paper_ms: statsBySubject[sid]?.past_paper_ms_count || 0,
+        past_paper_missing_ms: 0,
+        past_paper_missing_ms_details: [],
+        past_paper_missing_qp_details: [],
+      };
+      continue;
+    }
+
     const total = sts.length;
-    if (total === 0 && !filterSubjectId) continue;
-
-    const topicQpSet = topicQpBySub[sid] || new Set();
-    const topicMsSet = topicMsBySub[sid] || new Set();
-    const mcqQpSet = mcqQpBySub[sid] || new Set();
-    const mcqMsSet = mcqMsBySub[sid] || new Set();
-
-    let hasNotes = 0, hasPractice = 0, hasPracticeAns = 0, hasMcq = 0, hasMcqAns = 0;
     const missingNotes: any[] = [];
     const missingPractice: any[] = [];
     const missingPracticeAns: any[] = [];
     const missingMcq: any[] = [];
     const missingMcqAns: any[] = [];
+    let hasNotes = 0, hasPractice = 0, hasPracticeAns = 0, hasMcq = 0, hasMcqAns = 0;
 
-    // Check each subtopic for PDF coverage
     for (const st of sts) {
-      const stid = st.id;
-      const subInfo = { id: stid, name: st.display_name, topic: topicName[st.topic_id] || "" };
+      const subInfo = { id: st.subtopic_id, name: st.subtopic_name, topic: st.topic_name };
 
-      // Notes (from notes table)
-      const hasNote = (notesBySub[stid] || 0) > 0;
-      if (hasNote) hasNotes++;
-      else missingNotes.push(subInfo);
-
-      // Practice = has Topic QP PDF
-      if (topicQpSet.has(stid)) hasPractice++;
-      else missingPractice.push(subInfo);
-
-      // Practice answers = has Topic MS PDF
-      if (topicMsSet.has(stid)) hasPracticeAns++;
-      else missingPracticeAns.push(subInfo);
-
-      // MCQ = has MCQ QP PDF
-      if (mcqQpSet.has(stid)) hasMcq++;
-      else missingMcq.push(subInfo);
-
-      // MCQ answers = has MCQ MS PDF
-      if (mcqMsSet.has(stid)) hasMcqAns++;
-      else missingMcqAns.push(subInfo);
+      if (st.has_notes) { hasNotes++; } else { missingNotes.push(subInfo); }
+      if (st.has_topic_qp) { hasPractice++; } else { missingPractice.push(subInfo); }
+      if (st.has_topic_ms) { hasPracticeAns++; } else { missingPracticeAns.push(subInfo); }
+      if (st.has_mcq_qp) { hasMcq++; } else { missingMcq.push(subInfo); }
+      if (st.has_mcq_ms) { hasMcqAns++; } else { missingMcqAns.push(subInfo); }
     }
 
-    // Past paper stats — find unmatched QP and MS
-    const examQp = examQpBySub[sid] || 0;
-    const examMs = examMsBySub[sid] || 0;
+    // Past paper stats
+    const examQp = statsBySubject[sid]?.past_paper_qp_count || 0;
+    const examMs = statsBySubject[sid]?.past_paper_ms_count || 0;
     const msKeys = msKeysBySub[sid] || new Set();
     const qpKeys = qpKeysBySub[sid] || new Set();
     const qpPapers = qpPapersBySub[sid] || [];
@@ -204,9 +167,9 @@ export async function GET(request: NextRequest) {
       subject_name: subjectDisplay[sid] || sid,
       total_subtopics: total,
       subtopics: sts.map(st => ({
-        id: st.id,
-        name: st.display_name,
-        topic: topicName[st.topic_id] || "",
+        id: st.subtopic_id,
+        name: st.subtopic_name,
+        topic: st.topic_name,
       })),
       notes: { has: hasNotes, total, missing: missingNotes },
       practice: { has: hasPractice, total, missing: missingPractice },
@@ -214,7 +177,7 @@ export async function GET(request: NextRequest) {
       mcq: { has: hasMcq, total, missing: missingMcq },
       mcq_answer: { has: hasMcqAns, total, missing: missingMcqAns },
       past_paper_qp: examQp,
-      past_paper_mcq_qp: 0, // deprecated
+      past_paper_mcq_qp: 0,
       past_paper_ms: examMs,
       past_paper_missing_ms: missingMsDetails.length,
       past_paper_missing_ms_details: missingMsDetails,
