@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const API = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface SubjectStats {
   past_papers: number;
@@ -24,42 +21,75 @@ const MOCK_SUBJECT_MAP: Record<string, string> = {
 
 const R2_SUBJECT_CODES = new Set(["4ma1", "4pm1"]);
 
+async function countBySubject<T extends Record<string, any>>(
+  admin: ReturnType<typeof createAdminClient>,
+  table: string,
+  selectCols: string,
+  filter: Record<string, any> | null,
+  keyFn: (row: T) => string | null,
+  countFn?: (row: T) => number,
+): Promise<Record<string, number>> {
+  const result: Record<string, number> = {};
+  let offset = 0;
+  while (true) {
+    let query = admin.from(table).select(selectCols).range(offset, offset + 999);
+    if (filter) {
+      for (const [col, val] of Object.entries(filter)) {
+        if (Array.isArray(val)) query = query.in(col, val);
+        else query = query.eq(col, val);
+      }
+    }
+    const { data: page } = await query;
+    if (!page?.length) break;
+    for (const row of page) {
+      const key = keyFn(row);
+      if (key) result[key] = (result[key] || 0) + (countFn ? countFn(row) : 1);
+    }
+    if (page.length < 1000) break;
+    offset += 1000;
+  }
+  return result;
+}
+
 export async function GET() {
-  const supabase = createClient(API, KEY);
+  const admin = createAdminClient();
 
-  // Parallel queries for speed
-  const [subRes, ppRes, notesRes, qsRes, mockRes] = await Promise.all([
-    supabase.from("subjects").select("id, slug, display_name, code").eq("is_published", true),
-    supabase.from("past_papers").select("subject_id").in("paper_type", ["QP", "Question Paper"]).limit(100000),
-    supabase.from("notes").select("subject_id").limit(100000),
-    supabase.from("questions").select("subject_id, question_type").limit(100000),
-    supabase.from("mock_exam_sets").select("subject, board").limit(1000),
-  ]);
+  // 1. Subjects
+  const { data: subjects } = await admin
+    .from("subjects")
+    .select("id, slug, display_name, code")
+    .eq("is_published", true);
 
-  const subjects = subRes.data;
   if (!subjects) {
     return NextResponse.json({ error: "Failed to fetch subjects" }, { status: 500 });
   }
 
-  // Aggregate counts
-  const ppCounts: Record<string, number> = {};
-  if (ppRes.data) for (const r of ppRes.data) ppCounts[r.subject_id] = (ppCounts[r.subject_id] || 0) + 1;
-
-  const notesCounts: Record<string, number> = {};
-  if (notesRes.data) for (const r of notesRes.data) if (r.subject_id) notesCounts[r.subject_id] = (notesCounts[r.subject_id] || 0) + 1;
-
-  const qCounts: Record<string, { mcq: number; structured: number }> = {};
-  if (qsRes.data) {
-    for (const q of qsRes.data) {
-      const sid = q.subject_id;
-      if (!qCounts[sid]) qCounts[sid] = { mcq: 0, structured: 0 };
-      if (q.question_type === "mcq" || q.question_type === "multiple_choice") qCounts[sid].mcq++;
-      else if (q.question_type === "structured") qCounts[sid].structured++;
-    }
-  }
-
-  const mockCounts: Record<string, number> = {};
-  if (mockRes.data) for (const m of mockRes.data) mockCounts[m.subject] = (mockCounts[m.subject] || 0) + 1;
+  // 2-5. Parallel paginated counts (like admin dashboard pattern)
+  const [ppCounts, notesCounts, qCounts, mockCounts] = await Promise.all([
+    countBySubject<any>(admin, "past_papers", "subject_id", { paper_type: ["QP", "Question Paper"] }, (r) => r.subject_id),
+    countBySubject<any>(admin, "notes", "subject_id", null, (r) => r.subject_id),
+    (async () => {
+      const result: Record<string, { mcq: number; structured: number }> = {};
+      let offset = 0;
+      while (true) {
+        const { data: page } = await admin
+          .from("questions")
+          .select("subject_id, question_type")
+          .range(offset, offset + 999);
+        if (!page?.length) break;
+        for (const q of page) {
+          const sid = q.subject_id;
+          if (!result[sid]) result[sid] = { mcq: 0, structured: 0 };
+          if (q.question_type === "mcq" || q.question_type === "multiple_choice") result[sid].mcq++;
+          else if (q.question_type === "structured") result[sid].structured++;
+        }
+        if (page.length < 1000) break;
+        offset += 1000;
+      }
+      return result;
+    })(),
+    countBySubject<any>(admin, "mock_exam_sets", "subject", null, (r) => r.subject),
+  ]);
 
   // Build result
   const result: Record<string, SubjectStats> = {};
@@ -84,8 +114,6 @@ export async function GET() {
   }
 
   return NextResponse.json(result, {
-    headers: {
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
-    },
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
   });
 }
