@@ -82,7 +82,7 @@ export default function ActivityWidget({
               </div>
               <div className="space-y-2">
                 {data.anomalies.slice(0, MAX_DISPLAY).map((a, i) => (
-                  <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 text-sm min-w-0">
+                  <div key={i} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 text-sm min-w-0">
                     <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                       <span className="font-mono text-xs text-gray-400 truncate">{a.email}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${
