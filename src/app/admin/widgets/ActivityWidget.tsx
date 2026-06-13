@@ -54,7 +54,7 @@ export default function ActivityWidget({
   return (
     <WidgetCard title="🚨 活动监控" defaultView="card" widgetId="activity" hidden={false} onToggle={onToggle}>
       {(view) => (
-        <div className="space-y-4 overflow-hidden">
+        <div className="space-y-4">
           {/* Period selector + summary */}
           <div className="flex items-center justify-between">
             <div className="flex gap-1">
