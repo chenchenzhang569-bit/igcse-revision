@@ -27,7 +27,7 @@ interface SubjectStats {
 
 interface SubjectStatsRow {
   subject_id: string;
-  past_papers: number;
+  past_paper_qp_count: number;
   notes: number;
   questions: number;
   r2_questions: number;
@@ -84,7 +84,7 @@ export default function SubjectsPage() {
           const rows = data as SubjectStatsRow[];
           for (const row of rows) {
             statsMap[row.subject_id] = {
-              past_papers: row.past_papers,
+              past_papers: row.past_paper_qp_count,
               notes: row.notes,
               questions: row.questions + (row.r2_questions || 0),
               mock_exams: row.mock_exams + (row.r2_mock_exams || 0),
