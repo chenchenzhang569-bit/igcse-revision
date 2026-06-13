@@ -148,14 +148,23 @@ def main():
     """)
     notes_map = {r["subject_id"]: r["cnt"] for r in notes_raw}
     
-    q_raw = sql("SELECT subject_id, COUNT(*)::int as cnt FROM questions GROUP BY subject_id")
+    q_raw = sql("""
+        SELECT COALESCE(q.subject_id, t.subject_id) as subject_id, COUNT(*)::int as cnt
+        FROM questions q
+        LEFT JOIN subtopics st ON st.id = q.subtopic_id
+        LEFT JOIN topics t ON t.id = st.topic_id
+        GROUP BY COALESCE(q.subject_id, t.subject_id)
+    """)
     q_map = {r["subject_id"]: r["cnt"] for r in q_raw}
     
     mcq_raw = sql("""
-        SELECT subject_id,
-            COUNT(*) FILTER (WHERE question_type = 'mcq')::int as mcq,
-            COUNT(*) FILTER (WHERE question_type = 'structured')::int as structured
-        FROM questions GROUP BY subject_id
+        SELECT COALESCE(q.subject_id, t.subject_id) as subject_id,
+            COUNT(*) FILTER (WHERE q.question_type = 'mcq')::int as mcq,
+            COUNT(*) FILTER (WHERE q.question_type = 'structured')::int as structured
+        FROM questions q
+        LEFT JOIN subtopics st ON st.id = q.subtopic_id
+        LEFT JOIN topics t ON t.id = st.topic_id
+        GROUP BY COALESCE(q.subject_id, t.subject_id)
     """)
     mcq_map = {r["subject_id"]: r["mcq"] for r in mcq_raw}
     struct_map = {r["subject_id"]: r["structured"] for r in mcq_raw}
