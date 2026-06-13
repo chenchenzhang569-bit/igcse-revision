@@ -48,7 +48,7 @@ function SortableWidget({ id, children }: { id: string; children: React.ReactNod
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : 1 };
   return (
-    <div ref={setNodeRef} style={style} className="min-w-0">
+    <div ref={setNodeRef} style={style}>
       <div className="flex items-center">
         <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-2 text-gray-400 hover:text-gray-600 select-none px-2 py-1 rounded hover:bg-gray-100 text-lg" title="拖拽排序">⠿</button>
         <div className="flex-1">{children}</div>
