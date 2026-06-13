@@ -163,8 +163,14 @@ def main():
     pp_qp_map = {r["subject_id"]: r["qp_count"] for r in pp_type_raw}
     pp_ms_map = {r["subject_id"]: r["ms_count"] for r in pp_type_raw}
     
-    # Mock exam sets
-    mock_raw = sql("SELECT id, subject FROM mock_exam_sets")
+    # Mock exam questions (count questions per subject via set→paper→question)
+    mock_raw = sql("""
+        SELECT ms.subject, COUNT(*)::int as questions
+        FROM mock_exam_sets ms
+        JOIN mock_exam_papers mp ON mp.set_id = ms.id
+        JOIN mock_exam_questions mq ON mq.paper_id = mp.id
+        GROUP BY ms.subject
+    """)
     mock_code_map = {
         "maths": ["0580"],
         "0606": ["0606"],
@@ -176,11 +182,11 @@ def main():
         "edexcel-biology": ["4BI1"],
     }
     mock_counts = defaultdict(int)
-    for ms in mock_raw:
-        codes = mock_code_map.get(ms["subject"], [])
+    for row in mock_raw:
+        codes = mock_code_map.get(row["subject"], [])
         for code in codes:
             for sid in code_to_ids.get(code, []):
-                mock_counts[sid] += 1
+                mock_counts[sid] += row["questions"]
     
     # 3. Coverage: topics, subtopics
     topics = sql("SELECT id, display_name, subject_id FROM topics")
