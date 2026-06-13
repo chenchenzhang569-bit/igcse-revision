@@ -197,5 +197,5 @@ export async function GET(request: NextRequest) {
       const b = s.exam_board_id ? boardName[s.exam_board_id] : null;
       return { id: s.id, name: b ? `${b} ${s.display_name} ${s.code || ""}`.trim() : `${s.display_name} ${s.code || ""}`.trim() };
     }),
-  });
+  }, { headers: { "Cache-Control": "no-store, max-age=0" } });
 }
