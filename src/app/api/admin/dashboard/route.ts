@@ -157,10 +157,10 @@ export async function GET(request: NextRequest) {
         totalQuestions += (row.questions || 0) + (row.r2_questions || 0);
         totalMockQuestions += (row.mock_exams || 0) + (row.r2_mock_exams || 0);
       } else if (filterType === "mcq") {
-        count = row.questions_mcq || 0;
+        count = (row.questions_mcq || 0) + (row.r2_questions_mcq || 0);
         totalQuestions += count;
       } else if (filterType === "questions") {
-        count = row.questions_structured || 0;
+        count = (row.questions_structured || 0) + (row.r2_questions_structured || 0);
         totalQuestions += count;
       } else if (filterType === "mock_exam") {
         count = (row.mock_exams || 0) + (row.r2_mock_exams || 0);

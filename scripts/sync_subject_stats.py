@@ -56,7 +56,7 @@ def rest_upsert(table, rows, conflict_col=None):
     urllib.request.urlopen(req, timeout=120)
 
 def get_r2_question_count(prefix):
-    """Count questions in R2 JSON files under a prefix."""
+    """Count questions in R2 JSON files under a prefix, classified by type."""
     import boto3
     s3 = boto3.client("s3",
         endpoint_url=f"https://{R2_ACCOUNT}.r2.cloudflarestorage.com",
@@ -64,6 +64,8 @@ def get_r2_question_count(prefix):
         aws_secret_access_key=R2_SECRET,
     )
     total_q = 0
+    mcq_q = 0
+    struct_q = 0
     token = None
     while True:
         params = {"Bucket": "past-papers", "Prefix": prefix}
@@ -77,14 +79,21 @@ def get_r2_question_count(prefix):
             try:
                 obj_data = s3.get_object(Bucket="past-papers", Key=key)
                 data = json.loads(obj_data["Body"].read().decode("utf-8"))
-                total_q += len(data) if isinstance(data, list) else 0
+                if isinstance(data, list):
+                    total_q += len(data)
+                    for q in data:
+                        qt = q.get("question_type", "")
+                        if qt == "mcq":
+                            mcq_q += 1
+                        elif qt == "structured":
+                            struct_q += 1
             except:
                 pass
         if resp.get("IsTruncated"):
             token = resp.get("NextContinuationToken")
         else:
             break
-    return total_q
+    return total_q, mcq_q, struct_q
 def get_r2_mock_counts():
     """Count questions in R2 mock exam JSON files."""
     import boto3
@@ -396,11 +405,19 @@ def main():
     print("  Fetching R2 question counts...")
     
     r2_counts = {}
-    r2_counts["4MA1 Foundation"] = get_r2_question_count("igcse/maths/edexcel/sme-questions/foundation/")
-    r2_counts["4MA1 Higher"] = get_r2_question_count("igcse/maths/edexcel/sme-questions/higher/")
-    r2_counts["4EC1"] = get_r2_question_count("igcse/economics/edexcel/sme-questions/")
-    r2_counts["4GE1"] = get_r2_question_count("igcse/geography/edexcel/sme-questions/")
-    
+    r2_mcq = {}
+    r2_struct = {}
+    for name, prefix in [
+        ("4MA1 Foundation", "igcse/maths/edexcel/sme-questions/foundation/"),
+        ("4MA1 Higher", "igcse/maths/edexcel/sme-questions/higher/"),
+        ("4EC1", "igcse/economics/edexcel/sme-questions/"),
+        ("4GE1", "igcse/geography/edexcel/sme-questions/"),
+    ]:
+        total, mcq, struct = get_r2_question_count(prefix)
+        r2_counts[name] = total
+        r2_mcq[name] = mcq
+        r2_struct[name] = struct
+
     # 4PM1: root-level files only (skip subdirs)
     import boto3
     s3 = boto3.client("s3",
@@ -409,6 +426,8 @@ def main():
         aws_secret_access_key=R2_SECRET,
     )
     pm1_q = 0
+    pm1_mcq = 0
+    pm1_struct = 0
     token = None
     while True:
         params = {"Bucket": "past-papers", "Prefix": "igcse/maths/edexcel/sme-questions/"}
@@ -424,7 +443,12 @@ def main():
                 try:
                     obj_data = s3.get_object(Bucket="past-papers", Key=key)
                     data = json.loads(obj_data["Body"].read().decode("utf-8"))
-                    pm1_q += len(data) if isinstance(data, list) else 0
+                    if isinstance(data, list):
+                        pm1_q += len(data)
+                        for q in data:
+                            qt = q.get("question_type", "")
+                            if qt == "mcq": pm1_mcq += 1
+                            elif qt == "structured": pm1_struct += 1
                 except:
                     pass
         if resp.get("IsTruncated"):
@@ -432,9 +456,11 @@ def main():
         else:
             break
     r2_counts["4PM1"] = pm1_q
-    
+    r2_mcq["4PM1"] = pm1_mcq
+    r2_struct["4PM1"] = pm1_struct
+
     for k, v in r2_counts.items():
-        print(f"  R2 {k}: {v} questions")
+        print(f"  R2 {k}: {v} questions (mcq={r2_mcq.get(k,0)}, struct={r2_struct.get(k,0)})")
     
     # 5. R2 mock exams
     print("  Fetching R2 mock exam counts...")
@@ -454,12 +480,18 @@ def main():
             name_lower = (name or "").lower()
             if "foundation" in name_lower or "(f)" in display.lower():
                 r2_q = r2_counts.get("4MA1 Foundation", 0)
+                r2_mcq_val = r2_mcq.get("4MA1 Foundation", 0)
+                r2_struct_val = r2_struct.get("4MA1 Foundation", 0)
                 r2_m = r2_mocks.get("4MA1 Foundation", 0)
             else:
                 r2_q = r2_counts.get("4MA1 Higher", 0)
+                r2_mcq_val = r2_mcq.get("4MA1 Higher", 0)
+                r2_struct_val = r2_struct.get("4MA1 Higher", 0)
                 r2_m = r2_mocks.get("4MA1 Higher", 0)
         else:
             r2_q = r2_counts.get(code, 0)
+            r2_mcq_val = r2_mcq.get(code, 0)
+            r2_struct_val = r2_struct.get(code, 0)
             r2_m = r2_mocks.get(code, 0)
         
         topic_ids = topic_ids_by_subject.get(sid, [])
@@ -483,6 +515,8 @@ def main():
             "questions_structured": struct_map.get(sid, 0),
             "mock_exams": mock_counts.get(sid, 0),
             "r2_questions": r2_q,
+            "r2_questions_mcq": r2_mcq_val,
+            "r2_questions_structured": r2_struct_val,
             "r2_mock_exams": r2_m,
             "past_paper_qp_count": pp_qp_map.get(sid, 0),
             "past_paper_ms_count": pp_ms_map.get(sid, 0),
