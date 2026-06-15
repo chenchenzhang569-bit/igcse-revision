@@ -516,13 +516,13 @@ export default function EconomicsTabs({
                     className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
                     placeholder="Type your answer here..."
                   />
-                  {(q.clean_answer_text || q.answer_text) && (
+                  {(q.clean_answer_text || q.answer_text || q.explanation) && (
                     <details className="group mt-3">
                       <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
-                        Show Answer
+                        📋 Show Mark Scheme
                       </summary>
                       <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text)}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text || q.explanation || '')}</ReactMarkdown>
                       </div>
                     </details>
                   )}
