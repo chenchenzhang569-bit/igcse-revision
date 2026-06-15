@@ -518,6 +518,14 @@ export default function EconomicsTabs({
                     placeholder="Type your answer here..."
                     marks={q.marks || 1}
                   />
+                  {userAnswers[q.id] && (
+                    <button
+                      onClick={() => setUserAnswers((p) => { const n = { ...p }; delete n[q.id]; return n; })}
+                      className="mt-1 text-xs text-gray-400 hover:text-gray-600 transition"
+                    >
+                      Clear
+                    </button>
+                  )}
                   {(q.clean_answer_text || q.answer_text || q.explanation) && (
                     <details className="group mt-3">
                       <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
