@@ -491,7 +491,7 @@ export default function EconomicsTabs({
         </div>
       )}
 
-      {/* Questions tab — Edexcel style: no submit, just show question + Show Answer */}
+      {/* Questions tab — no submit, just textarea + Show Answer */}
       {tab === "questions" && (
         <div className="mt-6">
           {structuredQuestions.length === 0 ? (
@@ -510,8 +510,14 @@ export default function EconomicsTabs({
                   <div className="text-gray-800 prose prose-sm max-w-none mb-4">
                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
                   </div>
+                  {/* Answer textarea */}
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
+                    placeholder="Type your answer here..."
+                  />
                   {q.answer_text && (
-                    <details className="group">
+                    <details className="group mt-3">
                       <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
                         Show Answer
                       </summary>
