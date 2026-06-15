@@ -694,7 +694,7 @@ export default function StructuredQuestion({
           !showAnswer ? (
             <button onClick={() => setShowAnswer(true)}
               className="text-sm bg-primary-50 text-primary-700 px-4 py-2 rounded-lg hover:bg-primary-100 transition font-medium">
-              Show Model Answer
+              Show Mark Scheme
             </button>
           ) : (
             <button onClick={() => setShowAnswer(false)}
