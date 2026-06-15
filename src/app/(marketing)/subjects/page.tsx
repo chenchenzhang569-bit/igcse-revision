@@ -151,13 +151,13 @@ export default function SubjectsPage() {
                     <span className="text-accent-500 font-bold text-lg">{s.price}</span>
                     <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
                   </div>
-                  {/* Stats — right-aligned row below content */}
+                  {/* Stats — right-aligned vertical stack below content */}
                   {stats[s.id] && (
-                    <div className="flex flex-wrap justify-end gap-x-4 gap-y-1 mt-3 text-sm">
-                      <span><span className="font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "pastPapers")}</span></span>
-                      <span><span className="font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "topicNotes")}</span></span>
-                      <span><span className="font-semibold text-gray-700">{stats[s.id].questions.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "onlineQuestions")}</span></span>
-                      <span><span className="font-semibold text-gray-700">{stats[s.id].mock_exams}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "mockExams")}</span></span>
+                    <div className="mt-3 text-sm text-right leading-relaxed">
+                      <div><span className="font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "pastPapers")}</span></div>
+                      <div><span className="font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "topicNotes")}</span></div>
+                      <div><span className="font-semibold text-gray-700">{stats[s.id].questions.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "onlineQuestions")}</span></div>
+                      <div><span className="font-semibold text-gray-700">{stats[s.id].mock_exams}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "mockExams")}</span></div>
                     </div>
                   )}
                 </div>
