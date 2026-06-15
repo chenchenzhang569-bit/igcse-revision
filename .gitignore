@@ -1,5 +1,8 @@
 node_modules/
-.next/
+__pycache__/
+*.pyc
+# next.js
+.next
 .env.local
 *.log
 alipay_private.key
