@@ -9,6 +9,7 @@ import rehypeRaw from "rehype-raw";
 import { MixedContent } from "@/components/MixedContent";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal from "@/components/ReportBugModal";
+import StructuredQuestion from "@/components/StructuredQuestion";
 import { createBrowserClient } from "@supabase/ssr";
 import { processMathContent } from "@/lib/math";
 
@@ -502,31 +503,24 @@ export default function EconomicsTabs({
           ) : (
             <div className="space-y-6">
               {structuredQuestions.map((q, i) => (
-                <div key={q.id} className="bg-white border rounded-xl p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
-                    <span className="text-xs text-gray-400">{q.marks} marks</span>
-                  </div>
-                  <div className="text-gray-800 prose prose-sm max-w-none mb-4">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
-                  </div>
-                  {/* Answer textarea */}
-                  <textarea
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-                    placeholder="Type your answer here..."
-                  />
-                  {(q.clean_answer_text || q.answer_text) && (
-                    <details className="group mt-3">
-                      <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
-                        Show Answer
-                      </summary>
-                      <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text)}</ReactMarkdown>
-                      </div>
-                    </details>
-                  )}
-                </div>
+                <StructuredQuestion
+                  key={q.id}
+                  question={{
+                    id: q.id,
+                    stem: q.question_text,
+                    question_type: q.question_type || 'structured',
+                    difficulty: q.difficulty,
+                    marks: q.marks || 1,
+                    options: q.options || null,
+                    correct_answer: q.answer_text || '',
+                    explanation: q.explanation || '',
+                    clean_explanation: q.clean_explanation || null,
+                    clean_answer_text: q.clean_answer_text || null,
+                    question_order: i + 1,
+                  }}
+                  index={i}
+                  onBugReport={() => setBugModalOpen(true)}
+                />
               ))}
             </div>
           )}
