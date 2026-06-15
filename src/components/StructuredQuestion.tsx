@@ -532,6 +532,13 @@ export function AnswerInput({
           title="Preview rendered answer">
           👁️ Preview
         </button>
+        {value && (
+          <button type="button" onClick={() => { onChange(''); setDrawings([]); }}
+            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-100 transition"
+            title="Clear answer">
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Preview panel — text + drawings together */}
