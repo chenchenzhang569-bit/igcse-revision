@@ -516,7 +516,7 @@ export default function EconomicsTabs({
                     className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
                     placeholder="Type your answer here..."
                   />
-                  {q.answer_text && (
+                  {(q.clean_answer_text || q.answer_text) && (
                     <details className="group mt-3">
                       <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
                         Show Answer
