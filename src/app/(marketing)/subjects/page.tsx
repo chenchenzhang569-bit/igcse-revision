@@ -134,33 +134,35 @@ export default function SubjectsPage() {
               href={`/subjects/${s.slug}?board=${s.board}`}
               className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-8 hover:shadow-lg hover:border-primary-300 transition-all"
             >
-              <div className="flex items-start gap-4">
-                <span className="text-3xl shrink-0">{s.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded font-semibold">
-                      {s.board}
-                    </span>
-                    <span className="text-xs text-gray-400">{s.code}</span>
-                  </div>
-                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary-600 transition">
-                    {s.display_name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">{s.name}</p>
-                  <div className="flex items-baseline gap-2 mt-3">
-                    <span className="text-accent-500 font-bold text-lg">{s.price}</span>
-                    <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
-                  </div>
-                  {/* Stats — right-aligned vertical stack below content */}
-                  {stats[s.id] && (
-                    <div className="mt-3 text-sm text-right leading-relaxed">
-                      <div><span className="font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "pastPapers")}</span></div>
-                      <div><span className="font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "topicNotes")}</span></div>
-                      <div><span className="font-semibold text-gray-700">{stats[s.id].questions.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "onlineQuestions")}</span></div>
-                      <div><span className="font-semibold text-gray-700">{stats[s.id].mock_exams}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "mockExams")}</span></div>
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex items-start gap-4 min-w-0">
+                  <span className="text-3xl shrink-0">{s.icon}</span>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded font-semibold">
+                        {s.board}
+                      </span>
+                      <span className="text-xs text-gray-400">{s.code}</span>
                     </div>
-                  )}
+                    <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary-600 transition">
+                      {s.display_name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">{s.name}</p>
+                    <div className="flex items-baseline gap-2 mt-3">
+                      <span className="text-accent-500 font-bold text-lg">{s.price}</span>
+                      <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
+                    </div>
+                  </div>
                 </div>
+                {/* Stats — right-aligned vertical stack */}
+                {stats[s.id] && (
+                  <div className="shrink-0 text-right leading-relaxed pt-0.5 text-sm">
+                    <div><span className="font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "pastPapers")}</span></div>
+                    <div><span className="font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "topicNotes")}</span></div>
+                    <div><span className="font-semibold text-gray-700">{stats[s.id].questions.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "onlineQuestions")}</span></div>
+                    <div><span className="font-semibold text-gray-700">{stats[s.id].mock_exams}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "mockExams")}</span></div>
+                  </div>
+                )}
               </div>
             </Link>
           ))}
