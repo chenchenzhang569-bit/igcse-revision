@@ -10,7 +10,7 @@ import { MixedContent } from "@/components/MixedContent";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal from "@/components/ReportBugModal";
 import { createBrowserClient } from "@supabase/ssr";
-import TopicQuestionsClient from "./TopicQuestionsClient";
+import { processMathContent } from "@/lib/math";
 
 const markdownComponents = {
   img: (props: any) => (
@@ -491,22 +491,39 @@ export default function EconomicsTabs({
         </div>
       )}
 
-      {/* Questions tab */}
-      {tab === "questions" && subtopicId && (
-        <TopicQuestionsClient
-          topicId={subtopicId}
-          preloadedQuestions={structuredQuestions}
-          bugContext={{
-            board: "CAIE",
-            subject: "Economics",
-            code: "0455",
-            topicName: subtopicName,
-          }}
-        />
-      )}
-      {tab === "questions" && !subtopicId && (
-        <div className="mt-6 text-center py-20 text-gray-400">
-          <p className="text-lg font-medium">Topic not found</p>
+      {/* Questions tab — Edexcel style: no submit, just show question + Show Answer */}
+      {tab === "questions" && (
+        <div className="mt-6">
+          {structuredQuestions.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">
+              <p className="text-lg font-medium">No structured questions yet</p>
+              <p className="text-sm mt-2">Our team is adding questions for this topic</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {structuredQuestions.map((q, i) => (
+                <div key={q.id} className="bg-white border rounded-xl p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Q{i + 1}</span>
+                    <span className="text-xs text-gray-400">{q.marks} marks</span>
+                  </div>
+                  <div className="text-gray-800 prose prose-sm max-w-none mb-4">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
+                  </div>
+                  {q.answer_text && (
+                    <details className="group">
+                      <summary className="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">
+                        Show Answer
+                      </summary>
+                      <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.clean_answer_text || q.answer_text)}</ReactMarkdown>
+                      </div>
+                    </details>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
