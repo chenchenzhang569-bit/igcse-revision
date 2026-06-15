@@ -9,6 +9,7 @@ import rehypeRaw from "rehype-raw";
 import { MixedContent } from "@/components/MixedContent";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReportBugModal from "@/components/ReportBugModal";
+import { AnswerInput } from "@/components/StructuredQuestion";
 import { createBrowserClient } from "@supabase/ssr";
 import { processMathContent } from "@/lib/math";
 
@@ -510,11 +511,12 @@ export default function EconomicsTabs({
                   <div className="text-gray-800 prose prose-sm max-w-none mb-4">
                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>{processMathContent(q.question_text)}</ReactMarkdown>
                   </div>
-                  {/* Answer textarea */}
-                  <textarea
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
+                  {/* Answer input with handwriting + preview */}
+                  <AnswerInput
+                    value={userAnswers[q.id] || ''}
+                    onChange={(val) => setUserAnswers((p) => ({ ...p, [q.id]: val }))}
                     placeholder="Type your answer here..."
+                    marks={q.marks || 1}
                   />
                   {(q.clean_answer_text || q.answer_text || q.explanation) && (
                     <details className="group mt-3">

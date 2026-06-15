@@ -471,7 +471,7 @@ function DrawingPad({ onInsertImage, onInsertText, onClose, mode = "draw" }: {
 }
 
 // ─── Answer Input ───────────────────────────────────────────────────────────
-function AnswerInput({
+export function AnswerInput({
   value, onChange, placeholder, marks,
 }: {
   value: string; onChange: (v: string) => void; placeholder: string; marks: number;
