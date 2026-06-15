@@ -127,12 +127,12 @@ export default function SubjectsPage() {
 
       {/* Subject Cards */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {filtered.map((s) => (
             <Link
               key={s.slug}
               href={`/subjects/${s.slug}?board=${s.board}`}
-              className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all"
+              className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-8 hover:shadow-lg hover:border-primary-300 transition-all"
             >
               <div className="flex items-start gap-4">
                 <span className="text-3xl">{s.icon}</span>
