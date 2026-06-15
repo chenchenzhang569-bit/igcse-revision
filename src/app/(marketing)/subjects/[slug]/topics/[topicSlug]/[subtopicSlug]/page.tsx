@@ -5,7 +5,6 @@ import Link from "next/link";
 import { getSubtopic, getSubtopics } from "@/lib/subtopic-data";
 import { TopicTabs } from "../TopicTabs";
 import AdditionalMathsTabs from "../AdditionalMathsTabs";
-import EconomicsTabs from "../EconomicsTabs";
 import ComputerScienceTabs from "../ComputerScienceTabs";
 
 export const dynamic = "force-dynamic";
@@ -425,7 +424,7 @@ export default async function SubtopicPage({
           }}
         />
       ) : (subjectKey === "economics" && !slug.startsWith("edexcel")) ? (
-        <EconomicsTabs
+        <AdditionalMathsTabs
           notes={notes}
           mcqs={mcqs}
           structuredQuestions={structuredQs}
@@ -433,6 +432,12 @@ export default async function SubtopicPage({
           subtopicName={subtopic.displayName}
           slug={slug}
           topicSlug={topicSlug}
+          bugContext={{
+            board: "CAIE",
+            subject: "Economics",
+            code: "0455",
+            topicName: topicDisplay,
+          }}
         />
       ) : subjectKey === "computer-science" ? (
         <ComputerScienceTabs
