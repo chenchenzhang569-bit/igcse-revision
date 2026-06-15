@@ -348,7 +348,7 @@ export default async function SubtopicPage({
                 return body ? JSON.parse(body) : [];
               } catch { return []; }
             })()
-          : fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order,explanation,marks&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
+          : fetch(`${API}/questions?select=id,question_text,answer_text,clean_answer_text,clean_explanation,correct_answer,question_type,difficulty,sort_order&${filterCol}=eq.${filterVal}&order=sort_order&limit=100`, { headers: H, cache: "no-store" })
               .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
         fetch(`${API}/past_papers?select=*&${filterCol}=eq.${filterVal}&order=title&limit=50`, { headers: H, cache: "no-store" })
           .then(r => r.json()).then(d => Array.isArray(d) ? d : []),
