@@ -151,9 +151,9 @@ export default function SubjectsPage() {
                     <span className="text-accent-500 font-bold text-lg">{s.price}</span>
                     <span className="text-sm text-gray-400 line-through">{s.originalPrice}</span>
                   </div>
-                  {/* Stats — below content */}
+                  {/* Stats — right-aligned row below content */}
                   {stats[s.id] && (
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm">
+                    <div className="flex flex-wrap justify-end gap-x-4 gap-y-1 mt-3 text-sm">
                       <span><span className="font-semibold text-gray-700">{stats[s.id].past_papers}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "pastPapers")}</span></span>
                       <span><span className="font-semibold text-gray-700">{stats[s.id].notes}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "topicNotes")}</span></span>
                       <span><span className="font-semibold text-gray-700">{stats[s.id].questions.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1">{t("stats", "onlineQuestions")}</span></span>
