@@ -134,7 +134,7 @@ export default function SubjectsPage() {
               href={`/subjects/${s.slug}?board=${s.board}`}
               className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-8 hover:shadow-lg hover:border-primary-300 transition-all"
             >
-              <div className="flex justify-between items-start gap-4">
+              <div className="flex justify-between items-start gap-2">
                 <div className="flex items-start gap-4 min-w-0">
                   <span className="text-3xl shrink-0">{s.icon}</span>
                   <div>
