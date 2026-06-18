@@ -865,8 +865,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 );
               })}
             </div>
-            {/* Non-math (Economics/Business/Geography): Show Mark Scheme below subparts */}
-            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1" || bugContext?.code === "4ge1") && (
+            {/* Non-math structured questions: Show Mark Scheme below subparts */}
+            {!isMcq && bugContext?.code !== "0580" && bugContext?.code !== "0606" && (
               <div className="mt-3">
                 <button
                   onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -876,7 +876,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 </button>
                 {markSchemeVisible[q.id] && (
                   <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text || q.clean_answer_text || ""}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text || q.clean_answer_text || q.explanation || ""}</ReactMarkdown>
                   </div>
                 )}
               </div>
@@ -892,8 +892,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               disabled={isGraded}
               hideSymbols={!/\$/.test(stem)}
             />
-            {/* Non-math (Economics/Business/Geography): Show Mark Scheme below MathInput */}
-            {!isMcq && (bugContext?.code === "4ec1" || bugContext?.code === "4bs1" || bugContext?.code === "4ge1") && (
+            {/* Non-math structured questions: Show Mark Scheme below MathInput */}
+            {!isMcq && bugContext?.code !== "0580" && bugContext?.code !== "0606" && (
               <div className="mt-3">
                 <button
                   onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
@@ -903,7 +903,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 </button>
                 {markSchemeVisible[q.id] && (
                   <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text || q.clean_answer_text || ""}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.answer_text || q.clean_answer_text || q.explanation || ""}</ReactMarkdown>
                   </div>
                 )}
               </div>
@@ -962,23 +962,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
               hideSymbols={!/\$/.test(stem)}
             />
           </>
-        )}
-
-        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606 and Edexcel non-math) */}
-        {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606" || bugContext?.code === "4bs1" || bugContext?.code === "4ec1" || bugContext?.code === "4ge1") && q.explanation && (
-            <div className="mt-3">
-              <button
-                onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
-              >
-                📋 {markSchemeVisible[q.id] ? "Hide" : "Show"} Mark Scheme
-              </button>
-              {markSchemeVisible[q.id] && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{typeof q.explanation === 'string' ? q.explanation : String(q.explanation || '')}</ReactMarkdown>
-                </div>
-              )}
-            </div>
         )}
 
         {/* Auto-grade result for math (0580/0606) structured questions */}
