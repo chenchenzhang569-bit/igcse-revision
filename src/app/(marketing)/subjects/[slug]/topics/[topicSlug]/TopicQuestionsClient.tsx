@@ -964,8 +964,8 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
           </>
         )}
 
-        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606) */}
-        {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606") && q.explanation && (
+        {/* For structured questions: mark scheme toggle button (hidden for math 0580/0606 and Edexcel non-math) */}
+        {!isMcq && !(bugContext?.code === "0580" || bugContext?.code === "0606" || bugContext?.code === "4bs1" || bugContext?.code === "4ec1" || bugContext?.code === "4ge1") && q.explanation && (
             <div className="mt-3">
               <button
                 onClick={() => setMarkSchemeVisible(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
