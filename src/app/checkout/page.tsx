@@ -172,21 +172,21 @@ function CheckoutContent() {
     return (
       <div className="max-w-md mx-auto px-4 py-16">
         <div className="bg-white border rounded-2xl p-8 text-center">
-          <h1 className="text-2xl font-bold text-primary-900 mb-2">All Subjects</h1>
-          <p className="text-gray-500 mb-8">CAIE + Edexcel — every subject, 12 months access</p>
+          <h1 className="text-2xl font-bold text-primary-900 mb-2">全科套餐</h1>
+          <p className="text-gray-500 mb-8">CAIE + Edexcel 全部科目，12个月访问权限</p>
 
           {loadingPrice ? (
             <div className="text-4xl font-bold text-primary-900 mb-2">...</div>
           ) : upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? (
             <>
               <div className="text-4xl font-bold text-accent-500 mb-1">¥{upgradePrice / 100}</div>
-              <p className="text-sm text-emerald-600 font-semibold mb-1">升级仅需 — 已扣除已购金额</p>
+              <p className="text-sm text-emerald-600 font-semibold mb-1">升级价 — 已扣除已购金额</p>
               <p className="text-sm text-gray-400 line-through mb-8">原价 ¥{PRICE_ALL}</p>
             </>
           ) : upgradePrice === null ? (
             <>
-              <div className="text-2xl font-bold text-green-600 mb-2">✅ You already have full access</div>
-              <p className="text-sm text-gray-500 mb-8">All subjects unlocked — no need to purchase again</p>
+              <div className="text-2xl font-bold text-green-600 mb-2">✅ 您已拥有全部权限</div>
+              <p className="text-sm text-gray-500 mb-8">所有科目已解锁，无需重复购买</p>
             </>
           ) : (
             <>
@@ -202,7 +202,7 @@ function CheckoutContent() {
               onClick={() => router.push("/dashboard")}
               className="w-full py-3 rounded-xl bg-primary-900 text-white font-semibold hover:bg-primary-800 transition"
             >
-              Back to Dashboard
+              返回控制台
             </button>
           ) : (
             <button
@@ -210,14 +210,14 @@ function CheckoutContent() {
               disabled={status === "submitting"}
               className="w-full py-3 rounded-xl bg-accent-500 text-white font-semibold hover:bg-accent-600 disabled:opacity-50 transition"
             >
-              {status === "submitting" ? "Creating order..." : "Pay with Alipay"}
+              {status === "submitting" ? "处理中..." : "支付宝支付"}
             </button>
           )}
           <button
             onClick={() => router.back()}
             className="mt-3 w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition"
           >
-            Cancel
+            取消
           </button>
         </div>
       </div>
@@ -227,16 +227,16 @@ function CheckoutContent() {
   // Single subject or trial
   if (!subject) {
     return <div className="flex items-center justify-center min-h-screen">
-      <p className="text-gray-500">Loading subject...</p>
+      <p className="text-gray-500">加载中...</p>
     </div>;
   }
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white border rounded-2xl p-8">
-        <h1 className="text-2xl font-bold text-primary-900 mb-1">
-          {isTrial ? "🎁 Free Trial" : "Checkout"}
-        </h1>
+          <h1 className="text-2xl font-bold text-primary-900 mb-1">
+            {isTrial ? "🎁 免费试用" : "收银台"}
+          </h1>
         <p className="text-gray-500 mb-6">
           {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""}
         </p>
@@ -244,9 +244,9 @@ function CheckoutContent() {
         {isTrial ? (
           <>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-              <p className="text-green-700 text-sm font-medium mb-1">7-Day Free Trial</p>
+              <p className="text-green-700 text-sm font-medium mb-1">7天免费试用</p>
               <p className="text-green-600 text-xs">
-                Full access to {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""} for 7 days. No credit card required.
+                全权限访问 {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""}，7天有效，无需绑定银行卡。
               </p>
             </div>
             <div className="text-3xl font-bold text-green-600 mb-2 text-center">¥0</div>
@@ -259,7 +259,7 @@ function CheckoutContent() {
         )}
 
         <p className="text-sm text-gray-500 text-center mb-8">
-          {isTrial ? "Expires in 7 days" : "One-time payment. 12 months access."}
+          {isTrial ? "7天后过期" : "一次性付款，12个月访问权限"}
         </p>
 
         {status === "error" && (
@@ -276,17 +276,17 @@ function CheckoutContent() {
           }`}
         >
           {status === "submitting"
-            ? "Processing..."
+            ? "处理中..."
             : isTrial
-            ? "Start Free Trial"
-            : "Pay with Alipay"}
+            ? "开始免费试用"
+            : "支付宝支付"}
         </button>
 
         <button
           onClick={() => router.back()}
           className="mt-3 w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition"
         >
-          Cancel
+          取消
         </button>
       </div>
     </div>
@@ -295,7 +295,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><p className="text-gray-500">Loading...</p></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><p className="text-gray-500">加载中...</p></div>}>
       <CheckoutContent />
     </Suspense>
   );
