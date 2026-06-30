@@ -41,6 +41,11 @@ TABLES = [
     "mock_exam_sets",
     "mock_exam_papers",
     "mock_exam_questions",
+    "mock_exams",
+    "user_answers",
+    "user_bookmarks",
+    "user_bans",
+    "user_security_log",
 ]
 
 # 大表分批拉取的行数

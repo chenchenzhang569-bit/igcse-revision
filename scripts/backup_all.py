@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 IGMaster 完整备份脚本
-每周日运行：数据库 + Storage 文件 + 代码仓库
+每周日运行：数据库 + R2 文件 + 代码仓库
 
 用法:
   python3 scripts/backup_all.py                        # 备份全部
   python3 scripts/backup_all.py --type db              # 仅数据库
-  python3 scripts/backup_all.py --type storage         # 仅 Storage
+  python3 scripts/backup_all.py --type storage         # 仅 R2
   python3 scripts/backup_all.py --type code            # 仅代码
 """
 
@@ -21,8 +21,16 @@ from datetime import datetime, timedelta
 
 # ===== 配置 =====
 SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co"
-SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2NDM4MSwiZXhwIjoyMDkzODQwMzgxfQ.OYuqkYVvPuU02cKDntfTWiqZwkzY0dceO0DMTOA4U88"
+SERVICE_ROLE_KEY = "eyJhbG...4U88"
 PROJECT_DIR = os.path.expanduser("~/igcse-revision")
+
+R2_CONFIG = {
+    "endpoint_url": "https://7524670a3d7d50fd979765dedb5b378d.r2.cloudflarestorage.com",
+    "aws_access_key_id": "baf9fd99dfe0501ceb0f8da65bccfbfc",
+    "aws_secret_access_key": "a53c8d8f542bdcf7049f9281ce987680208387ad0d56a20ddbba57881b144b80",
+}
+R2_BUCKETS = ["past-papers", "notes-pdfs", "sme-images"]
+R2_MIRROR_DIR = os.path.expanduser("~/backups/r2-mirror")
 
 # 所有表（按外键依赖排序）
 TABLES = [
@@ -31,15 +39,14 @@ TABLES = [
     "purchases", "profiles", "error_reports", "login_events",
     "user_roles", "app_config",
     "mock_exam_sets", "mock_exam_papers", "mock_exam_questions",
+    "mock_exams", "user_answers", "user_bookmarks", "user_bans",
+    "user_security_log",
 ]
-
-# Storage buckets
-STORAGE_BUCKETS = ["past-papers", "mock-exams", "notes-pdfs", "sme-raw-backup", "sme-images", "scripts"]
 
 PAGE_SIZE = 1000
 RETENTION_DAYS = {
     "db": 30,       # 数据库备份保留30天
-    "storage": 30,  # 文件备份保留30天
+    "r2": 7,        # R2 归档保留7天（本地 mirror 永久保留，archive 只是快照）
     "code": 7,      # 代码备份保留7天（GitHub本身有完整历史）
 }
 
@@ -105,71 +112,119 @@ def backup_db(backup_dir: str) -> str:
     return path
 
 
-# ─────────── Storage 备份 ───────────
+# ─────────── R2 文件备份 ───────────
 
-def backup_storage(backup_dir: str) -> str:
-    print("  📦 下载 Storage 文件...")
-    headers = {
-        "apikey": SERVICE_ROLE_KEY,
-        "Authorization": f"Bearer {SERVICE_ROLE_KEY}",
-        "Content-Type": "application/json",
-    }
+def backup_r2(backup_dir: str) -> str:
+    print("  📡 同步 R2 文件（增量的，首次 ~8.6GB，后续仅变更）...")
+
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base = os.path.join(backup_dir, ts)
-    total_files, total_bytes = 0, 0
+    stats = {}
 
-    for bucket in STORAGE_BUCKETS:
+    # 用 aws s3 sync 增量同步到本地 mirror
+    for bucket in R2_BUCKETS:
+        mirror_path = os.path.join(R2_MIRROR_DIR, bucket)
+        os.makedirs(mirror_path, exist_ok=True)
         print(f"    📦 {bucket}...", end=" ", flush=True)
-        try:
-            # 列出所有文件
-            req = urllib.request.Request(
-                f"{SUPABASE_URL}/storage/v1/object/list/{bucket}",
-                method="POST", headers=headers,
-                data=json.dumps({"prefix": "", "limit": 10000, "offset": 0}).encode()
-            )
-            resp = urllib.request.urlopen(req, timeout=30)
-            files = json.loads(resp.read())
-        except Exception as e:
-            print(f"❌ {str(e)[:60]}")
-            continue
 
-        if not isinstance(files, list) or len(files) == 0:
-            print("(empty)"); continue
+        # 配置 aws profile（每次运行确保存在）
+        profile_name = "r2-backup"
+        env = os.environ.copy()
+        env["AWS_ACCESS_KEY_ID"] = R2_CONFIG["aws_access_key_id"]
+        env["AWS_SECRET_ACCESS_KEY"] = R2_CONFIG["aws_secret_access_key"]
+        env["AWS_DEFAULT_REGION"] = "auto"
 
-        bucket_dir = os.path.join(base, bucket)
-        os.makedirs(bucket_dir, exist_ok=True)
-        count, size = 0, 0
+        result = subprocess.run(
+            ["aws", "s3", "sync",
+             f"s3://{bucket}/", f"{mirror_path}/",
+             "--endpoint-url", R2_CONFIG["endpoint_url"],
+             "--no-progress"],
+            capture_output=True, text=True, timeout=600,
+            env=env,
+        )
 
-        for f in files:
-            name = f.get("name", "")
-            meta = f.get("metadata") or {}
-            fsize = int(meta.get("size", 0) or 0)
-            if not name:
-                continue
-            # 下载文件
-            dl_url = f"{SUPABASE_URL}/storage/v1/object/public/{bucket}/{name}"
-            if bucket == "sme-raw-backup":
-                dl_url = f"{SUPABASE_URL}/storage/v1/object/{bucket}/{name}"
+        # 统计结果
+        out = result.stdout + result.stderr
+        # 解析 aws s3 sync 输出
+        downloaded = out.count("download: s3://")
+        deleted = out.count("delete: s3://")
+        failed = result.returncode != 0
+        stats[bucket] = {"downloaded": downloaded, "deleted": deleted, "failed": failed}
+        print(f"↓{downloaded} →{deleted}" + (" ⚠️ 有错误" if failed else " ✅"))
 
-            try:
-                dl = urllib.request.urlopen(dl_url, timeout=30)
-                fpath = os.path.join(bucket_dir, name.replace("/", "_"))
-                os.makedirs(os.path.dirname(fpath), exist_ok=True)
-                with open(fpath, "wb") as fp:
-                    fp.write(dl.read())
-                count += 1; size += fsize
-            except Exception as e:
-                pass  # 跳过失败的文件
+    # 统计 mirror 目录大小
+    total_size = 0
+    for bucket in R2_BUCKETS:
+        mirror_path = os.path.join(R2_MIRROR_DIR, bucket)
+        if os.path.isdir(mirror_path):
+            for dirpath, _, filenames in os.walk(mirror_path):
+                for fn in filenames:
+                    fp = os.path.join(dirpath, fn)
+                    try:
+                        total_size += os.path.getsize(fp)
+                    except OSError:
+                        pass
 
-        print(f"{count} 个文件, {size/1024:.0f}KB")
-        total_files += count; total_bytes += size
+    print(f"  📊 R2 mirror 总大小: {total_size/1024/1024:.0f} MB")
 
-    manifest = {"backup_at": datetime.now().isoformat(), "buckets": STORAGE_BUCKETS, "files": total_files, "bytes": total_bytes}
-    with open(os.path.join(base, "manifest.json"), "w") as f:
+    # 创建归档（从 mirror 打包，跳过超大 past paper 目录以节省空间）
+    # 归档仅包含：igcse/ znotes/ + notes-pdfs + sme-images
+    archive_dir = os.path.join(backup_dir, ts)
+    os.makedirs(archive_dir, exist_ok=True)
+
+    manifest = {
+        "backup_at": datetime.now().isoformat(),
+        "mirror_dir": R2_MIRROR_DIR,
+        "mirror_size_mb": round(total_size / 1024 / 1024, 1),
+        "sync_stats": stats,
+    }
+
+    # 从 mirror 复制关键数据到归档目录
+    import shutil
+
+    # 1. notes-pdfs
+    notes_src = os.path.join(R2_MIRROR_DIR, "notes-pdfs")
+    notes_dst = os.path.join(archive_dir, "notes-pdfs")
+    if os.path.isdir(notes_src):
+        shutil.copytree(notes_src, notes_dst)
+        print(f"    📄 notes-pdfs: 已归档")
+
+    # 2. sme-images
+    sme_src = os.path.join(R2_MIRROR_DIR, "sme-images")
+    sme_dst = os.path.join(archive_dir, "sme-images")
+    if os.path.isdir(sme_src):
+        shutil.copytree(sme_src, sme_dst)
+        print(f"    🖼️  sme-images: 已归档")
+
+    # 3. past-papers 中的 igcse/ 和 znotes/（数据文件，不含可恢复的大 PDF）
+    pp_src = os.path.join(R2_MIRROR_DIR, "past-papers")
+    for sub in ["igcse", "znotes"]:
+        sub_src = os.path.join(pp_src, sub)
+        sub_dst = os.path.join(archive_dir, "past-papers", sub)
+        if os.path.isdir(sub_src):
+            shutil.copytree(sub_src, sub_dst)
+            print(f"    📁 past-papers/{sub}: 已归档")
+
+    with open(os.path.join(archive_dir, "manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
 
-    print(f"  ✅ Storage 备份: {base} ({total_files} 个文件, {total_bytes/1024/1024:.1f}MB)")
-    return base
+    # 清理旧归档（保留最近 2 份）
+    if os.path.isdir(backup_dir):
+        dirs = sorted(os.listdir(backup_dir))
+        keep = 2
+        for d in dirs[:-keep]:
+            dpath = os.path.join(backup_dir, d)
+            if os.path.isdir(dpath) and d != ts:
+                shutil.rmtree(dpath, ignore_errors=True)
+                print(f"    🗑️  清理旧归档: {d}")
+
+    archive_size = sum(
+        os.path.getsize(os.path.join(dirpath, fn))
+        for dirpath, _, filenames in os.walk(archive_dir)
+        for fn in filenames
+    ) / 1024 / 1024
+
+    print(f"  ✅ R2 归档完成: {archive_dir} ({archive_size:.0f} MB)")
+    return archive_dir
 
 
 # ─────────── 代码备份 ───────────
@@ -232,17 +287,9 @@ def main():
         print()
 
     if args.type in ("all", "storage"):
-        print("[Storage 文件]")
-        p = backup_storage(os.path.join(base, "storage"))
-        # Storage 按目录结构，清理旧的 ts 目录
-        storage_dir = os.path.join(base, "storage")
-        if os.path.isdir(storage_dir):
-            dirs = sorted(os.listdir(storage_dir))
-            keep = 2  # 保留最近 2 份
-            for d in dirs[:-keep]:
-                import shutil
-                shutil.rmtree(os.path.join(storage_dir, d), ignore_errors=True)
-        results["storage"] = p
+        print("[R2 文件]")
+        p = backup_r2(os.path.join(base, "r2"))
+        results["r2"] = p
         print()
 
     if args.type in ("all", "code"):
