@@ -14,6 +14,15 @@ export const metadata: Metadata = {
     "Edexcel mock exams",
     "IGCSE exam practice",
     "IGCSE test online",
+    // Chinese keywords
+    "IGCSE 模拟考试",
+    "IGCSE 在线测试",
+    "IGCSE 模考",
+    "IGCSE 刷题",
+    "IGCSE 练习",
+    "CAIE 模拟考试",
+    "Edexcel 模拟考试",
+    "IGCSE 考前模拟",
   ],
   openGraph: {
     title: "IGCSE Mock Exams | IGMaster",

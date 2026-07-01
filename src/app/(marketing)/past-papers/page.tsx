@@ -16,6 +16,17 @@ export const metadata: Metadata = {
     "IGCSE maths past papers",
     "free past papers",
     "IGCSE revision",
+    // Chinese keywords
+    "IGCSE 历年真题",
+    "IGCSE 真题下载",
+    "IGCSE 试卷",
+    "CAIE 历年真题",
+    "Edexcel 真题",
+    "IGCSE 0580 真题",
+    "IGCSE 0625 真题",
+    "IGCSE 0620 真题",
+    "IGCSE 0610 真题",
+    "IGCSE past paper 下载",
   ],
   openGraph: {
     title: "IGCSE Past Papers | IGMaster",

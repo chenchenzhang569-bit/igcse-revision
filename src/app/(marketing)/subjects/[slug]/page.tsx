@@ -255,6 +255,7 @@ export async function generateMetadata({
 
   const subjectName = `${data.board} ${data.name} (${data.code})`;
   const description = `Free IGCSE ${data.name} (${data.code}) revision resources — topic questions, past papers, revision notes, and mock exams for ${data.board}. Practice with detailed answer keys and improve your grade.`;
+  const cnDescription = `${data.board} IGCSE ${data.name}（${data.code}）备考资源 — 历年真题、分类练习、复习笔记、模拟考试，含详细答案解析，助你冲刺 A*。`;
   const keywords = [
     `IGCSE ${data.name}`,
     `${data.board} ${data.code}`,
@@ -264,6 +265,13 @@ export async function generateMetadata({
     `${data.board} IGCSE ${data.name}`,
     `IGCSE ${data.code}`,
     `${data.name} revision`,
+    // Chinese long-tail keywords
+    `${data.code} 真题`,
+    `${data.code} past paper`,
+    `IGCSE ${data.name} 真题`,
+    `IGCSE ${data.name} 备考`,
+    `${data.board} ${data.code} past paper`,
+    `IGCSE ${data.code} past paper`,
   ];
 
   return {
@@ -549,11 +557,16 @@ export default async function SubjectPage({
 
       {/* Subject intro for SEO */}
       {!tab && (
-        <p className="text-gray-600 mt-6 leading-relaxed">
-          Free IGCSE {name} ({code}) revision resources for {board}. 
-          Practice with topic questions, past papers, revision notes, and mock exams. 
-          Track your progress and improve your exam performance with detailed answer keys.
-        </p>
+        <>
+          <p className="text-gray-600 mt-6 leading-relaxed">
+            Free IGCSE {name} ({code}) revision resources for {board}. 
+            Practice with topic questions, past papers, revision notes, and mock exams. 
+            Track your progress and improve your exam performance with detailed answer keys.
+          </p>
+          <p className="text-gray-500 mt-3 leading-relaxed text-sm">
+            {board} IGCSE {name}（{code}）备考资料汇总：历年真题（past papers）+ 分类练习题（topic questions）+ 复习笔记（revision notes）+ 模拟考试（mock exams），全部含详细答案解析。在线刷题、错题回顾、学习进度追踪，助你冲刺 A*。
+          </p>
+        </>
       )}
 
       {/* Tabs */}
