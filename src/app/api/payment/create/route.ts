@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createOrder, generateTradeNo } from "@/lib/yipay";
 import type { NextRequest } from "next/server";
 
-const PRICE_PER_SUBJECT = 50;  // ¥50/科
+const PRICE_PER_SUBJECT = 1;   // ¥1 测试价
 const PRICE_ALL = 250;         // ¥250 全科
 
 function parseJwt(token: string) {
