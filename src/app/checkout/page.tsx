@@ -4,10 +4,12 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, lang } = useLanguage();
   const subjectId = searchParams.get("subject");
   const plan = searchParams.get("plan");
   const isTrial = searchParams.get("trial") === "true";
@@ -160,33 +162,38 @@ function CheckoutContent() {
     }
   };
 
+  const processingText = status === "submitting" ? t("checkout", "processing") : "";
+
   // Loading state
   if (!user) {
     return <div className="flex items-center justify-center min-h-screen">
-      <p className="text-gray-500">Redirecting to login...</p>
+      <p className="text-gray-500">{t("checkout", "redirecting")}</p>
     </div>;
   }
+
+  const subjInfo = (s: { board_name: string; display_name: string; code: string | null }) =>
+    t("checkout", "subjectInfo").replace("{board}", s.board_name).replace("{subject}", s.display_name).replace("{code}", s.code ? ` · ${s.code}` : "");
 
   // All-subjects plan
   if (plan === "all") {
     return (
       <div className="max-w-md mx-auto px-4 py-16">
         <div className="bg-white border rounded-2xl p-8 text-center">
-          <h1 className="text-2xl font-bold text-primary-900 mb-2">All Subjects</h1>
-          <p className="text-gray-500 mb-8">CAIE + Edexcel — 12-month access to all subjects</p>
+          <h1 className="text-2xl font-bold text-primary-900 mb-2">{t("checkout", "allSubjects")}</h1>
+          <p className="text-gray-500 mb-8">{t("checkout", "allSubjectsDesc")}</p>
 
           {loadingPrice ? (
             <div className="text-4xl font-bold text-primary-900 mb-2">...</div>
           ) : upgradePrice != null && upgradePrice < PRICE_ALL * 100 ? (
             <>
               <div className="text-4xl font-bold text-accent-500 mb-1">¥{upgradePrice / 100}</div>
-              <p className="text-sm text-emerald-600 font-semibold mb-1">Upgrade price — previous purchases deducted</p>
-              <p className="text-sm text-gray-400 line-through mb-8">Was ¥{PRICE_ALL}</p>
+              <p className="text-sm text-emerald-600 font-semibold mb-1">{t("checkout", "upgradePrice")}</p>
+              <p className="text-sm text-gray-400 line-through mb-8">{t("checkout", "was")} ¥{PRICE_ALL}</p>
             </>
           ) : upgradePrice === null ? (
             <>
-              <div className="text-2xl font-bold text-green-600 mb-2">✅ You already have full access</div>
-              <p className="text-sm text-gray-500 mb-8">All subjects unlocked, no need to purchase again</p>
+              <div className="text-2xl font-bold text-green-600 mb-2">{t("checkout", "alreadyHaveAccess")}</div>
+              <p className="text-sm text-gray-500 mb-8">{t("checkout", "allAccessDesc")}</p>
             </>
           ) : (
             <>
@@ -202,7 +209,7 @@ function CheckoutContent() {
               onClick={() => router.push("/dashboard")}
               className="w-full py-3 rounded-xl bg-primary-900 text-white font-semibold hover:bg-primary-800 transition"
             >
-              Go to Dashboard
+              {t("checkout", "goToDashboard")}
             </button>
           ) : (
             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -213,7 +220,7 @@ function CheckoutContent() {
                   status === "submitting" ? "bg-accent-300" : "bg-blue-500 hover:bg-blue-600"
                 }`}
               >
-                {status === "submitting" ? "Processing..." : "Pay with Alipay"}
+                {status === "submitting" ? t("checkout", "processing") : t("checkout", "payWithAlipay")}
               </button>
               <button
                 onClick={() => handlePay("wxpay")}
@@ -222,7 +229,7 @@ function CheckoutContent() {
                   status === "submitting" ? "bg-accent-300" : "bg-green-500 hover:bg-green-600"
                 }`}
               >
-                {status === "submitting" ? "Processing..." : "Pay with WeChat"}
+                {status === "submitting" ? t("checkout", "processing") : t("checkout", "payWithWechat")}
               </button>
             </div>
           )}
@@ -230,7 +237,7 @@ function CheckoutContent() {
             onClick={() => router.back()}
             className="mt-3 w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition"
           >
-            Cancel
+            {t("checkout", "cancel")}
           </button>
         </div>
       </div>
@@ -240,7 +247,7 @@ function CheckoutContent() {
   // Single subject or trial
   if (!subject) {
     return <div className="flex items-center justify-center min-h-screen">
-      <p className="text-gray-500">Loading...</p>
+      <p className="text-gray-500">{t("checkout", "loading")}</p>
     </div>;
   }
 
@@ -248,18 +255,21 @@ function CheckoutContent() {
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white border rounded-2xl p-8">
           <h1 className="text-2xl font-bold text-primary-900 mb-1">
-            {isTrial ? "🎁 Free Trial" : "Checkout"}
+            {isTrial ? t("checkout", "trialTitle") : t("checkout", "title")}
           </h1>
         <p className="text-gray-500 mb-6">
-          {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""}
+          {subjInfo(subject)}
         </p>
 
         {isTrial ? (
           <>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-              <p className="text-green-700 text-sm font-medium mb-1">7-day Free Trial</p>
+              <p className="text-green-700 text-sm font-medium mb-1">{t("checkout", "freeTrialBadge")}</p>
               <p className="text-green-600 text-xs">
-                Full access to {subject.board_name} {subject.display_name}{subject.code ? ` · ${subject.code}` : ""}. No payment required.
+                {t("checkout", "freeTrialDesc")
+                  .replace("{board}", subject.board_name)
+                  .replace("{subject}", subject.display_name)
+                  .replace("{code}", subject.code ? ` · ${subject.code}` : "")}
               </p>
             </div>
             <div className="text-3xl font-bold text-green-600 mb-2 text-center">¥0</div>
@@ -272,7 +282,7 @@ function CheckoutContent() {
         )}
 
         <p className="text-sm text-gray-500 text-center mb-8">
-          {isTrial ? "Expires after 7 days" : "One-time payment, 12-month access"}
+          {isTrial ? t("checkout", "expiresAfter") : t("checkout", "oneTimePayment")}
         </p>
 
         {status === "error" && (
@@ -289,7 +299,7 @@ function CheckoutContent() {
                   status === "submitting" ? "bg-accent-300" : "bg-blue-500 hover:bg-blue-600"
                 }`}
               >
-                {status === "submitting" ? "Processing..." : "Pay with Alipay"}
+                {status === "submitting" ? t("checkout", "processing") : t("checkout", "payWithAlipay")}
               </button>
               <button
                 onClick={() => handlePay("wxpay")}
@@ -298,10 +308,10 @@ function CheckoutContent() {
                   status === "submitting" ? "bg-accent-300" : "bg-green-500 hover:bg-green-600"
                 }`}
               >
-                {status === "submitting" ? "Processing..." : "Pay with WeChat"}
+                {status === "submitting" ? t("checkout", "processing") : t("checkout", "payWithWechat")}
               </button>
             </div>
-            <p className="text-xs text-gray-400 text-center mb-6">Choose your payment method</p>
+            <p className="text-xs text-gray-400 text-center mb-6">{t("checkout", "choosePayment")}</p>
           </>
         )}
 
@@ -311,7 +321,7 @@ function CheckoutContent() {
             disabled={status === "submitting"}
             className="w-full py-3 rounded-xl bg-green-500 text-white font-semibold hover:bg-green-600 transition disabled:opacity-50"
           >
-            {status === "submitting" ? "Processing..." : "Start Free Trial"}
+            {status === "submitting" ? t("checkout", "processing") : t("checkout", "startFreeTrial")}
           </button>
         )}
 
@@ -319,7 +329,7 @@ function CheckoutContent() {
           onClick={() => router.back()}
           className="mt-3 w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition"
         >
-          Cancel
+          {t("checkout", "cancel")}
         </button>
       </div>
     </div>
