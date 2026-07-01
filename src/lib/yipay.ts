@@ -44,7 +44,7 @@ export function generateTradeNo(): string {
 
 export interface CreateOrderParams {
   outTradeNo: string;
-  type: string;        // alipay | wxpay
+  type?: string;       // alipay | wxpay — 不传则跳转收银台让用户选
   name: string;        // 商品名称
   money: string;       // 金额（元），如 "50.00"
   notifyUrl: string;   // 异步通知地址
@@ -70,7 +70,6 @@ export interface CreateOrderResult {
 export async function createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
   const payload: Record<string, string> = {
     pid: String(PID),
-    type: params.type,
     out_trade_no: params.outTradeNo,
     notify_url: params.notifyUrl,
     return_url: params.returnUrl,
@@ -79,6 +78,7 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
     clientip: params.clientIp,
     device: params.device || "pc",
     sign_type: "MD5",
+    ...(params.type ? { type: params.type } : {}),
     ...(params.param ? { param: params.param } : {}),
   };
   payload.sign = md5Sign(payload);

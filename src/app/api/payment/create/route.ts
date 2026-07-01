@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
     try {
       const result = await createOrder({
         outTradeNo: tradeNo,
-        type: "alipay",
         name: "IGCSE All Subjects - 12 Months Access",
         money: amountYuan,
         notifyUrl,
@@ -166,7 +165,6 @@ export async function POST(request: NextRequest) {
   try {
     const result = await createOrder({
       outTradeNo: tradeNo,
-      type: "alipay",
       name: `IGCSE ${subject.display_name}`,
       money: amountYuan,
       notifyUrl,
