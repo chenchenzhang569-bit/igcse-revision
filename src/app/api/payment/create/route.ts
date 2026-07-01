@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY 未配置" }, { status: 500 });
 
   const body = await request.json();
-  const { subjectId, plan } = body;
+  const { subjectId, plan, type } = body;
 
   // Admin client for DB writes (bypasses RLS)
   const admin = createAdminClient();
@@ -101,12 +101,13 @@ export async function POST(request: NextRequest) {
     try {
       const result = await createOrder({
         outTradeNo: tradeNo,
+        type,
         name: "IGCSE All Subjects - 12 Months Access",
         money: amountYuan,
         notifyUrl,
         returnUrl,
         clientIp,
-        device: "pc",
+        device: "mobile",
         param: JSON.stringify({ userId, plan: "all" }),
       });
       if (result.code !== 1) {
@@ -164,15 +165,16 @@ export async function POST(request: NextRequest) {
   const amountYuan = String(PRICE_PER_SUBJECT) + ".00";
   try {
     const result = await createOrder({
-      outTradeNo: tradeNo,
-      name: `IGCSE ${subject.display_name}`,
-      money: amountYuan,
-      notifyUrl,
-      returnUrl,
-      clientIp,
-      device: "pc",
-      param: JSON.stringify({ userId, subjectId, plan: "single" }),
-    });
+        outTradeNo: tradeNo,
+        type,
+        name: `IGCSE ${subject.display_name}`,
+        money: amountYuan,
+        notifyUrl,
+        returnUrl,
+        clientIp,
+        device: "pc",
+        param: JSON.stringify({ userId, subjectId, plan: "single" }),
+      });
     if (result.code !== 1) {
       console.error("yipay create order error:", result);
       return NextResponse.json({ error: "支付创建失败: " + (result.msg || "未知错误") }, { status: 500 });

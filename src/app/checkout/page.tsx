@@ -17,6 +17,7 @@ function CheckoutContent() {
   const [user, setUser] = useState<any>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
   const [error, setError] = useState("");
+  const [paymentType, setPaymentType] = useState<string>("");
   const [upgradePrice, setUpgradePrice] = useState<number | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(true);
 
@@ -63,8 +64,9 @@ function CheckoutContent() {
       .catch(() => setError("Failed to load subject"));
   }, [subjectId, user]);
 
-  const handlePay = async () => {
+  const handlePay = async (type: string) => {
     if (!subjectId && plan !== "all") return;
+    setPaymentType(type);
     setStatus("submitting");
 
     try {
@@ -76,8 +78,8 @@ function CheckoutContent() {
       if (!session) { router.push("/login"); return; }
       // Create order and get payment page
       const body = plan === "all"
-        ? { plan: "all" }
-        : { subjectId };
+        ? { plan: "all", type }
+        : { subjectId, type };
 
       const res = await fetch("/api/payment/create", {
         method: "POST",
@@ -203,13 +205,26 @@ function CheckoutContent() {
               Go to Dashboard
             </button>
           ) : (
-            <button
-              onClick={handlePay}
-              disabled={status === "submitting"}
-              className="w-full py-3 rounded-xl bg-accent-500 text-white font-semibold hover:bg-accent-600 disabled:opacity-50 transition"
-            >
-              {status === "submitting" ? "Processing..." : "Pay"}
-            </button>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button
+                onClick={() => handlePay("alipay")}
+                disabled={status === "submitting"}
+                className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
+                  status === "submitting" ? "bg-accent-300" : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                {status === "submitting" ? "Processing..." : "Pay with Alipay"}
+              </button>
+              <button
+                onClick={() => handlePay("wxpay")}
+                disabled={status === "submitting"}
+                className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
+                  status === "submitting" ? "bg-accent-300" : "bg-green-500 hover:bg-green-600"
+                }`}
+              >
+                {status === "submitting" ? "Processing..." : "Pay with WeChat"}
+              </button>
+            </div>
           )}
           <button
             onClick={() => router.back()}
@@ -264,21 +279,41 @@ function CheckoutContent() {
           <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg" dangerouslySetInnerHTML={{ __html: error }} />
         )}
 
-        <button
-          onClick={isTrial ? handleTrial : handlePay}
-          disabled={status === "submitting"}
-          className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
-            isTrial
-              ? "bg-green-500 hover:bg-green-600"
-              : "bg-accent-500 hover:bg-accent-600"
-          }`}
-        >
-          {status === "submitting"
-            ? "Processing..."
-            : isTrial
-            ? "Start Free Trial"
-            : "Pay"}
-        </button>
+        {!isTrial && (
+          <>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button
+                onClick={() => handlePay("alipay")}
+                disabled={status === "submitting"}
+                className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
+                  status === "submitting" ? "bg-accent-300" : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                {status === "submitting" ? "Processing..." : "Pay with Alipay"}
+              </button>
+              <button
+                onClick={() => handlePay("wxpay")}
+                disabled={status === "submitting"}
+                className={`w-full py-3 rounded-xl text-white font-semibold transition disabled:opacity-50 ${
+                  status === "submitting" ? "bg-accent-300" : "bg-green-500 hover:bg-green-600"
+                }`}
+              >
+                {status === "submitting" ? "Processing..." : "Pay with WeChat"}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 text-center mb-6">Choose your payment method</p>
+          </>
+        )}
+
+        {isTrial && (
+          <button
+            onClick={handleTrial}
+            disabled={status === "submitting"}
+            className="w-full py-3 rounded-xl bg-green-500 text-white font-semibold hover:bg-green-600 transition disabled:opacity-50"
+          >
+            {status === "submitting" ? "Processing..." : "Start Free Trial"}
+          </button>
+        )}
 
         <button
           onClick={() => router.back()}
