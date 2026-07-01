@@ -1,5 +1,30 @@
 import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mock Exams",
+  description:
+    "Take free IGCSE mock exams online for CAIE and Edexcel. Full-length practice papers with automatic scoring for Physics, Chemistry, Biology, Mathematics, and more.",
+  keywords: [
+    "IGCSE mock exams",
+    "IGCSE practice tests",
+    "IGCSE online exam",
+    "CAIE mock exams",
+    "Edexcel mock exams",
+    "IGCSE exam practice",
+    "IGCSE test online",
+  ],
+  openGraph: {
+    title: "IGCSE Mock Exams | IGMaster",
+    description:
+      "Free IGCSE mock exams with automatic scoring. Practice full-length papers online.",
+    url: "https://igmaster.org/mock-exams",
+  },
+  alternates: {
+    canonical: "https://igmaster.org/mock-exams",
+  },
+};
 
 export const revalidate = 3600;
 

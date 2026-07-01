@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { useT } from "@/lib/i18n/LanguageContext";
+import { PageMeta } from "@/components/PageMeta";
 
 const PRICE_PER_SUBJECT = 50;
 const PRICE_ALL = 250;
@@ -112,7 +113,13 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-16">
+    <>
+      <PageMeta
+        title="Pricing"
+        description="Affordable IGCSE revision plans — single subject ¥50/year or full access ¥250/year for all CAIE and Edexcel subjects. Start your IGCSE exam preparation today."
+        canonical="https://igmaster.org/pricing"
+      />
+      <div className="max-w-5xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">
           {t("pricing", "title")}
@@ -265,6 +272,7 @@ export default function PricingPage() {
           {t("pricing", "featurePreview")}
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

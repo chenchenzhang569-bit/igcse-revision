@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/LanguageContext";
+import { PageMeta } from "@/components/PageMeta";
 
 
 interface Subject {
@@ -99,7 +100,13 @@ export default function SubjectsPage() {
   const filtered = subjects.filter((s) => s.board === activeBoard);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <>
+      <PageMeta
+        title="Subjects"
+        description="Browse all IGCSE subjects for CAIE and Edexcel — topic questions, past papers, revision notes, and mock exams. Physics 0625, Chemistry 0620, Biology 0610, Mathematics 0580, and more."
+        canonical="https://igmaster.org/subjects"
+      />
+      <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-3">{t("subjects", "title")}</h1>
         <p className="text-gray-500 text-lg">CAIE &amp; Edexcel IGCSE</p>
@@ -181,6 +188,7 @@ export default function SubjectsPage() {
           {t("common", "startNow")} →
         </Link>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

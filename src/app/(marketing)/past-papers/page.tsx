@@ -1,4 +1,32 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Past Papers",
+  description:
+    "Download free IGCSE past papers for CAIE and Edexcel. Browse by subject and year — Physics 0625, Chemistry 0620, Biology 0610, Mathematics 0580, and more. Practice with official marking schemes.",
+  keywords: [
+    "IGCSE past papers",
+    "CAIE past papers",
+    "Edexcel past papers",
+    "IGCSE exam papers",
+    "IGCSE physics past papers",
+    "IGCSE chemistry past papers",
+    "IGCSE biology past papers",
+    "IGCSE maths past papers",
+    "free past papers",
+    "IGCSE revision",
+  ],
+  openGraph: {
+    title: "IGCSE Past Papers | IGMaster",
+    description:
+      "Download free IGCSE past papers for CAIE and Edexcel. Browse by subject and year.",
+    url: "https://igmaster.org/past-papers",
+  },
+  alternates: {
+    canonical: "https://igmaster.org/past-papers",
+  },
+};
 
 const subjects = [
   { name: "CAIE Physics 0625", slug: "caie-physics-0625", icon: "⚛️" },

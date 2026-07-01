@@ -238,6 +238,49 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "caie-economics":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
 };
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const data = DATA[slug] ?? null;
+
+  if (!data) {
+    return {
+      title: "Subject",
+      description: "IGCSE revision resources for this subject.",
+    };
+  }
+
+  const subjectName = `${data.board} ${data.name} (${data.code})`;
+  const description = `Free IGCSE ${data.name} (${data.code}) revision resources — topic questions, past papers, revision notes, and mock exams for ${data.board}. Practice with detailed answer keys and improve your grade.`;
+  const keywords = [
+    `IGCSE ${data.name}`,
+    `${data.board} ${data.code}`,
+    `${data.name} ${data.code}`,
+    `IGCSE ${data.name} past papers`,
+    `IGCSE ${data.name} revision notes`,
+    `${data.board} IGCSE ${data.name}`,
+    `IGCSE ${data.code}`,
+    `${data.name} revision`,
+  ];
+
+  return {
+    title: subjectName,
+    description,
+    keywords,
+    openGraph: {
+      title: `${subjectName} | IGMaster`,
+      description,
+      url: `https://igmaster.org/subjects/${slug}`,
+    },
+    alternates: {
+      canonical: `https://igmaster.org/subjects/${slug}`,
+    },
+  };
+}
+
 export default async function SubjectPage({
   params,
   searchParams,
