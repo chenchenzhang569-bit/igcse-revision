@@ -523,6 +523,20 @@ export default async function SubjectPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: "https://igmaster.org" },
+              { "@type": "ListItem", position: 2, name: "Subjects", item: "https://igmaster.org/subjects" },
+              { "@type": "ListItem", position: 3, name: `${board} IGCSE ${name}`, item: `https://igmaster.org/subjects/${slug}` },
+            ],
+          }),
+        }}
+      />
       <Link href="/" className="text-sm text-gray-400 hover:text-primary-600 transition mb-4 inline-block">← Back to Home</Link>
 
       <div className="flex items-center gap-4 mt-4">
@@ -532,6 +546,15 @@ export default async function SubjectPage({
           <p className="text-gray-500 mt-1">Code: {code}</p>
         </div>
       </div>
+
+      {/* Subject intro for SEO */}
+      {!tab && (
+        <p className="text-gray-600 mt-6 leading-relaxed">
+          Free IGCSE {name} ({code}) revision resources for {board}. 
+          Practice with topic questions, past papers, revision notes, and mock exams. 
+          Track your progress and improve your exam performance with detailed answer keys.
+        </p>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mt-8 border-b">
