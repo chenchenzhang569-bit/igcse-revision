@@ -1,33 +1,78 @@
 import { MetadataRoute } from "next";
 
-const SUPABASE_URL = "https://aondldqwwvttwpervrfq.supabase.co";
-const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbmRsZHF3d3Z0dHdwZXJ2cmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjQzODEsImV4cCI6MjA5Mzg0MDM4MX0.JEJv06MM1R20MfQ3AhSwrCR9r6WBKKUPvRGC6Y0TDWY";
+const SITE_URL = "https://igmaster.org";
+
+// 所有静态页面路由
+const staticRoutes = [
+  "",
+  "/subjects",
+  "/past-papers",
+  "/mock-exams",
+  "/pricing",
+  "/checkout",
+  "/disclaimer",
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://igmaster.org";
+  const entries: MetadataRoute.Sitemap = [];
 
-  const entries: MetadataRoute.Sitemap = [
-    { url: base, priority: 1.0, changeFrequency: "weekly" },
-    { url: `${base}/register`, priority: 0.8 },
-    { url: `${base}/login`, priority: 0.7 },
-    { url: `${base}/pricing`, priority: 0.8 },
-    { url: `${base}/past-papers`, priority: 0.7 },
-    { url: `${base}/mock-exams`, priority: 0.7 },
-    { url: `${base}/subjects`, priority: 0.9 },
-  ];
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=slug&is_published=eq.true`, {
-      headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
-      signal: AbortSignal.timeout(5000),
+  // 静态页面
+  for (const route of staticRoutes) {
+    entries.push({
+      url: `${SITE_URL}${route}`,
+      lastModified: new Date(),
+      changeFrequency: route === "" ? "weekly" : "monthly",
+      priority: route === "" ? 1.0 : 0.8,
     });
+  }
+
+  // 从数据库获取所有科目
+  try {
+    const res = await fetch(
+      "https://aondldqwwvttwpervrfq.supabase.co/rest/v1/subjects?select=slug,updated_at",
+      {
+        headers: {
+          apikey:
+            "sb_publishable_m64KijPCmhkIDD1J0RV_kw_uCVbl6pL",
+        },
+        cache: "no-store",
+      }
+    );
     if (res.ok) {
-      const subjects = await res.json();
-      for (const s of subjects) {
-        entries.push({ url: `${base}/subjects/${s.slug}`, priority: 0.8, changeFrequency: "weekly" });
+      const subjects: { slug: string; updated_at?: string }[] =
+        await res.json();
+      for (const subj of subjects) {
+        entries.push({
+          url: `${SITE_URL}/subjects/${subj.slug}`,
+          lastModified: subj.updated_at
+            ? new Date(subj.updated_at)
+            : new Date(),
+          changeFrequency: "weekly",
+          priority: 0.9,
+        });
+        // past papers for each subject
+        entries.push({
+          url: `${SITE_URL}/past-papers/${subj.slug}`,
+          lastModified: subj.updated_at
+            ? new Date(subj.updated_at)
+            : new Date(),
+          changeFrequency: "weekly",
+          priority: 0.7,
+        });
+        // mock exams for each subject
+        entries.push({
+          url: `${SITE_URL}/mock-exams/${subj.slug}`,
+          lastModified: subj.updated_at
+            ? new Date(subj.updated_at)
+            : new Date(),
+          changeFrequency: "weekly",
+          priority: 0.7,
+        });
       }
     }
-  } catch {}
+  } catch (e) {
+    console.error("Sitemap fetch subjects failed:", e);
+  }
 
   return entries;
 }
