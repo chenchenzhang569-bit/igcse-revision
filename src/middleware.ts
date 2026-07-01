@@ -4,8 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // SEO files — bypass middleware entirely (no auth check needed)
-  if (pathname === "/robots.txt" || pathname === "/sitemap.xml") {
+  // SEO files + Baidu verification — bypass middleware entirely (no auth check needed)
+  if (pathname === "/robots.txt" || pathname === "/sitemap.xml" || pathname.startsWith("/baidu_verify_")) {
     return NextResponse.next();
   }
 
