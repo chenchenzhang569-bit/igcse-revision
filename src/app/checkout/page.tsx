@@ -74,7 +74,7 @@ function CheckoutContent() {
       );
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { router.push("/login"); return; }
-
+      // Create order and get payment page
       const body = plan === "all"
         ? { plan: "all" }
         : { subjectId };
@@ -208,7 +208,7 @@ function CheckoutContent() {
               disabled={status === "submitting"}
               className="w-full py-3 rounded-xl bg-accent-500 text-white font-semibold hover:bg-accent-600 disabled:opacity-50 transition"
             >
-              {status === "submitting" ? "Processing..." : "Pay with Alipay"}
+              {status === "submitting" ? "Processing..." : "Pay"}
             </button>
           )}
           <button
@@ -277,7 +277,7 @@ function CheckoutContent() {
             ? "Processing..."
             : isTrial
             ? "Start Free Trial"
-            : "Pay with Alipay"}
+            : "Pay"}
         </button>
 
         <button
