@@ -26,11 +26,12 @@ function Header() {
         <Link href="/" className="flex items-center shrink-0">
           <Image
             src="/logo.png"
-            alt="IGMaster"
+            alt="IGMaster - IGCSE Revision Platform | CAIE & Edexcel"
             width={129}
             height={54}
             className="h-11 sm:h-14 w-auto"
             priority
+            fetchPriority="high"
           />
         </Link>
 

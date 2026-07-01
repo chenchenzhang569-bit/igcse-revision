@@ -48,6 +48,14 @@ export const metadata: Metadata = {
     siteName: "IGMaster",
     locale: "en_GB",
     type: "website",
+    images: [
+      {
+        url: "https://igmaster.org/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "IGMaster - IGCSE Revision Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -78,6 +86,9 @@ export default function RootLayout({
         <link rel="alternate" hrefLang="en" href="https://igmaster.org" />
         <link rel="alternate" hrefLang="zh" href="https://igmaster.org" />
         <link rel="alternate" hrefLang="x-default" href="https://igmaster.org" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -113,6 +124,20 @@ export default function RootLayout({
                 url: "https://igmaster.org",
               },
               educationalCredentialAwarded: "IGCSE",
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "IGMaster",
+              url: "https://igmaster.org",
+              logo: "https://igmaster.org/logo.png",
+              description: "Free IGCSE revision platform for CAIE and Edexcel students.",
+              email: "support@igmaster.org",
             }),
           }}
         />
