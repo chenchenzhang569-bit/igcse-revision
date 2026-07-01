@@ -21,7 +21,7 @@ function CheckoutContent() {
   const [upgradePrice, setUpgradePrice] = useState<number | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(true);
 
-  const PRICE = 1; // ¥1 (testing)
+  const PRICE = 50; // ¥50
   const PRICE_ALL = 250;
 
   useEffect(() => {
