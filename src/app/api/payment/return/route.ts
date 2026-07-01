@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { queryTrade, verifyNotify } from "@/lib/alipay";
+import { verifySign } from "@/lib/yipay";
 import type { NextRequest } from "next/server";
 
 const API = "https://aondldqwwvttwpervrfq.supabase.co/rest/v1";
@@ -46,26 +46,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard?payment=error", siteUrl));
   }
 
-  const gateway = process.env.ALIPAY_GATEWAY || "";
-  const isSandbox = !gateway || gateway.includes("sandbox");
-
-  if (isSandbox) {
-    // 沙箱环境：queryTrade 不支持，且 page pay 同步返回可能不带 trade_status
-    // 只要能拿回 out_trade_no 就标记 paid
-    await markPaid(tradeNo);
-    return NextResponse.redirect(new URL("/dashboard?payment=success", siteUrl));
+  // 验签（易支付 MD5）
+  const isValid = verifySign(params);
+  if (!isValid) {
+    console.error("yipay return: invalid sign", params);
+    return NextResponse.redirect(new URL("/dashboard?payment=error", siteUrl));
   }
 
-  // 生产环境：queryTrade API 验证
-  const status = await queryTrade(tradeNo);
-  if (status === "TRADE_SUCCESS" || status === "TRADE_FINISHED") {
-    await markPaid(tradeNo);
-    return NextResponse.redirect(new URL("/dashboard?payment=success", siteUrl));
-  }
-
-  // 生产 fallback：验签
   const tradeStatus = params.trade_status;
-  if ((tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") && verifyNotify({ ...params })) {
+  if (tradeStatus === "TRADE_SUCCESS") {
     await markPaid(tradeNo);
     return NextResponse.redirect(new URL("/dashboard?payment=success", siteUrl));
   }

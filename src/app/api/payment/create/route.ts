@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createPagePayUrl, generateTradeNo } from "@/lib/alipay";
+import { createOrder, generateTradeNo } from "@/lib/yipay";
 import type { NextRequest } from "next/server";
 
-const PRICE_PER_SUBJECT = 50;
-const PRICE_ALL = 250;
+const PRICE_PER_SUBJECT = 50;  // ¥50/科
+const PRICE_ALL = 250;         // ¥250 全科
 
 function parseJwt(token: string) {
   try {
@@ -37,9 +37,6 @@ export async function POST(request: NextRequest) {
 
   if (!userId) return NextResponse.json({ error: "Please log in first" }, { status: 401 });
 
-  // Check Alipay env vars
-  if (!process.env.ALIPAY_APP_ID) return NextResponse.json({ error: "ALIPAY_APP_ID 未配置" }, { status: 500 });
-  if (!process.env.ALIPAY_PRIVATE_KEY) return NextResponse.json({ error: "ALIPAY_PRIVATE_KEY 未配置" }, { status: 500 });
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY 未配置" }, { status: 500 });
 
   const body = await request.json();
@@ -47,6 +44,15 @@ export async function POST(request: NextRequest) {
 
   // Admin client for DB writes (bypasses RLS)
   const admin = createAdminClient();
+
+  // 获取客户端 IP
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || request.headers.get("x-real-ip")
+    || "127.0.0.1";
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  const notifyUrl = `${siteUrl}/api/payment/notify`;
+  const returnUrl = `${siteUrl}/api/payment/return`;
 
   if (plan === "all") {
     // 检查是否已购全科（防止重复下单）
@@ -62,28 +68,27 @@ export async function POST(request: NextRequest) {
     }
 
     // 计算升级差价：已付单科总额
-    let upgradeAmount = PRICE_ALL * 100; // ¥250 in fen
+    let upgradeFen = PRICE_ALL * 100; // ¥250 in fen
     const { data: previousPaid } = await admin
       .from("purchases")
       .select("subject_id, amount_cny")
       .eq("user_id", userId)
       .eq("status", "paid");
     if (previousPaid && previousPaid.length > 0) {
-      // 同 subject_id 只计一次最大值
       const maxPerSubject: Record<string, number> = {};
       for (const p of previousPaid) {
         if (!p.subject_id) continue;
         maxPerSubject[p.subject_id] = Math.max(maxPerSubject[p.subject_id] || 0, p.amount_cny || 0);
       }
       const totalPaid = Object.values(maxPerSubject).reduce((a, b) => a + b, 0);
-      upgradeAmount = Math.max(100, PRICE_ALL * 100 - totalPaid); // 最低 ¥1
+      upgradeFen = Math.max(100, PRICE_ALL * 100 - totalPaid);
     }
 
     const tradeNo = generateTradeNo();
     const { error } = await admin.from("purchases").insert({
       user_id: userId,
       subject_id: null,
-      amount_cny: upgradeAmount,
+      amount_cny: upgradeFen,
       alipay_trade_no: tradeNo,
       status: "pending",
     });
@@ -91,28 +96,39 @@ export async function POST(request: NextRequest) {
       console.error("All plan insert error:", error);
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
     }
-    let url: string;
-    const amountYuan = (upgradeAmount / 100).toFixed(2);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-    const returnUrl = `${siteUrl}/api/payment/return`;
+
+    const amountYuan = (upgradeFen / 100).toFixed(2);
     try {
-      url = createPagePayUrl({
+      const result = await createOrder({
         outTradeNo: tradeNo,
-        totalAmount: amountYuan,
-        subject: "IGCSE All Subjects - 12 Months Access",
-        body: "CAIE + Edexcel all subjects",
+        type: "alipay",
+        name: "IGCSE All Subjects - 12 Months Access",
+        money: amountYuan,
+        notifyUrl,
         returnUrl,
+        clientIp,
+        device: "pc",
+        param: JSON.stringify({ userId, plan: "all" }),
       });
+      if (result.code !== 1) {
+        console.error("yipay create order error:", result);
+        return NextResponse.json({ error: "支付创建失败: " + (result.msg || "未知错误") }, { status: 500 });
+      }
+      // 返回跳转URL（优先payurl，其次qrcode）
+      const payUrl = result.payurl || result.qrcode || "";
+      if (!payUrl) {
+        return NextResponse.json({ error: "支付系统未返回支付链接" }, { status: 500 });
+      }
+      return NextResponse.json({ url: payUrl });
     } catch (e: any) {
-      console.error("Alipay form error:", e.message, e.stack);
-      return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
+      console.error("yipay order error:", e.message, e.stack);
+      return NextResponse.json({ error: "支付配置错误: " + e.message }, { status: 500 });
     }
-    return NextResponse.json({ url });
   }
 
   if (!subjectId) return NextResponse.json({ error: "缺少科目ID" }, { status: 400 });
 
-  // Lookup subject (anon client is fine for select)
+  // Lookup subject
   const { data: subject } = await admin
     .from("subjects")
     .select("id, display_name, slug")
@@ -146,22 +162,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
   }
 
-  let url: string;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-  const returnUrl = `${siteUrl}/api/payment/return`;
+  const amountYuan = String(PRICE_PER_SUBJECT) + ".00";
   try {
-    url = createPagePayUrl({
+    const result = await createOrder({
       outTradeNo: tradeNo,
-      totalAmount: String(PRICE_PER_SUBJECT) + ".00",
-      subject: `IGCSE ${subject.display_name}`,
-      body: `IGCSE ${subject.display_name} 科目复习资料`,
+      type: "alipay",
+      name: `IGCSE ${subject.display_name}`,
+      money: amountYuan,
+      notifyUrl,
       returnUrl,
+      clientIp,
+      device: "pc",
+      param: JSON.stringify({ userId, subjectId, plan: "single" }),
     });
+    if (result.code !== 1) {
+      console.error("yipay create order error:", result);
+      return NextResponse.json({ error: "支付创建失败: " + (result.msg || "未知错误") }, { status: 500 });
+    }
+    const payUrl = result.payurl || result.qrcode || "";
+    if (!payUrl) {
+      return NextResponse.json({ error: "支付系统未返回支付链接" }, { status: 500 });
+    }
+    return NextResponse.json({ url: payUrl });
   } catch (e: any) {
-    console.error("Alipay form error:", e.message, e.stack);
-    return NextResponse.json({ error: "支付宝配置错误: " + e.message }, { status: 500 });
+    console.error("yipay order error:", e.message, e.stack);
+    return NextResponse.json({ error: "支付配置错误: " + e.message }, { status: 500 });
   }
-
-    return NextResponse.json({ url });
 }
 // deploy trigger 1779554954
