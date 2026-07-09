@@ -146,7 +146,7 @@ function parseSubParts(stem: string): SubPart[] {
 
   // Find all markers — handle both (a) and **(a)** format
   const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
-  const re = /(?:\*{2})?([ \t]*)\(([a-z]+)\)\s*/gm;
+  const re = /(?:\*{2})?([ \t]*)\(([a-z]|[ivx]{2,})\)\s*/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
@@ -160,7 +160,7 @@ function parseSubParts(stem: string): SubPart[] {
   // Fallback to old flat matching (bold markers etc.)
   if (allMarkers.length === 0) {
     const parts: SubPart[] = [];
-    const regex = /(?:\*\*\(([a-z]+|[ivxIVX]+)\)\*\*|\(([a-z]+|[ivxIVX]+)\)|^([a-z]+|[ivxIVX]+)[.)])\s*/gm;
+    const regex = /(?:\*\*\(([a-z]|[ivxIVX]{2,})\)\*\*|\(([a-z]|[ivxIVX]{2,})\)|^([a-z]|[ivxIVX]{2,})[.)])\s*/gm;
     let lastIdx = 0;
     let mm: RegExpExecArray | null;
     while ((mm = regex.exec(stem)) !== null) {
