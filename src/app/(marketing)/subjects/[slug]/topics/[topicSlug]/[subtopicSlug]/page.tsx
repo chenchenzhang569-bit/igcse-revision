@@ -445,16 +445,6 @@ export default async function SubtopicPage({
           slug={slug}
           topicSlug={topicSlug}
         />
-      ) : subjectKey === "statistics" ? (
-        <EconomicsTabs
-          notes={notes}
-          mcqs={mcqs}
-          structuredQuestions={structuredQs}
-          subtopicId={subtopicId}
-          subtopicName={subtopic.displayName}
-          slug={slug}
-          topicSlug={topicSlug}
-        />
       ) : slug.startsWith("edexcel") ? (
         <AdditionalMathsTabs
           notes={notes}
@@ -466,8 +456,8 @@ export default async function SubtopicPage({
           topicSlug={topicSlug}
           bugContext={{
             board: "Edexcel",
-            subject: subjectKey === "business" ? "Business" : subjectKey === "geography" ? "Geography" : subjectKey === "economics" ? "Economics" : "Mathematics",
-            code: slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : slug.includes("mathematics-higher") ? "4ma1" : slug.includes("mathematics") ? "4ma1" : slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1",
+            subject: subjectKey === "business" ? "Business" : subjectKey === "geography" ? "Geography" : subjectKey === "economics" ? "Economics" : subjectKey === "statistics" ? "Statistics" : "Mathematics",
+            code: slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : slug.includes("statistics") ? "1st0" : slug.includes("mathematics-higher") ? "4ma1" : slug.includes("mathematics") ? "4ma1" : slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1",
             topicName: topicDisplay,
           }}
         />
