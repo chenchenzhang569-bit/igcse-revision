@@ -430,7 +430,7 @@ export default async function SubjectPage({
   // For maths, fetch topics from DB (SME structure); for others, use hardcoded
   let topics: Topic[] = data.topics;
   let topicSections: TopicSection[] = [];
-  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science" || key === "further-maths" || key === "business" || key === "geography") && subjectId;
+  const useDbTopics = (key === "maths" || key === "0606" || key === "economics" || key === "computer-science" || key === "further-maths" || key === "business" || key === "geography" || key === "statistics") && subjectId;
   if (useDbTopics) {
     try {
       const supabase = createClient();
