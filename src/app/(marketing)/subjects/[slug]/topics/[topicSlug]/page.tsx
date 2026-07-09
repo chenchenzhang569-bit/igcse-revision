@@ -463,7 +463,7 @@ notes.filter((n: any) => !(n.title || "").includes("ZNotes")).map((note: any) =>
       )}
 
       {/* Subtopics tab — ONLY for non-additional-maths, non-economics, non-edexcel-maths (those show subtopics directly above) */}
-      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && subjectKey !== "business" && subjectKey !== "geography" && slug !== "edexcel-further-maths-4pm1" && slug !== "edexcel-mathematics-4ma1" && slug !== "edexcel-mathematics-higher-4ma1" && (
+      {activeTab === "subtopics" && subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science" && subjectKey !== "business" && subjectKey !== "geography" && subjectKey !== "statistics" && slug !== "edexcel-further-maths-4pm1" && slug !== "edexcel-mathematics-4ma1" && slug !== "edexcel-mathematics-higher-4ma1" && (
         <div className="mt-6">
           <p className="text-gray-500 mt-1">{subtopics.length} subtopics</p>
           <div className="mt-4 space-y-3">
