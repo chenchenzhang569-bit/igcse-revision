@@ -134,8 +134,9 @@ function renderStemWithTables(stem: string): string {
 
 // ─── Sub-part parsing ───
 interface SubPart { label: string; text: string; hasChildren: boolean; }
+
 function stripBoldMarkers(text: string): string {
-  return text.replace(/\\*\\*/g, '').trim();
+  return text.replace(/\*\*/g, '').trim();
 }
 
 function parseSubParts(stem: string): SubPart[] {
@@ -145,11 +146,11 @@ function parseSubParts(stem: string): SubPart[] {
 
   // Find all markers — handle both (a) and **(a)** format
   const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
-  const re = /(?:\\*{2})?([ \\t]*)(\\([a-z]+\\)|[ivxIVX]+\\))\\s*/gm;
+  const re = /(?:\*{2})?([ \t]*)\(([a-z]+)\)\s*/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
-      idx: m.index,  // raw position, DON'T skip \n
+      idx: m.index,
       label: m[2].replace(/[()]/g, "").trim(),
       raw: m[0],
       end: 0,
@@ -202,13 +203,14 @@ function parseSubParts(stem: string): SubPart[] {
       // Children
       for (const ch of children) {
         const cText = stem.slice(ch.idx + ch.raw.length, ch.end).trim()
-                      .replace(/(?:\*{2})?\[(Total|total)[^\]]*\](?:\*{2})?\s*$/m, '').trim();
+          .replace(/(?:\*{2})?\[(Total|total)[^\]]*\](?:\*{2})?\s*$/m, "").trim();
         parts.push({ label: ch.label, text: cText, hasChildren: false });
       }
       i = j;
     } else {
+      // Leaf
       const text = stem.slice(mk.idx + mk.raw.length, mk.end).trim()
-        .replace(/(?:\*{2})?\[(Total|total)[^\]]*\](?:\*{2})?\s*$/m, '').trim();
+        .replace(/(?:\*{2})?\[(Total|total)[^\]]*\](?:\*{2})?\s*$/m, "").trim();
       parts.push({ label: mk.label, text, hasChildren: false });
       i++;
     }
@@ -243,6 +245,62 @@ function normalizeAlgebraic(expr: string): string {
   let result = terms.join('');
   if (result.startsWith('+')) result = result.substring(1);
   return result;
+}
+
+function DifficultyTabs({ difficulties, active, scores, byDifficulty, submitted, unlockedDifficulty, onChange, onRetry }: {
+  difficulties: string[];
+  active: string;
+  scores: Record<string, { correct: number; total: number }>;
+  byDifficulty: Record<string, Question[]>;
+  submitted: Set<string>;
+  unlockedDifficulty: string | null;
+  onChange: (d: string) => void;
+  onRetry?: (d: string) => void;
+}) {
+  const isLocked = (d: string) => {
+    const dIdx = difficulties.indexOf(d);
+    const unlockedIdx = difficulties.indexOf(unlockedDifficulty || "");
+    return dIdx > unlockedIdx;
+  };
+
+  return (
+    <div className="flex gap-1 sm:gap-2 flex-wrap">
+      {difficulties.map((d) => {
+        const qs = byDifficulty[d] || [];
+        const s = scores[d];
+        const locked = isLocked(d);
+        return (
+          <button
+            key={d}
+            onClick={() => !locked && onChange(d)}
+            disabled={locked}
+            className={`relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-all ${
+              locked
+                ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
+                : d === active
+                ? "bg-primary-600 text-white border-primary-600"
+                : "bg-white text-gray-600 border-gray-200 hover:border-primary-300 hover:text-primary-600"
+            }`}
+          >
+            {(DIFFICULTY_CONFIG[d] || {}).icon} {(DIFFICULTY_CONFIG[d] || {}).label || d}
+            {qs.length > 0 && (
+              <span className="ml-1.5 text-xs opacity-70">({qs.length})</span>
+            )}
+            {s.total > 0 && (
+              <span className={`ml-1 text-xs ${
+                d === active ? "text-white/80" : "text-gray-400"
+              }`}>
+                {s.correct}/{s.total}
+              </span>
+            )}
+            {submitted.has(d) && (
+              <span className="absolute -top-1.5 -right-1.5 text-xs">✅</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugContext }: {
@@ -501,10 +559,11 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
     const answerText = q.clean_answer_text || q.answer_text || "";
     const explanationText = q.clean_explanation || q.explanation || undefined;
     let correct: boolean;
+
     if (isMcq) {
       correct = userAns === answerText.trim().charAt(0);
     } else {
-      // Normalize delimiters: treat ; ； , all as same
+      // Normalize delimiters: treat ; ；, all as same
       const userNorm = normalizeAlgebraic(userAns.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim());
       const answers = answerText.split('||').map(a => 
         normalizeAlgebraic(a.toLowerCase().replace(/[;；,]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(\([a-z0-9]+\)\s*)+/i, '').trim())
@@ -800,7 +859,6 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                 }
                 // Leaf → show label + text + input + grading
                 // MCQ buttons only for non-math subjects with letter answers
-                const isMathSubject = bugContext?.code === "0580" || bugContext?.code === "0606" || bugContext?.code === "4ma1" || bugContext?.code === "4pm1";
                 const answerText = q.clean_answer_text || q.answer_text || "";
                 const subAnswerParts = answerText.split('||').map(p => p.trim());
                 const subLabelRe = new RegExp(`^\\(${sp.label}\\)`, 'i');
@@ -980,7 +1038,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                   ❌ Incorrect. The answer is:
                   <div className="mt-1 space-y-1 font-normal">
                     {(q.clean_answer_text || q.answer_text || "").split("||").map((p: string, i: number) => {
-                      const m = p.trim().match(/^(\\([^)]+\\))\\s*(.*)/);
+                      const m = p.trim().match(/^(\([^)]+\))\s*(.*)/);
                       const renderPart = (content: string) => {
                         const t = content.trim();
                         const hasDollar = t.includes("$");
@@ -1109,30 +1167,18 @@ const hasMath = /[=\^\\\/\(\)<>\+\-]/.test(t);
           >
             Next →
           </button>
-       </div>
+        </div>
       </div>
-      </>
-      )}
 
-      {/* Clear saved progress */}
-      <div className="text-right">
-        <button onClick={handleClearAll}
-          className="text-xs text-gray-400 hover:text-red-500 transition">
-          Clear all progress
-        </button>
-      </div>
-    {/* Bug report modal */}
-    <ReportBugModal
-      open={bugModalOpen}
-      onClose={() => setBugModalOpen(false)}
-      context={bugContext ? {
-        board: bugContext.board,
-        subject: bugContext.subject,
-        code: bugContext.code,
-        subtopic: bugContext.topicName,
-        questionNo: `Q${currentIdx + 1}`,
-      } : undefined}
-    />
+      {bugModalOpen && bugContext && (
+        <ReportBugModal
+          type="topicQuestion"
+          context={bugContext}
+          questionId={q.id}
+          onClose={() => setBugModalOpen(false)}
+        />
+      )}
+      </>)}
     </div>
   );
 }
@@ -1305,6 +1351,7 @@ function MathInput({
             ref={canvasRef}
             width={600}
             height={200}
+            className="w-full h-40 bg-white rounded border cursor-crosshair touch-none"
             onMouseDown={startDraw}
             onMouseMove={draw}
             onMouseUp={endDraw}
@@ -1312,13 +1359,19 @@ function MathInput({
             onTouchStart={startDraw}
             onTouchMove={draw}
             onTouchEnd={endDraw}
-            className="w-full border border-gray-200 rounded bg-white touch-none cursor-crosshair"
           />
           <div className="flex gap-2 mt-2">
-            <button onClick={clearCanvas} className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 text-gray-600">Clear</button>
-            <button onClick={saveAsImage} className="px-3 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">📷 Save Image</button>
-            <button onClick={runOCR} disabled={ocrLoading} className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">
-              {ocrLoading ? "识别中..." : "🔤 OCR"}
+            <button onClick={clearCanvas}
+              className="px-3 py-1.5 text-xs bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">
+              🗑️ Clear
+            </button>
+            <button onClick={saveAsImage}
+              className="px-3 py-1.5 text-xs bg-white text-gray-600 border border-gray-200 rounded hover:bg-gray-50 transition">
+              💾 Save as Image
+            </button>
+            <button onClick={runOCR} disabled={ocrLoading}
+              className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50">
+              {ocrLoading ? "⏳ OCR..." : "🤖 OCR to Text"}
             </button>
           </div>
         </div>
@@ -1327,58 +1380,7 @@ function MathInput({
   );
 }
 
-/* ─── Difficulty Tabs ─── */
-function DifficultyTabs({
-  difficulties, active, scores, byDifficulty, submitted, unlockedDifficulty, onChange,
-}: {
-  difficulties: string[];
-  active: string;
-  scores: Record<string, { correct: number; total: number }>;
-  byDifficulty: Record<string, Question[]>;
-  submitted: Set<string>;
-  unlockedDifficulty: string | null;
-  onChange: (d: string) => void;
-}) {
-  return (
-    <div className="flex gap-2 overflow-x-auto pb-1" style={{ flexWrap: "nowrap" }}>
-      {difficulties.map((d) => {
-        const cfg = DIFFICULTY_CONFIG[d] || DIFFICULTY_CONFIG.medium;
-        const s = scores[d];
-        const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : null;
-        const isLocked = false; // all unlocked
-        const isDone = submitted.has(d);
-
-        return (
-          <button
-            key={d}
-            onClick={() => onChange(d)}
-            disabled={isLocked}
-            className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-              isDone
-                ? "bg-green-50 text-green-700 border-green-300"
-                : active === d
-                ? `${cfg.color} border-current`
-                : isLocked
-                ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
-                : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            {isLocked ? "🔒" : cfg.icon} {cfg.label}
-            <span className="ml-1.5 text-xs opacity-70">({byDifficulty[d]?.length || 0})</span>
-            {pct !== null && (
-              <span className={`ml-2 text-xs font-bold ${pct >= 80 ? "text-green-600" : pct >= 50 ? "text-yellow-600" : "text-red-600"}`}>
-                {pct}%
-              </span>
-            )}
-            {isDone && <span className="ml-1">✓</span>}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ─── Question Parser ─── */
+// ─── Question parsing ───
 function parseQuestion(text: string): { stem: string; options: string[] } {
   const lines = text.split("\n");
   const optionLines: string[] = [];
