@@ -946,7 +946,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
         ) : !isMcq ? (
           <>
             <div className="prose prose-sm max-w-none text-gray-800 mb-5"
-              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stem))) }} />
+              dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(markdownify(stripBoldMarkers(stem)))) }} />
             <MathInput
               value={userAns}
               onChange={(v) => setAnswers((p) => ({ ...p, [q.id]: v }))}
