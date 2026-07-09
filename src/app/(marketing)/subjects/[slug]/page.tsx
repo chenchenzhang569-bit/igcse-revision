@@ -285,6 +285,12 @@ export async function generateMetadata({
     },
     alternates: {
       canonical: `https://igmaster.org/subjects/${slug}`,
+      languages: {
+        zh: `https://igmaster.org/subjects/${slug}`,
+      },
+    },
+    other: {
+      "description:zh": cnDescription,
     },
   };
 }
