@@ -28,6 +28,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-business-4bs1": "business",
   "edexcel-economics-4ec1": "economics",
   "edexcel-geography-4ge1": "geography",
+  "edexcel-statistics-1st0": "statistics",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
   "caie-computer-science-0478": "computer-science",
@@ -202,7 +203,7 @@ export default async function SubtopicPage({
   let subtopic = getSubtopic(subjectKey, topicSlug, subtopicSlug);
   // For DB-driven subjects: subtopic slugs ARE the DB slugs, bypass hardcoded lookup
   // Shared-static (chemistry/biology/physics) keep hardcoded data
-  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1") {
+  if (subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || subjectKey === "statistics" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1") {
     subtopic = { name: subtopicSlug, displayName: subtopicSlug, slug: subtopicSlug, pmtCode: "" };
     // Fetch real display_name from DB
     try {
@@ -240,7 +241,7 @@ export default async function SubtopicPage({
     
     // Extract board-specific code from URL slug to scope topic search
     const subjectCode = slug.startsWith("edexcel")
-      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : "4ma1"
+      ? slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : slug.includes("statistics") ? "1st0" : "4ma1"
       : slug.includes("physics") ? "0625" : slug.includes("chemistry") ? "0620" : slug.includes("biology") ? "0610" : "0580";
     const useBoardScope = subjectKey !== "additional-maths" && subjectKey !== "economics" && subjectKey !== "computer-science";
     const topicSearchPat = slug.startsWith("edexcel")

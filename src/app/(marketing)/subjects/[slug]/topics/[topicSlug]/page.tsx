@@ -40,6 +40,7 @@ const SLUG_TO_KEY: Record<string, string> = {
   "edexcel-business-4bs1": "business",
   "edexcel-economics-4ec1": "economics",
   "edexcel-geography-4ge1": "geography",
+  "edexcel-statistics-1st0": "statistics",
   "caie-additional-mathematics-0606": "additional-maths",
   "caie-economics-0455": "economics",
   "caie-computer-science-0478": "computer-science",
@@ -185,7 +186,7 @@ export default async function TopicPage({
   const subjectKey = SLUG_TO_KEY[slug] || "physics";
   let displayName = TOPIC_DISPLAY[topicSlug] || topicSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const isMaths = subjectKey === "maths" || subjectKey === "mathematics" || subjectKey === "additional-maths";
-  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || slug === "edexcel-further-maths-4pm1";
+  const isSimpleSubject = subjectKey === "additional-maths" || subjectKey === "economics" || subjectKey === "computer-science" || subjectKey === "business" || subjectKey === "geography" || subjectKey === "statistics" || slug === "edexcel-further-maths-4pm1";
   const isEdexcelMathsOnTopic = slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1";
   const isDbDriven = isSimpleSubject || slug.startsWith("edexcel");
   let subtopics: any[] = isDbDriven && (isSimpleSubject || isEdexcelMathsOnTopic) ? [] : getSubtopics(subjectKey, topicSlug);

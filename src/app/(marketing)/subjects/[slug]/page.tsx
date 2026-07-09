@@ -203,6 +203,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-business-4bs1":       { board: "Edexcel", code: "4BS1", name: "Business Studies 4BS1", icon: "📊", key: "business", topics: [] },
   "edexcel-economics-4ec1":      { board: "Edexcel", code: "4EC1", name: "Economics 4EC1", icon: "📈", key: "economics", topics: [] },
   "edexcel-geography-4ge1":      { board: "Edexcel", code: "4GE1", name: "Geography 4GE1", icon: "🌍", key: "geography", topics: [] },
+  "edexcel-statistics-1st0":     { board: "Edexcel", code: "1ST0", name: "Statistics 1ST0", icon: "📊", key: "statistics", topics: [] },
   "caie-additional-mathematics-0606": { board: "CAIE", code: "0606", name: "Additional Mathematics", icon: "🧮", key: "0606", topics: ADDITIONAL_MATHEMATICS },
   "caie-economics-0455":            { board: "CAIE", code: "0455", name: "Economics",            icon: "📊", key: "economics", topics: ECONOMICS },
   "caie-computer-science-0478":     { board: "CAIE", code: "0478", name: "Computer Science",   icon: "💻", key: "computer-science", topics: COMPUTER_SCIENCE },
@@ -220,6 +221,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "business-4bs1":     { board: "Edexcel", code: "4BS1", name: "Business Studies", icon: "📊", key: "business", topics: [] },
   "economics-4ec1":    { board: "Edexcel", code: "4EC1", name: "Economics", icon: "📈", key: "economics", topics: [] },
   "geography-4ge1":    { board: "Edexcel", code: "4GE1", name: "Geography", icon: "🌍", key: "geography", topics: [] },
+  "statistics-1st0":   { board: "Edexcel", code: "1ST0", name: "Statistics", icon: "📊", key: "statistics", topics: [] },
   // Short aliases (board-only, no code) — used by Subjects list page
   "caie-physics":     { board: "CAIE", code: "0625", name: "Physics",     icon: "⚛️", key: "physics", topics: PHYSICS },
   "caie-chemistry":   { board: "CAIE", code: "0620", name: "Chemistry",   icon: "🧪", key: "chemistry", topics: CHEMISTRY },
@@ -234,6 +236,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-business":   { board: "Edexcel", code: "4BS1", name: "Business Studies", icon: "📊", key: "business", topics: [] },
   "edexcel-economics":  { board: "Edexcel", code: "4EC1", name: "Economics", icon: "📈", key: "economics", topics: [] },
   "edexcel-geography":  { board: "Edexcel", code: "4GE1", name: "Geography", icon: "🌍", key: "geography", topics: [] },
+  "edexcel-statistics": { board: "Edexcel", code: "1ST0", name: "Statistics", icon: "📊", key: "statistics", topics: [] },
   "economics-0455":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
   "caie-economics":   { board: "CAIE", code: "0455", name: "Economics", icon: "📊", key: "economics", topics: ECONOMICS },
 };

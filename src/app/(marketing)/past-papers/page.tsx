@@ -55,6 +55,7 @@ const subjects = [
   { name: "Edexcel Business 4BS1", slug: "edexcel-business-4bs1", icon: "📊" },
   { name: "Edexcel Economics 4EC1", slug: "edexcel-economics-4ec1", icon: "📈" },
   { name: "Edexcel Geography 4GE1", slug: "edexcel-geography-4ge1", icon: "🌍" },
+  { name: "Edexcel Statistics 1ST0", slug: "edexcel-statistics-1st0", icon: "📊" },
 ];
 
 export default function PastPapersPage() {

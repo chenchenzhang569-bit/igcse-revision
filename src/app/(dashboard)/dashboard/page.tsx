@@ -36,6 +36,7 @@ const SUBJECT_LABELS: Record<string, string> = {
   "edexcel-chemistry-4ch1": "Chemistry 4CH1",
   "edexcel-biology-4bi1": "Biology 4BI1",
   "edexcel-mathematics-4ma1": "Mathematics A 4MA1",
+  "edexcel-statistics-1st0": "Statistics 1ST0",
 };
 
 // Sort subjects: CAIE first, then Edexcel — and add board prefix

@@ -53,6 +53,7 @@ const DATA: Record<string, { board: string; code: string; name: string; icon: st
   "edexcel-business-4bs1": { board: "Edexcel", code: "4BS1", name: "Business Studies", icon: "📊" },
   "edexcel-economics-4ec1": { board: "Edexcel", code: "4EC1", name: "Economics", icon: "📈" },
   "edexcel-geography-4ge1": { board: "Edexcel", code: "4GE1", name: "Geography", icon: "🌍" },
+  "edexcel-statistics-1st0": { board: "Edexcel", code: "1ST0", name: "Statistics", icon: "📊" },
 };
 
 type PastPaper = { id: string; title: string; year: number; season: string; paper_number: number; paper_type: string; file_url: string };

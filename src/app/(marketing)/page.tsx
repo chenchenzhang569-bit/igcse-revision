@@ -31,6 +31,7 @@ const boards = [
       { name: "Chemistry 4CH1", slug: "edexcel-chemistry-4ch1" },
       { name: "Biology 4BI1", slug: "edexcel-biology-4bi1" },
       { name: "Mathematics 4MA1", slug: "edexcel-mathematics-4ma1" },
+      { name: "Statistics 1ST0", slug: "edexcel-statistics-1st0" },
     ],
   },
 ];
