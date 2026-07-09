@@ -312,7 +312,7 @@ export default async function SubtopicPage({
 
     if (filterVal) {
       // Determine if this subject should fetch questions from R2 instead of DB
-      const useR2Questions = slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1";
+      const useR2Questions = slug === "edexcel-mathematics-4ma1" || slug === "edexcel-mathematics-higher-4ma1" || slug === "edexcel-further-maths-4pm1" || slug === "edexcel-economics-4ec1" || slug === "edexcel-geography-4ge1" || slug === "edexcel-statistics-1st0";
       // Fetch notes, questions, and past_papers in parallel
       const [notesArr, allQs, papers] = await Promise.all([
         fetch(`${API}/notes?select=*&${filterCol}=eq.${filterVal}&order=sort_order&limit=20`, { headers: H, cache: "no-store" })
@@ -326,6 +326,7 @@ export default async function SubtopicPage({
                   "edexcel-further-maths-4pm1": "igcse/maths/edexcel/sme-questions",
                   "edexcel-economics-4ec1": "igcse/economics/edexcel/sme-questions",
                   "edexcel-geography-4ge1": "igcse/geography/edexcel/sme-questions",
+                  "edexcel-statistics-1st0": "igcse/statistics/edexcel/sme-questions",
                 };
                 const basePath = R2_PATHS[slug];
                 if (!basePath) return [];
@@ -455,8 +456,8 @@ export default async function SubtopicPage({
           topicSlug={topicSlug}
           bugContext={{
             board: "Edexcel",
-            subject: subjectKey === "business" ? "Business" : subjectKey === "geography" ? "Geography" : subjectKey === "economics" ? "Economics" : "Mathematics",
-            code: slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : slug.includes("mathematics-higher") ? "4ma1" : slug.includes("mathematics") ? "4ma1" : slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1",
+            subject: subjectKey === "business" ? "Business" : subjectKey === "geography" ? "Geography" : subjectKey === "economics" ? "Economics" : subjectKey === "statistics" ? "Statistics" : "Mathematics",
+            code: slug.includes("further-maths") ? "4pm1" : slug.includes("business") ? "4bs1" : slug.includes("economics") ? "4ec1" : slug.includes("geography") ? "4ge1" : slug.includes("statistics") ? "1st0" : slug.includes("mathematics-higher") ? "4ma1" : slug.includes("mathematics") ? "4ma1" : slug.includes("physics") ? "4ph1" : slug.includes("chemistry") ? "4ch1" : slug.includes("biology") ? "4bi1" : "4ma1",
             topicName: topicDisplay,
           }}
         />
