@@ -134,14 +134,18 @@ function renderStemWithTables(stem: string): string {
 
 // ─── Sub-part parsing ───
 interface SubPart { label: string; text: string; hasChildren: boolean; }
+function stripBoldMarkers(text: string): string {
+  return text.replace(/\\*\\*/g, '').trim();
+}
+
 function parseSubParts(stem: string): SubPart[] {
   if (!stem) return [];
 
   const isRoman = (s: string) => /^[ivx]+$/i.test(s);
 
-  // Find all markers
+  // Find all markers — handle both (a) and **(a)** format
   const allMarkers: { idx: number; label: string; raw: string; end: number }[] = [];
-  const re = /([ \t]*)(\([a-z]+\)|[ivxIVX]+\))\s*/gm;
+  const re = /(?:\\*{2})?([ \\t]*)(\\([a-z]+\\)|[ivxIVX]+\\))\\s*/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stem)) !== null) {
     allMarkers.push({
@@ -198,14 +202,13 @@ function parseSubParts(stem: string): SubPart[] {
       // Children
       for (const ch of children) {
         const cText = stem.slice(ch.idx + ch.raw.length, ch.end).trim()
-          .replace(/\s*\[\d+\]\s*$/m, "").trim();
+                      .replace(/(?:\*{2})?\[(Total|total)[^\]]*\](?:\*{2})?\s*$/m, '').trim();
         parts.push({ label: ch.label, text: cText, hasChildren: false });
       }
       i = j;
     } else {
-      // Leaf
       const text = stem.slice(mk.idx + mk.raw.length, mk.end).trim()
-        .replace(/\s*\[\d+\]\s*$/m, "").trim();
+        .replace(/(?:\*{2})?\[(Total|total)[^\]]*\](?:\*{2})?\s*$/m, '').trim();
       parts.push({ label: mk.label, text, hasChildren: false });
       i++;
     }
@@ -790,7 +793,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                       </p>
                       {sp.text && (
                         <div className="prose prose-sm max-w-none text-gray-700"
-                          dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
+                          dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(stripBoldMarkers(sp.text))) }} />
                       )}
                     </div>
                   );
@@ -816,7 +819,7 @@ export default function TopicQuestionsClient({ topicId, preloadedQuestions, bugC
                     </p>
                     {sp.text && (
                       <div className="prose prose-sm max-w-none text-gray-700 mb-2"
-                        dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(sp.text)) }} />
+                        dangerouslySetInnerHTML={{ __html: renderMath(renderStemWithTables(stripBoldMarkers(sp.text))) }} />
                     )}
                     {isMcqSubPart ? (
                       <div className="space-y-1.5 mt-2">
